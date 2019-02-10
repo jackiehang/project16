@@ -24,9 +24,9 @@
    PARTICULAR PURPOSE. 
 */
 
-package proj10LiLianKeithHardyZhou.bantam.ast;
+package proj11DeGrawLian.bantam.ast;
 
-import proj10LiLianKeithHardyZhou.bantam.visitor.Visitor;
+import proj11DeGrawLian.bantam.visitor.Visitor;
 
 
 /**
@@ -61,7 +61,7 @@ public abstract class Stmt extends ASTNode {
      *
      * @param v bantam.visitor object
      * @return result of visiting this node
-     * @see proj10LiLianKeithHardyZhou.bantam.visitor.Visitor
+     * @see proj11DeGrawLian.bantam.visitor.Visitor
      */
     abstract public Object accept(Visitor v);
 }

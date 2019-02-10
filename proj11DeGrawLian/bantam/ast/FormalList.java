@@ -24,9 +24,9 @@
    PARTICULAR PURPOSE. 
 */
 
-package proj10LiLianKeithHardyZhou.bantam.ast;
+package proj11DeGrawLian.bantam.ast;
 
-import proj10LiLianKeithHardyZhou.bantam.visitor.Visitor;
+import proj11DeGrawLian.bantam.visitor.Visitor;
 
 /**
  * The <tt>FormalList</tt> class represents a list of formal parameters.
@@ -49,7 +49,7 @@ public class FormalList extends ListNode {
      *
      * @param v bantam.visitor object
      * @return result of visiting this node
-     * @see proj10LiLianKeithHardyZhou.bantam.visitor.Visitor
+     * @see proj11DeGrawLian.bantam.visitor.Visitor
      */
     public Object accept(Visitor v) {
         return v.visit(this);

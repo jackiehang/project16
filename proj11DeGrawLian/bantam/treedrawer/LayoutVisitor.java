@@ -16,10 +16,10 @@
  * --changed all the visit methods to work with the Visitor class
  */
 
-package proj10LiLianKeithHardyZhou.bantam.treedrawer;
+package proj11DeGrawLian.bantam.treedrawer;
 
-import proj10LiLianKeithHardyZhou.bantam.ast.*;
-import proj10LiLianKeithHardyZhou.bantam.visitor.Visitor;
+import proj11DeGrawLian.bantam.ast.*;
+import proj11DeGrawLian.bantam.visitor.Visitor;
 
 import java.awt.*;
 

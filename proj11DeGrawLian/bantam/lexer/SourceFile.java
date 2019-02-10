@@ -14,9 +14,9 @@
  * Modified by Dale Skrien, Fall 2018
  */
 
-package proj10LiLianKeithHardyZhou.bantam.lexer;
+package proj11DeGrawLian.bantam.lexer;
 
-import proj10LiLianKeithHardyZhou.bantam.util.CompilationException;
+import proj11DeGrawLian.bantam.util.CompilationException;
 
 import java.io.*;
 

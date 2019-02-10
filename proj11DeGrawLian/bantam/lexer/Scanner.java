@@ -4,15 +4,15 @@
  * Project 9
  * Date: November 20, 2018
  */
-package proj10LiLianKeithHardyZhou.bantam.lexer;
+package proj11DeGrawLian.bantam.lexer;
 
 import java.io.Reader;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Map;
-import proj10LiLianKeithHardyZhou.bantam.util.ErrorHandler;
-import proj10LiLianKeithHardyZhou.bantam.util.Error;
-import proj10LiLianKeithHardyZhou.bantam.util.CompilationException;
+import proj11DeGrawLian.bantam.util.ErrorHandler;
+import proj11DeGrawLian.bantam.util.Error;
+import proj11DeGrawLian.bantam.util.CompilationException;
 
 
 public class Scanner

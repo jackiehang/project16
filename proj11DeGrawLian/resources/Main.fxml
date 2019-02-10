@@ -22,19 +22,19 @@
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.VBox?>
-<?import proj10LiLianKeithHardyZhou.Console?>
+<?import proj11DeGrawLian.Console?>
 <?import org.fxmisc.flowless.VirtualizedScrollPane?>
 
 <?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TreeView?>
-<?import proj10LiLianKeithHardyZhou.CodeTabPane?>
+<?import proj11DeGrawLian.CodeTabPane?>
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
       minWidth="-Infinity" prefHeight="800.0"
       prefWidth="1200.0" xmlns="http://javafx.com/javafx/8.0.181"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="proj10LiLianKeithHardyZhou.MasterController"
+      fx:controller="proj11DeGrawLian.MasterController"
       fx:id = "vBox"
       stylesheets = "@Main.css">
     <MenuBar>

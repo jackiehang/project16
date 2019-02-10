@@ -15,9 +15,9 @@
  * January, 2014
  */
 
-package proj10LiLianKeithHardyZhou.bantam.treedrawer;
+package proj11DeGrawLian.bantam.treedrawer;
 
-import proj10LiLianKeithHardyZhou.bantam.ast.Program;
+import proj11DeGrawLian.bantam.ast.Program;
 
 import java.awt.*;
 
@@ -39,8 +39,8 @@ public class Drawer
 
         FontMetrics fontMetrics = frame.getFontMetrics(font);
 
-        proj10LiLianKeithHardyZhou.bantam.treedrawer.LayoutVisitor layout = new LayoutVisitor(fontMetrics);
-        proj10LiLianKeithHardyZhou.bantam.treedrawer.DrawingTree theDrawing = (DrawingTree) AST.accept(layout);
+        proj11DeGrawLian.bantam.treedrawer.LayoutVisitor layout = new LayoutVisitor(fontMetrics);
+        proj11DeGrawLian.bantam.treedrawer.DrawingTree theDrawing = (DrawingTree) AST.accept(layout);
         theDrawing.position(new Point(2048, 10));
         panel.setDrawing(theDrawing);
 
