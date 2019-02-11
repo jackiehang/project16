@@ -35,7 +35,8 @@ public class HelpMenuController{
         dialog.setTitle("About");
         dialog.setHeaderText(null);
         dialog.setContentText("Authors: \n" +
-                "Project 6/7/9: Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou\n" +
+                "Project 11: Iris Lian, Lucas DeGraw\n" +
+                "Project 6/7/9/10: Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou\n" +
                 "Project 5: Zena Abulhab, Paige Hanssen, Kyle Slager, Kevin Zhou\n" +
                 "Project 4: Kevin Ahn, Matt Jones, Jackie Hang, Kevin Zhou\n" +
                 "This application is a basic IDE with syntax highlighting.");

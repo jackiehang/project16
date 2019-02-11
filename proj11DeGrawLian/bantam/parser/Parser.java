@@ -407,7 +407,6 @@ public class Parser
                 return new AssignExpr(position,refName,name,this.parseExpression());
             }
             else if(left instanceof ArrayExpr){
-                System.out.println("getting here");
                 String refName = null;
                 if(((ArrayExpr) left).getRef() != null) {
                     refName = ((ArrayExpr) ((ArrayExpr) left).getRef()).getName();

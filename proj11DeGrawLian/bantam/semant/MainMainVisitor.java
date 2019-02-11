@@ -50,7 +50,7 @@ public class MainMainVisitor extends Visitor {
      * @return result of the visit
      */
     public Object visit(Method node) {
-//        super.visit(node); //TODO: does it still need to be visited?
+        super.visit(node); //TODO: does it still need to be visited?
 
         // get method name
         String methodName = node.getName();

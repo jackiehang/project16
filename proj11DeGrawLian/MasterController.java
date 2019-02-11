@@ -127,6 +127,9 @@ public class MasterController {
         if(toolbarController.scanIsDone()) {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
+            this.checkMainButton.setDisable(false);
+            this.checkStringButton.setDisable(false);
+            this.checkNumLocalButton.setDisable(false);
         }
         this.updateStructureView();
     }
@@ -143,6 +146,9 @@ public class MasterController {
         if(toolbarController.scanIsDone() && !this.codeTabPane.getTabs().isEmpty()) {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
+            this.checkMainButton.setDisable(false);
+            this.checkStringButton.setDisable(false);
+            this.checkNumLocalButton.setDisable(false);
         }
         this.updateStructureView();
         this.createDirectoryTree();
