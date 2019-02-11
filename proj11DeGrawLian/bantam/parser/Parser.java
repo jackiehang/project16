@@ -15,6 +15,7 @@ import static proj11DeGrawLian.bantam.lexer.Token.Kind.*;
 
 import proj11DeGrawLian.bantam.lexer.Scanner;
 import proj11DeGrawLian.bantam.lexer.Token;
+import proj11DeGrawLian.bantam.semant.NumLocalVarsVisitor;
 import proj11DeGrawLian.bantam.semant.StringConstantsVisitor;
 import proj11DeGrawLian.bantam.treedrawer.Drawer;
 import proj11DeGrawLian.bantam.util.Error;
@@ -81,6 +82,14 @@ public class Parser
 
                 // display the constants found
                 System.out.println("String constants found: " + strMap);
+
+
+                // create NumLocalVarsVisitor to get this data from the tree
+                NumLocalVarsVisitor numLocalVarsVisitor = new NumLocalVarsVisitor();
+
+                // get & show the map of (className.methodName, numLocalVars) pairs
+                Map localVarsMap = numLocalVarsVisitor.getNumLocalVars(program);
+                System.out.println("Local vars: " + localVarsMap);
 
             }catch(CompilationException e){
                 if(errorHandler.errorsFound()){
