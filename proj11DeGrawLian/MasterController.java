@@ -54,6 +54,9 @@ public class MasterController {
 
     @FXML private Button scanButton;
     @FXML private Button scanParseButton;
+    @FXML private Button checkMainButton;
+    @FXML private Button checkStringButton;
+    @FXML private Button checkNumLocalButton;
     @FXML private TreeView<String> directoryTree;
     @FXML private TreeView<String> fileStructureTree;
 
@@ -410,11 +413,14 @@ public class MasterController {
     }
 
     /**
-     * Disables the Compile, Compile and Run, and Stop buttons in the toolbar
+     * Disables the buttons in the toolbar
      */
     private void disableToolbar(){
       this.scanButton.setDisable(true);
       this.scanParseButton.setDisable(true);
+      this.checkMainButton.setDisable(true);
+      this.checkNumLocalButton.setDisable(true);
+      this.checkStringButton.setDisable(true);
    }
 
     /**
@@ -467,5 +473,23 @@ public class MasterController {
             }
         }
     }
+
+    /**
+     * Calls the handleCheckMain method in the toolbarController
+     */
+    @FXML
+    public void handleCheckMain(){toolbarController.handleCheckMain();}
+
+    /**
+     * Calls the handleCheckString method in the toolbarController
+     */
+    @FXML
+    public void handleCheckString(){toolbarController.handleCheckString();}
+
+    /**
+     * Calls the handleCheckNumLocal method in the toolbarController
+     */
+    @FXML
+    public void handleCheckNumLocal(){toolbarController.handleCheckNumLocal();}
 
 }

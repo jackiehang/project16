@@ -90,6 +90,9 @@
     <ToolBar>
         <Button fx:id ="scanButton" onAction="#handleScan" text = "Scan"/>
         <Button fx:id ="scanParseButton" onAction = "#handleScanAndParse" text = "Scan and Parse"/>
+        <Button fx:id ="checkMainButton" onAction = "#handleCheckMain" text = "Check Main"/>
+        <Button fx:id ="checkStringButton" onAction = "#handleCheckString" text = "Check string constants"/>
+        <Button fx:id ="checkNumLocalButton" onAction = "#handleCheckNumLocal" text = "Check number of local variables"/>
     </ToolBar>
     <SplitPane orientation="VERTICAL" focusTraversable = "true"
                dividerPositions="0.7" VBox.vgrow="ALWAYS" >

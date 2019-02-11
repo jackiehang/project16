@@ -25,8 +25,6 @@ public class StringConstantsVisitor extends Visitor {
         return stringMap;
     }
 
-
-
     /**
      * each time a ConstStringExpr node is found during the traversal,
      * this method is called to visit the node
@@ -41,7 +39,7 @@ public class StringConstantsVisitor extends Visitor {
         // get num constants in map
         int numStringsInMap = stringMap.size();
 
-        // build name
+        // build name TODO: unique name?
         String name = "StringConstant_" + Integer.toString(numStringsInMap);
 
         // get string value from ConstStringExpr node
