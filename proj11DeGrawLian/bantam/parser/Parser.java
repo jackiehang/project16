@@ -15,12 +15,16 @@ import static proj11DeGrawLian.bantam.lexer.Token.Kind.*;
 
 import proj11DeGrawLian.bantam.lexer.Scanner;
 import proj11DeGrawLian.bantam.lexer.Token;
+import proj11DeGrawLian.bantam.semant.StringConstantsVisitor;
+import proj11DeGrawLian.bantam.treedrawer.Drawer;
 import proj11DeGrawLian.bantam.util.Error;
 import proj11DeGrawLian.bantam.util.ErrorHandler;
 import proj11DeGrawLian.bantam.ast.*;
 import proj11DeGrawLian.bantam.util.CompilationException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class constructs an AST from a legal Bantam Java program.  If the
@@ -62,8 +66,22 @@ public class Parser
             Parser parser = new Parser(errorHandler);
 
             try {
-                parser.parse(filename);
-                System.out.println("Parsing Successful.");
+                Program program = parser.parse(filename);
+
+                // draw parse tree
+                Drawer drawer = new Drawer();
+                drawer.draw(filename, program);
+
+                // create new StringConstantsVisitor to get string constants from the tree
+                StringConstantsVisitor stringConstantsVisitor =
+                        new StringConstantsVisitor();
+
+                // get the map of name, string constant value pairs
+                Map strMap = stringConstantsVisitor.getStringConstants(program);
+
+                // display the constants found
+                System.out.println("String constants found: " + strMap);
+
             }catch(CompilationException e){
                 if(errorHandler.errorsFound()){
                     System.out.println(filename + ": Parsing Failed");
@@ -72,7 +90,7 @@ public class Parser
                         System.out.println(error.toString() + "\n");
                     }
                 }else{
-                    System.out.println("Invalid filename: "+filename);
+                    System.out.println(e);
                 }
             }
         }

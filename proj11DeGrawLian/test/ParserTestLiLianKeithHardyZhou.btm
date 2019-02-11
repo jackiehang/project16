@@ -8,6 +8,7 @@ class Main extends B{
 	var y = a.b().length;
 	var z = new ban();
 	cast(int,a+b.foo().get().bar(ab));
+	x = "hey";
 	return;
     }
     void bar(int y, int z) {
