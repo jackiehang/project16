@@ -39,7 +39,7 @@ public class StringConstantsVisitor extends Visitor {
         // get num constants in map
         int numStringsInMap = stringMap.size();
 
-        // build name TODO: unique name?
+        // build name
         String name = "StringConstant_" + Integer.toString(numStringsInMap);
 
         // get string value from ConstStringExpr node
