@@ -20,6 +20,7 @@ import javafx.application.Platform;
 import proj11DeGrawLian.bantam.ast.Program;
 import proj11DeGrawLian.bantam.parser.Parser;
 import proj11DeGrawLian.bantam.semant.MainMainVisitor;
+import proj11DeGrawLian.bantam.semant.NumLocalVarsVisitor;
 import proj11DeGrawLian.bantam.semant.StringConstantsVisitor;
 import proj11DeGrawLian.bantam.treedrawer.Drawer;
 import proj11DeGrawLian.bantam.util.CompilationException;
@@ -255,5 +256,9 @@ public class ToolbarController {
      */
     public void handleCheckNumLocal(){
         handleScanAndParse();
+        NumLocalVarsVisitor numLocalVarsVisitor = new NumLocalVarsVisitor();
+        Map<String,Integer> numVarsMap = numLocalVarsVisitor.getNumLocalVars(AST);
+        Platform.runLater(() -> this.console.writeToConsole(Arrays.toString(numVarsMap.entrySet().toArray()),
+                "Output"));
     }
 }
