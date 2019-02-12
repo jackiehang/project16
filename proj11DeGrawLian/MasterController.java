@@ -481,21 +481,21 @@ public class MasterController {
     }
 
     /**
-     * Calls the handleCheckMain method in the toolbarController
+     * Calls the handleChecks method in the toolbarController
      */
     @FXML
-    public void handleCheckMain(){toolbarController.handleCheckMain();}
+    public void handleCheckMain(){toolbarController.handleChecks("checkMain");}
 
     /**
-     * Calls the handleCheckString method in the toolbarController
+     * Calls the handleChecks method in the toolbarController
      */
     @FXML
-    public void handleCheckString(){toolbarController.handleCheckString();}
+    public void handleCheckString(){toolbarController.handleChecks("checkString");}
 
     /**
-     * Calls the handleCheckNumLocal method in the toolbarController
+     * Calls the handleChecks method in the toolbarController
      */
     @FXML
-    public void handleCheckNumLocal(){toolbarController.handleCheckNumLocal();}
+    public void handleCheckNumLocal(){toolbarController.handleChecks("checkNumLoc");}
 
 }
