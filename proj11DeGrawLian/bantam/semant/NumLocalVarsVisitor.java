@@ -29,7 +29,7 @@ public class NumLocalVarsVisitor extends Visitor {
      */
     public Map<String,Integer> getNumLocalVars(Program ast) {
         ast.accept(this);
-        return completeLocalVarsMap;
+        return this.completeLocalVarsMap;
     }
 
 

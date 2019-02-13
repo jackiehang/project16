@@ -99,7 +99,7 @@ public class Parser
                         System.out.println(error.toString() + "\n");
                     }
                 }else{
-                    System.out.println(e);
+                    throw(e);
                 }
             }
         }
@@ -678,23 +678,15 @@ public class Parser
 
     //-----------------------------------
     /*
-     * <Primary> ::= ( <Expression> ) <ExprSuffix> | <IntegerConst> | <BooleanConst> |
-     *                               <StringConst> <IdSuffix> | <Identifier> <Suffix>
-     * <IdSuffix>    ::=  . <Identifier> <Suffix> | EMPTY
-     * <IndexSuffix> ::=  [ <Expression> ] <IdSuffix> | EMPTY
-     * <DispSuffix>  ::=  ( <Arguments> ) <IdSuffix> | EMPTY
-     * <ExprSuffix>  ::=  <IdSuffix> | <IndexSuffix>
-     * <Suffix>      ::=  <IdSuffix> | <DispSuffix> | <IndexSuffix>
-     */
-
-    /*
-	 * <Primary> ::= ( <Expression> ) | <IntegerConst> | <BooleanConst> |
-     *                               <StringConst> | <VarExpr> | <DispatchExpr>
-     * <VarExpr> ::= <VarExprPrefix> <Identifier> <VarExprSuffix>
-     * <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
-     * <VarExprSuffix> ::= [ <Expr> ] | EMPTY
-     * <DispatchExpr> ::= <DispatchExprPrefix> <Identifier> ( <Arguments> )
-     * <DispatchExprPrefix> ::= <Primary> . | EMPTY
+    <Primary> ::=  <IntegerConst>
+             | <BooleanConst>
+             | <StringConst> <Suffix>
+             | <Identifier> <Suffix>
+             | ( <Expression> ) <Suffix>
+      <Suffix> ::=   . <Identifier> <Suffix>
+             | [ <Expression> ] <Suffix>
+             | ( <Arguments> ) <Suffix>
+             | EMPTY
      */
 	private Expr parsePrimary() {
 	    int position = this.currentToken.position;
@@ -720,58 +712,8 @@ public class Parser
 
                 //varExpr case
                 //check if the varExpr has suffix
-                if(this.currentToken.kind == LBRACKET){
-                    updateCurrentToken();
-                    Expr varExprSuffix = this.parseExpression();
-                    this.checkToken(RBRACKET, "When parsing varExpr, \"]\" expected");
-                    tempExpr= new ArrayExpr(position, null, identifier, varExprSuffix);
-                }
+                tempExpr = parseIdentifierSuffix(tempExpr, position, identifier);
 
-                //DispatchExpr w/o prefix case
-                else if(this.currentToken.kind==LPAREN) {
-                    updateCurrentToken();
-                    ExprList argument = parseArguments();
-                    updateCurrentToken();
-                    tempExpr = new DispatchExpr(position, null, identifier, argument);
-                }
-
-                //dispatch or var with prefix
-                else if(identifier.toUpperCase().equals("THIS") ||
-                        identifier.toUpperCase().equals("SUPER")){
-                    VarExpr varExprPrefix = new VarExpr(position, null, identifier);
-                    //VarExpr with prefix
-                    if(this.currentToken.kind==DOT){
-
-                        updateCurrentToken();
-                        identifier=parseIdentifier();
-
-                        //check if VarExpr has suffix
-                        if(this.currentToken.kind == LBRACKET){
-                            updateCurrentToken();
-                            Expr varExprSuffix = this.parseExpression();
-                            this.checkToken(RBRACKET, "When parsing Primary,\"]\" expected");
-                            tempExpr= new ArrayExpr(position, varExprPrefix, identifier, varExprSuffix);
-                        }
-                        else if(this.currentToken.kind == LPAREN){
-                            updateCurrentToken();
-                            ExprList argument = parseArguments();
-                            updateCurrentToken();
-                            tempExpr = new DispatchExpr(position, varExprPrefix, identifier, argument);
-                        }
-                        else if (identifier.equals("length")){
-                            return new VarExpr(position, varExprPrefix,identifier);
-                        }
-                        else{
-                            tempExpr = new VarExpr(position,varExprPrefix,identifier);
-                        }
-                    }
-                    else{
-                        tempExpr = varExprPrefix;
-                    }
-                }
-                else {
-                    tempExpr = new VarExpr(position, null, identifier);
-                }
                 break;
         }
 
@@ -779,19 +721,36 @@ public class Parser
         while(currentToken.kind == DOT){
             updateCurrentToken();
             String identifier = parseIdentifier();
-            if(identifier.equals("length") && this.currentToken.kind != LPAREN){
-                return new VarExpr(position, tempExpr,identifier);
-            }
-            this.checkToken(LPAREN, "When parsing Dispatch, \"(\" expected");
-            ExprList argument = parseArguments();
-            //this completes a <identifier1 (arguments) > cycle and we update the tempExpr
-            tempExpr = new DispatchExpr(position, tempExpr, identifier, argument);
-            updateCurrentToken();//go to next dot if there is one
+            tempExpr = parseIdentifierSuffix(tempExpr, position, identifier);
         }
         return tempExpr;
 
     }
 
+//
+//    <Suffix> ::=   . <Identifier> <Suffix>
+//             | [ <Expression> ] <Suffix>
+//             | ( <Arguments> ) <Suffix>
+//             | EMPTY
+//
+    private Expr parseIdentifierSuffix(Expr tempExpr, int position, String identifier) {
+        if (this.currentToken.kind == LBRACKET) {
+            updateCurrentToken();
+            Expr index = parseExpression();
+            checkToken(RBRACKET, "When parsing Dispatch, \"]\" expected");
+            tempExpr = new ArrayExpr(this.currentToken.position, tempExpr, identifier, index);
+        }
+        else if(this.currentToken.kind == LPAREN){
+            updateCurrentToken();
+            ExprList args = parseArguments();
+            updateCurrentToken();
+            tempExpr = new DispatchExpr(this.currentToken.position, tempExpr, identifier, args);
+        }
+        else {
+            tempExpr = new VarExpr(position, tempExpr, identifier);
+        }
+        return tempExpr;
+    }
 
     /*
 	 * <Arguments> ::= EMPTY | <Expression> <MoreArgs>
@@ -934,4 +893,3 @@ public class Parser
         updateCurrentToken();
     }
 }
-
