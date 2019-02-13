@@ -31,7 +31,8 @@ public class NumLocalVarsVisitor extends Visitor {
 
 
     /**
-     * returns a map of ("className.MethodName",numLocalVarsInMethod) pairs
+     * traverses the input AST and returns the map
+     *
      * @param ast an abstract syntax tree generated from Parser.parse()
      * @return a Map of ("className.MethodName",numLocalVarsInMethod) pairs
      */
@@ -42,6 +43,7 @@ public class NumLocalVarsVisitor extends Visitor {
 
 
     /**
+     * called each time a Class_ node is visited
      *
      * @param node the Class_ node being visited
      * @return result of the visit
@@ -70,6 +72,7 @@ public class NumLocalVarsVisitor extends Visitor {
 
 
     /**
+     * called each time a Method node is visited
      *
      * @param node the Method node being visited
      * @return result of the visit
@@ -94,6 +97,7 @@ public class NumLocalVarsVisitor extends Visitor {
 
 
     /**
+     * called each time a DeclStmt node is visited
      *
      * @param node the DeclExpr node being visited
      * @return result of the visit

@@ -22,30 +22,31 @@ import java.util.Map;
 public class StringConstantsVisitor extends Visitor {
 
     // create the map of (StringConstant_#, stringConstantValue) pairs
-    private HashMap<String,String> stringMap = new HashMap<>();
+    private HashMap<String,String> stringConstantsMap = new HashMap<>();
 
     /**
-     * returns the map of strings
+     *
      * @param ast an abstract syntax tree generated from Parser.parse()
-     * @return the number of string constants found in the program
+     * @return the HashMap of string constants
      */
     public Map<String,String> getStringConstants(Program ast) {
         // traverse the abstract syntax tree
         ast.accept(this);
 
-        return stringMap;
+        return stringConstantsMap;
     }
 
     /**
      * each time a ConstStringExpr node is found during the traversal,
      * this method is called to visit the node
+     *
      * @param node the string constant expression node
-     * @return null, because this node is always a leaf of the tree
+     * @return the result of the traversal
      */
     public Object visit(ConstStringExpr node) {
 
         // get num constants in map
-        int numStringsInMap = stringMap.size();
+        int numStringsInMap = stringConstantsMap.size();
 
         // build name
         String name = "StringConstant_" + Integer.toString(numStringsInMap);
@@ -54,7 +55,7 @@ public class StringConstantsVisitor extends Visitor {
         String value = node.getConstant();
 
         // add name, value pair to map
-        stringMap.put(name, value);
+        stringConstantsMap.put(name, value);
 
         return null;
     }

@@ -725,12 +725,13 @@ public class Parser
     }
 
     /*
-    <Suffix> ::=   . <Identifier> <Suffix>
-             | [ <Expression> ] <Suffix>
-             | ( <Arguments> ) <Suffix>
-             | EMPTY
-    */
+     * <Suffix> ::=   . <Identifier> <Suffix>
+     *                  | [ <Expression> ] <Suffix>
+     *                  | ( <Arguments> ) <Suffix>
+     *                  | EMPTY
+     */
     private Expr parseIdentifierSuffix(Expr tempExpr, int position, String identifier) {
+
         if (this.currentToken.kind == LBRACKET) {
             updateCurrentToken();
             Expr index = parseExpression();
