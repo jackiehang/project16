@@ -72,24 +72,6 @@ public class Parser
                 Drawer drawer = new Drawer();
                 drawer.draw(filename, program);
 
-                // create new StringConstantsVisitor to get string constants from the tree
-                StringConstantsVisitor stringConstantsVisitor =
-                        new StringConstantsVisitor();
-
-                // get the map of name, string constant value pairs
-                Map strMap = stringConstantsVisitor.getStringConstants(program);
-
-                // display the constants found
-                System.out.println("String constants found: " + strMap);
-
-
-                // create NumLocalVarsVisitor to get this data from the tree
-                NumLocalVarsVisitor numLocalVarsVisitor = new NumLocalVarsVisitor();
-
-                // get & show the map of (className.methodName, numLocalVars) pairs
-                Map localVarsMap = numLocalVarsVisitor.getNumLocalVars(program);
-                System.out.println("Local vars: " + localVarsMap);
-
             }catch(CompilationException e){
                 if(errorHandler.errorsFound()){
                     System.out.println(filename + ": Parsing Failed");
