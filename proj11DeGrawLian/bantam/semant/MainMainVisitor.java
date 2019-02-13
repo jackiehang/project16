@@ -1,3 +1,11 @@
+/*
+ * File: MainMainVisitor.java
+ * Names: Lucas DeGraw and Iris Lian
+ * Class: CS 461
+ * Project 11
+ * Date: February 12, 2019
+ */
+
 package proj11DeGrawLian.bantam.semant;
 
 import proj11DeGrawLian.bantam.ast.*;

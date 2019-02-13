@@ -12,6 +12,10 @@
  * Edited By: Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
  * Project 6/7/9
  * Date: October 26, 2018/ November 3, 2018/ November 20, 2018
+ * ---------------------------
+ * Edited By: Lucas DeGraw, Iris Lian
+ * Project 11
+ * Date: October 12, 2018
  */
 
 package proj11DeGrawLian;

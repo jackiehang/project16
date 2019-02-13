@@ -23,7 +23,6 @@ import proj11DeGrawLian.bantam.util.ErrorHandler;
 import proj11DeGrawLian.bantam.ast.*;
 import proj11DeGrawLian.bantam.util.CompilationException;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

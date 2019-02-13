@@ -10,8 +10,12 @@
  * Date: October 12, 2018
  * ---------------------------
  * Edited By: Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
- * Project 6/7/9
+ * Project 6/7/9/10
  * Date: October 26, 2018/ November 3, 2018/ November 20, 2018
+ * ---------------------------
+ * Edited By: Lucas DeGraw, Iris Lian
+ * Project 11
+ * Date: October 12, 2018
  */
 
 package proj11DeGrawLian;
@@ -29,7 +33,6 @@ import proj11DeGrawLian.bantam.util.Error;
 import proj11DeGrawLian.bantam.lexer.Scanner;
 import proj11DeGrawLian.bantam.lexer.Token;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
