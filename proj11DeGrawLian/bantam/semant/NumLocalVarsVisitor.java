@@ -87,10 +87,10 @@ public class NumLocalVarsVisitor extends Visitor {
 
     /**
      *
-     * @param node the AssignExpr node being visited
+     * @param node the DeclStmt node being visited
      * @return result of the visit
      */
-    public Object visit(AssignExpr node) {
+    public Object visit(DeclStmt node) {
         // increment num local vars found in the current method
         this.numLocalVarsFound++;
 

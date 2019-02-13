@@ -223,10 +223,10 @@ public class ToolbarController {
         boolean hasMain = mainMainVisitor.hasMain(AST);
         String msg = "a Main class with a main method in it that has void return type and has no parameters.\n";
         if(hasMain) {
-            Platform.runLater(() -> this.console.writeToConsole("The program contains " + msg,
+            Platform.runLater(() -> this.console.writeToConsole("\nThe program contains " + msg,
                     "Output"));
         }else{
-            Platform.runLater(() -> this.console.writeToConsole("The program does not contain " + msg,
+            Platform.runLater(() -> this.console.writeToConsole("\nThe program does not contain " + msg,
                     "Output"));
         }
     }
@@ -234,15 +234,28 @@ public class ToolbarController {
     private void handleCheckStringHelper(){
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
         Map<String,String> stringMap = stringConstantsVisitor.getStringConstants(AST);
-        Platform.runLater(() -> this.console.writeToConsole(Arrays.toString(stringMap.entrySet().toArray())+"\n",
+        Platform.runLater(() -> this.console.writeToConsole("\nString Constants:\n",
                 "Output"));
+        // loop through key, value pairs of map for current
+        stringMap.forEach( (id, string) -> {
+            String pair = id + " : " + string;
+            Platform.runLater(() -> this.console.writeToConsole(pair+"\n",
+                    "Output"));
+        });
     }
 
     private void handleCheckNumLocalHelper(){
         NumLocalVarsVisitor numLocalVarsVisitor = new NumLocalVarsVisitor();
         Map<String,Integer> numVarsMap = numLocalVarsVisitor.getNumLocalVars(AST);
-        Platform.runLater(() -> this.console.writeToConsole(Arrays.toString(numVarsMap.entrySet().toArray())+"\n",
+        Platform.runLater(() -> this.console.writeToConsole("\nNumber of Local Variables:\n",
                 "Output"));
+        // loop through key, value pairs of map for current
+        numVarsMap.forEach( (classMethod, numLocalVars) -> {
+            String pair = classMethod + " : " + numLocalVars;
+            Platform.runLater(() -> this.console.writeToConsole(pair+"\n",
+                    "Output"));
+        });
+
     }
 
     /**
