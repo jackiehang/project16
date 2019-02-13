@@ -33,9 +33,6 @@ public class StringConstantsVisitor extends Visitor {
      */
     public Object visit(ConstStringExpr node) {
 
-        // call Visitor's visit() method for a ConstStringExpr node
-        super.visit(node);
-
         // get num constants in map
         int numStringsInMap = stringMap.size();
 

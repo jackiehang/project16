@@ -84,7 +84,7 @@ public class NumLocalVarsVisitor extends Visitor {
 
     /**
      *
-     * @param node the AssignExpr node being visited
+     * @param node the DeclExpr node being visited
      * @return result of the visit
      */
     public Object visit(DeclStmt node) {
