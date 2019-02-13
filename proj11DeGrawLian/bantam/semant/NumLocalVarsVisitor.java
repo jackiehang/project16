@@ -26,7 +26,7 @@ public class NumLocalVarsVisitor extends Visitor {
      */
     public Map<String,Integer> getNumLocalVars(Program ast) {
         ast.accept(this);
-        return completeLocalVarsMap;
+        return this.completeLocalVarsMap;
     }
 
 
@@ -87,7 +87,7 @@ public class NumLocalVarsVisitor extends Visitor {
      * @param node the AssignExpr node being visited
      * @return result of the visit
      */
-    public Object visit(AssignExpr node) {
+    public Object visit(DeclStmt node) {
 
         // call parent visit method
         super.visit(node);
