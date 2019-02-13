@@ -221,7 +221,10 @@ public class ToolbarController {
         }
     }
 
-    private void handleCheckMainHelper(){
+    /**
+     *  print the output of the hasMain method in the console pane in a readable format.
+     */
+    private void handleCheckMain(){
         MainMainVisitor mainMainVisitor = new MainMainVisitor();
         boolean hasMain = mainMainVisitor.hasMain(AST);
         String msg = "a Main class with a main method in it that has void return type and has no parameters.\n";
@@ -234,7 +237,10 @@ public class ToolbarController {
         }
     }
 
-    private void handleCheckStringHelper(){
+    /**
+     *  print the output of the getStringConstants method in the console pane in a readable format.
+     */
+    private void handleCheckString(){
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
         Map<String,String> stringMap = stringConstantsVisitor.getStringConstants(AST);
         Platform.runLater(() -> this.console.writeToConsole("\nString Constants:\n",
@@ -247,7 +253,10 @@ public class ToolbarController {
         });
     }
 
-    private void handleCheckNumLocalHelper(){
+    /**
+     *  print the output of the getNumLocalVars method in the console pane in a readable format.
+     */
+    private void handleCheckNumLocal(){
         NumLocalVarsVisitor numLocalVarsVisitor = new NumLocalVarsVisitor();
         Map<String,Integer> numVarsMap = numLocalVarsVisitor.getNumLocalVars(AST);
         Platform.runLater(() -> this.console.writeToConsole("\nNumber of Local Variables:\n",
@@ -277,11 +286,11 @@ public class ToolbarController {
                 AST = curFutureTask.get();
                 if(AST != null){
                     switch (method){
-                        case "checkMain": handleCheckMainHelper();
+                        case "checkMain": handleCheckMain();
                             break;
-                        case "checkString": handleCheckStringHelper();
+                        case "checkString": handleCheckString();
                             break;
-                        case "checkNumLoc": handleCheckNumLocalHelper();
+                        case "checkNumLoc": handleCheckNumLocal();
                             break;
                     }
                 }
