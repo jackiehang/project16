@@ -677,7 +677,15 @@ public class Parser
 
 
     //-----------------------------------
-
+    /*
+     * <Primary> ::= ( <Expression> ) <ExprSuffix> | <IntegerConst> | <BooleanConst> |
+     *                               <StringConst> <IdSuffix> | <Identifier> <Suffix>
+     * <IdSuffix>    ::=  . <Identifier> <Suffix> | EMPTY
+     * <IndexSuffix> ::=  [ <Expression> ] <IdSuffix> | EMPTY
+     * <DispSuffix>  ::=  ( <Arguments> ) <IdSuffix> | EMPTY
+     * <ExprSuffix>  ::=  <IdSuffix> | <IndexSuffix>
+     * <Suffix>      ::=  <IdSuffix> | <DispSuffix> | <IndexSuffix>
+     */
 
     /*
 	 * <Primary> ::= ( <Expression> ) | <IntegerConst> | <BooleanConst> |

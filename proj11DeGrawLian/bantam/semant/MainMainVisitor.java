@@ -3,6 +3,10 @@ package proj11DeGrawLian.bantam.semant;
 import proj11DeGrawLian.bantam.ast.*;
 import proj11DeGrawLian.bantam.visitor.Visitor;
 
+/**
+ * A subclass of the Visitor class, has the public method hasMain
+ * @author Iris Lian
+ */
 public class MainMainVisitor extends Visitor {
     private boolean hasMain = false;
 
@@ -50,8 +54,6 @@ public class MainMainVisitor extends Visitor {
      * @return result of the visit
      */
     public Object visit(Method node) {
-        super.visit(node); //TODO: does it still need to be visited?
-
         // get method name
         String methodName = node.getName();
 
