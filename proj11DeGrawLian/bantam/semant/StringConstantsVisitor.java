@@ -1,3 +1,11 @@
+/*
+ * File: StringConstantsVisitor.java
+ * Names: Lucas DeGraw and Iris Lian
+ * Class: CS 461
+ * Project 11
+ * Date: February 12, 2019
+ */
+
 package proj11DeGrawLian.bantam.semant;
 
 import proj11DeGrawLian.bantam.ast.ConstStringExpr;
@@ -7,18 +15,21 @@ import proj11DeGrawLian.bantam.visitor.Visitor;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A subclass of the Visitor class, has the public method getStringConstants
+ * @author Lucas DeGraw
+ */
 public class StringConstantsVisitor extends Visitor {
 
     // create the map of (StringConstant_#, stringConstantValue) pairs
     private HashMap<String,String> stringMap = new HashMap<>();
 
     /**
-     *
+     * returns the map of strings
      * @param ast an abstract syntax tree generated from Parser.parse()
      * @return the number of string constants found in the program
      */
     public Map<String,String> getStringConstants(Program ast) {
-
         // traverse the abstract syntax tree
         ast.accept(this);
 

@@ -23,7 +23,6 @@ import proj11DeGrawLian.bantam.util.ErrorHandler;
 import proj11DeGrawLian.bantam.ast.*;
 import proj11DeGrawLian.bantam.util.CompilationException;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -677,17 +676,14 @@ public class Parser
 
 
     //-----------------------------------
-
     /*
-    <Primary> ::=  <IntegerConst>
-             | <BooleanConst>
-             | <StringConst> <Suffix>
-             | <Identifier> <Suffix>
-             | ( <Expression> ) <Suffix>
-      <Suffix> ::=   . <Identifier> <Suffix>
-             | [ <Expression> ] <Suffix>
-             | ( <Arguments> ) <Suffix>
-             | EMPTY
+     * <Primary> ::= ( <Expression> ) <ExprSuffix> | <IntegerConst> | <BooleanConst> |
+     *                               <StringConst> <IdSuffix> | <Identifier> <Suffix>
+     * <IdSuffix>    ::=  . <Identifier> <Suffix> | EMPTY
+     * <IndexSuffix> ::=  [ <Expression> ] <IdSuffix> | EMPTY
+     * <DispSuffix>  ::=  ( <Arguments> ) <IdSuffix> | EMPTY
+     * <ExprSuffix>  ::=  <IdSuffix> | <IndexSuffix>
+     * <Suffix>      ::=  <IdSuffix> | <DispSuffix> | <IndexSuffix>
      */
 	private Expr parsePrimary() {
 	    int position = this.currentToken.position;
@@ -728,12 +724,12 @@ public class Parser
 
     }
 
-//
-//    <Suffix> ::=   . <Identifier> <Suffix>
-//             | [ <Expression> ] <Suffix>
-//             | ( <Arguments> ) <Suffix>
-//             | EMPTY
-//
+    /*
+    <Suffix> ::=   . <Identifier> <Suffix>
+             | [ <Expression> ] <Suffix>
+             | ( <Arguments> ) <Suffix>
+             | EMPTY
+    */
     private Expr parseIdentifierSuffix(Expr tempExpr, int position, String identifier) {
         if (this.currentToken.kind == LBRACKET) {
             updateCurrentToken();
