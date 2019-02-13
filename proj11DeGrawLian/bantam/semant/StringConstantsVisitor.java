@@ -25,6 +25,7 @@ public class StringConstantsVisitor extends Visitor {
     private HashMap<String,String> stringConstantsMap = new HashMap<>();
 
     /**
+     * traverses the input AST and returns the map of string constants
      *
      * @param ast an abstract syntax tree generated from Parser.parse()
      * @return the HashMap of string constants
