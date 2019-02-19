@@ -676,10 +676,10 @@ public class Parser
                 break;
             case INTCONST: // <IntegerConst>
                 tempExpr = this.parseIntConst();
-                break;
+                return tempExpr;
             case BOOLEAN: // <BooleanConst>
                 tempExpr = this.parseBoolean();
-                break;
+                return tempExpr;
             case STRCONST: // <StringConst>
                 tempExpr = this.parseStringConst();
                 break;
