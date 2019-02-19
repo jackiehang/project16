@@ -19,6 +19,7 @@ public class MainMainVisitor extends Visitor {
     private boolean hasMain = false;
 
     public boolean hasMain(Program ast){
+        hasMain = false;
         ast.accept(this);
         return hasMain;
     }

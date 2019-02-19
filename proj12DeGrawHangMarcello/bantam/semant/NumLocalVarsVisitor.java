@@ -21,10 +21,10 @@ import java.util.Map;
 public class NumLocalVarsVisitor extends Visitor {
 
     // holds all mappings for the whole input program
-    private HashMap<String,Integer> completeLocalVarsMap = new HashMap<>();
+    private HashMap<String,Integer> completeLocalVarsMap;
 
     // holds all mappings for one class at a time
-    private HashMap<String,Integer> curClassLocalVarsMap = new HashMap<>();
+    private HashMap<String,Integer> curClassLocalVarsMap;
 
     // store # of local vars for one method at a time
     private int numLocalVarsFound = 0;
@@ -37,6 +37,10 @@ public class NumLocalVarsVisitor extends Visitor {
      * @return a Map of ("className.MethodName",numLocalVarsInMethod) pairs
      */
     public Map<String,Integer> getNumLocalVars(Program ast) {
+        completeLocalVarsMap = new HashMap<>();
+        curClassLocalVarsMap = new HashMap<>();
+        numLocalVarsFound = 0;
+
         ast.accept(this);
         return this.completeLocalVarsMap;
     }

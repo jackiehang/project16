@@ -23,7 +23,7 @@ import java.util.Map;
 public class StringConstantsVisitor extends Visitor {
 
     // create the map of (StringConstant_#, stringConstantValue) pairs
-    private HashMap<String,String> stringConstantsMap = new HashMap<>();
+    private HashMap<String,String> stringConstantsMap;
 
     /**
      * traverses the input AST and returns the map of string constants
@@ -32,6 +32,8 @@ public class StringConstantsVisitor extends Visitor {
      * @return the HashMap of string constants
      */
     public Map<String,String> getStringConstants(Program ast) {
+        stringConstantsMap = new HashMap<>();
+
         // traverse the abstract syntax tree
         ast.accept(this);
 
