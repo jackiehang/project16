@@ -9,6 +9,7 @@
 package proj12DeGrawHangMarcello.bantam.semant;
 
 import proj12DeGrawHangMarcello.bantam.ast.ConstStringExpr;
+import proj12DeGrawHangMarcello.bantam.ast.FormalList;
 import proj12DeGrawHangMarcello.bantam.ast.Program;
 import proj12DeGrawHangMarcello.bantam.visitor.Visitor;
 
@@ -50,14 +51,20 @@ public class StringConstantsVisitor extends Visitor {
         int numStringsInMap = stringConstantsMap.size();
 
         // build name
-        String name = "StringConstant_" + Integer.toString(numStringsInMap);
+        String name = node.getConstant();
 
         // get string value from ConstStringExpr node
-        String value = node.getConstant();
+        String value = "StringConstant_" + Integer.toString(numStringsInMap);
 
         // add name, value pair to map
         stringConstantsMap.put(name, value);
 
         return null;
     }
+
+
+    public Object visit(FormalList list){
+        return null;
+    }
+
 }

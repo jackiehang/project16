@@ -77,4 +77,13 @@ public class MainMainVisitor extends Visitor {
 
         return null;
     }
+
+    /**
+     * Skips visit to initialization expression for field
+     * @param f
+     * @return null
+     */
+    public Object visit(Field f){
+        return null;
+    }
 }
