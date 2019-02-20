@@ -58,9 +58,7 @@ public class MasterController {
 
     @FXML private Button scanButton;
     @FXML private Button scanParseButton;
-    @FXML private Button checkMainButton;
-    @FXML private Button checkStringButton;
-    @FXML private Button checkNumLocalButton;
+    @FXML private Button scanParseCheckButton;
     @FXML private TreeView<String> directoryTree;
     @FXML private TreeView<String> fileStructureTree;
 
@@ -131,9 +129,7 @@ public class MasterController {
         if(toolbarController.scanIsDone()) {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
-            this.checkMainButton.setDisable(false);
-            this.checkStringButton.setDisable(false);
-            this.checkNumLocalButton.setDisable(false);
+            this.scanParseCheckButton.setDisable(false);
         }
         this.updateStructureView();
     }
@@ -150,9 +146,7 @@ public class MasterController {
         if(toolbarController.scanIsDone() && !this.codeTabPane.getTabs().isEmpty()) {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
-            this.checkMainButton.setDisable(false);
-            this.checkStringButton.setDisable(false);
-            this.checkNumLocalButton.setDisable(false);
+            this.scanParseCheckButton.setDisable(false);
         }
         this.updateStructureView();
         this.createDirectoryTree();
@@ -426,11 +420,9 @@ public class MasterController {
      * Disables the buttons in the toolbar
      */
     private void disableToolbar(){
-      this.scanButton.setDisable(true);
-      this.scanParseButton.setDisable(true);
-      this.checkMainButton.setDisable(true);
-      this.checkNumLocalButton.setDisable(true);
-      this.checkStringButton.setDisable(true);
+        this.scanButton.setDisable(true);
+        this.scanParseButton.setDisable(true);
+        this.scanParseCheckButton.setDisable(true);
    }
 
     /**
@@ -455,6 +447,9 @@ public class MasterController {
     private void handleScanAndParse(){
         this.handleScanOrScanParse("scanParse");
     }
+
+    @FXML
+    private void handleScanParseCheck() {this.toolbarController.handleScanParseCheck();}
 
     private void handleScanOrScanParse(String method){
         Tab curTab = this.codeTabPane.getSelectionModel().getSelectedItem();

@@ -25,8 +25,9 @@ import proj12DeGrawHangMarcello.bantam.ast.Program;
 import proj12DeGrawHangMarcello.bantam.parser.Parser;
 import proj12DeGrawHangMarcello.bantam.semant.MainMainVisitor;
 import proj12DeGrawHangMarcello.bantam.semant.NumLocalVarsVisitor;
+import proj12DeGrawHangMarcello.bantam.semant.SemanticAnalyzer;
 import proj12DeGrawHangMarcello.bantam.semant.StringConstantsVisitor;
-import proj12DeGrawHangMarcello.bantam.treedrawer.Drawer;
+import proj12DeGrawHangMarcello.bantam.util.ClassTreeNode;
 import proj12DeGrawHangMarcello.bantam.util.CompilationException;
 import proj12DeGrawHangMarcello.bantam.util.ErrorHandler;
 import proj12DeGrawHangMarcello.bantam.util.Error;
@@ -100,24 +101,81 @@ public class ToolbarController {
      * Draw the AST to a Java Swing window
      */
     public void handleScanAndParse(){
+        System.out.println("scan&parse");
         this.parseIsDone = false;
-        new Thread (()->{
+        Thread scanParseThread = new Thread (()->{
             ParseTask parseTask = new ParseTask();
             FutureTask<Program> curFutureTask = new FutureTask<Program>(parseTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
             try{
                 AST = curFutureTask.get();
-                if(AST != null){
-                    Drawer drawer = new Drawer();
-                    drawer.draw(this.codeTabPane.getFileName(),AST);
-                }
+                // don't need to draw at the moment
+//                if(AST != null){
+//                    Drawer drawer = new Drawer();
+//                    drawer.draw(this.codeTabPane.getFileName(),AST);
+//                }
                 this.parseIsDone = true;
             }catch(InterruptedException| ExecutionException e){
-                Platform.runLater(()-> this.console.writeToConsole("Parsing failed \n", "Error"));
+                Platform.runLater(()->
+                        this.console.writeToConsole("Parsing failed \n", "Error"));
+            }
+        });
+
+        // begin the thread
+        scanParseThread.start();
+
+        // wait for the thread to die
+        try {
+            scanParseThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * executes semantic analysis of the input file if it was parsed with no errors
+     */
+    public void handleScanParseCheck() {
+
+        // scan and parse the program
+        handleScanAndParse();
+
+        // verify that parsing is finished
+        if (!this.parseIsDone() || AST == null) {
+            System.out.println("Cannot Check before parsing successfully completed");
+            return;
+        }
+
+        // check the program once parsing is finished
+        handleSemanticAnalysis();
+
+    }
+
+    /**
+     * executes semantic analysis of the program in a new thread
+     */
+    public void handleSemanticAnalysis() {
+
+
+        // begin the semantic analysis phase in a new thread
+        new Thread (()->{
+
+            // create and begin semantic analysis task
+            CheckTask checkTask = new CheckTask();
+            FutureTask<ClassTreeNode> curFutureTask = new FutureTask<ClassTreeNode>(checkTask);
+            ExecutorService curExecutor = Executors.newFixedThreadPool(1);
+            curExecutor.execute(curFutureTask);
+            try{
+                // get the root of the class hierarchy tree to be used for code generation
+                ClassTreeNode root = curFutureTask.get();
+
+            }catch(InterruptedException| ExecutionException e){
+                Platform.runLater(()->
+                        this.console.writeToConsole("Semantic Analysis failed \n", "Error"));
             }
         }).start();
-
     }
 
     /**
@@ -125,6 +183,7 @@ public class ToolbarController {
      * @return true if this task is done, and false otherwise
      */
     public boolean scanIsDone(){
+        System.out.println("is scan done?");
         return this.scanIsDone;
     }
 
@@ -134,6 +193,59 @@ public class ToolbarController {
      */
     public boolean parseIsDone(){
         return this.parseIsDone;
+    }
+
+
+    /**
+     * An inner class used to perform semantic analysis in a separate thread
+     * Prints error info to the console
+     */
+    private class CheckTask implements Callable {
+
+        @Override
+        public ClassTreeNode call() {
+            // create an error handler
+            ErrorHandler errorHandler = new ErrorHandler();
+
+            // create a checker that uses the new error handler
+            SemanticAnalyzer checker = new SemanticAnalyzer(errorHandler);
+
+            // initialize the root of the class hierarchy tree to be used for code generation
+            ClassTreeNode root = null;
+            try {
+                // attempt to analyze the abstract syntax tree
+                root = checker.analyze(AST);
+
+                // if checking phase generated no errors, display a success message
+                Platform.runLater(()->ToolbarController.this.console.writeToConsole(
+                        "Semantic Analysis Successful.\n", "Output"));
+            }
+            catch (RuntimeException e) {
+                // if any exceptions were thrown during semantic analysis,
+                Platform.runLater(()-> {
+
+                    // display error message in the console
+                    ToolbarController.this.console.writeToConsole("Semantic Analysis Failed\n","Error");
+
+                    // display num errors in the console
+                    ToolbarController.this.console.writeToConsole("There were: " +
+                            errorHandler.getErrorList().size() + " errors in " +
+                            ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
+
+                    // display each individual error in the console
+                    if (errorHandler.errorsFound()) {
+                        List<Error> errorList = errorHandler.getErrorList();
+                        Iterator<Error> errorIterator = errorList.iterator();
+                        ToolbarController.this.console.writeToConsole("\n", "Error");
+                        while (errorIterator.hasNext()) {
+                            ToolbarController.this.console.writeToConsole(errorIterator.next().toString() +
+                                    "\n", "Error");
+                        }
+                    }
+                });
+            }
+            return root;
+        }
     }
 
     /**
@@ -190,6 +302,7 @@ public class ToolbarController {
          */
         @Override
         public String call(){
+            System.out.println("calling scan");
             ErrorHandler errorHandler = new ErrorHandler();
             Scanner scanner = new Scanner(ToolbarController.this.codeTabPane.getFileName(), errorHandler);
             Token token = scanner.scan();
