@@ -31,6 +31,7 @@ package proj12DeGrawHangMarcello.bantam.semant;
 import proj12DeGrawHangMarcello.bantam.ast.*;
 import proj12DeGrawHangMarcello.bantam.util.*;
 
+
 import java.util.*;
 
 /**
@@ -51,6 +52,8 @@ public class SemanticAnalyzer
      * These words are:  null, this, super, void, int, boolean.
      * However, class names can be used as variable names.
      */
+
+
     public static final Set<String> reservedIdentifiers = new HashSet<>(Arrays.asList(
             "null", "this", "super", "void", "int", "boolean"));
 
@@ -67,8 +70,7 @@ public class SemanticAnalyzer
     /**
      * Maps class names to ClassTreeNode objects representing the class
      */
-    private Hashtable<String, ClassTreeNode> classMap = new Hashtable<String,
-            ClassTreeNode>();
+    private Hashtable<String, ClassTreeNode> classMap = new Hashtable<String,ClassTreeNode>();
 
     /**
      * error handling
@@ -88,6 +90,7 @@ public class SemanticAnalyzer
      */
     public SemanticAnalyzer(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
+
     }
 
     /**
@@ -137,10 +140,16 @@ public class SemanticAnalyzer
                 (MemberList) (new MemberList(-1)).addElement(new Method(-1, "Object",
                         "clone", new FormalList(-1),
                         (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1,
-                                new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "boolean", "equals", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "Object", "o")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstBooleanExpr(-1, "false"))))).addElement(new Method(-1, "String", "toString", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))));
+                                new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "boolean",
+                        "equals", (FormalList) (new FormalList(-1)).addElement(new Formal(-1,
+                        "Object", "o")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(
+                                -1, new ConstBooleanExpr(-1, "false"))))).addElement(new Method(
+                                        -1, "String", "toString", new FormalList(-1),
+                        (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1,
+                                null, "null"))))));
+
         // create a class tree node for object, save in variable root
-        root = new ClassTreeNode(astNode, /*built-in?*/true, /*extendable?*/true,
-                classMap);
+        root = new ClassTreeNode(astNode,true, true, this.classMap);
         // add object class tree node to the mapping
         classMap.put("Object", root);
 

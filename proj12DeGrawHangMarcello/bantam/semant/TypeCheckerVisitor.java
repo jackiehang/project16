@@ -20,7 +20,9 @@ public class TypeCheckerVisitor extends Visitor
         // The fields should have already been added to the symbol table by the
         // SemanticAnalyzer so the only thing to check is the compatibility of the init
         // expr's type with the field's type.
-        if (...node's type is not a defined type...) {
+
+        //if node's type is not a defined type
+        if (currentSymbolTable.lookup(node.getType())== null) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The declared type " + node.getType() + " of the field "
@@ -29,7 +31,8 @@ public class TypeCheckerVisitor extends Visitor
         Expr initExpr = node.getInit();
         if (initExpr != null) {
             initExpr.accept(this);
-            if(...the initExpr's type is not a subtype of the node's type...) {
+            //if the initExpr's type is not a subtype of the node's type
+            if(!currentSymbolTable.lookup(initExpr.getExprType()).equals(node.getType())){
                 errorHandler.register(Error.Kind.SEMANT_ERROR,
                         currentClass.getASTNode().getFilename(), node.getLineNum(),
                         "The type of the initializer is " + initExpr.getExprType()
@@ -50,7 +53,8 @@ public class TypeCheckerVisitor extends Visitor
      * @return null
      */
     public Object visit(Method node) {
-        if (...the node's return type is not a defined type and not "void"...) {
+        //if the node's return type is not a defined type and not "void"
+        if (currentSymbolTable.lookup(node.getReturnType()) == null && !node.getReturnType().equals("void")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The return type " + node.getReturnType() + " of the method "
@@ -72,7 +76,8 @@ public class TypeCheckerVisitor extends Visitor
      * @return null
      */
     public Object visit(Formal node) {
-        if (...the node's type is not a defined type...) {
+        //the node's type is not a defined type
+        if (currentSymbolTable.lookup(node.getType()) == null) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The declared type " + node.getType() + " of the formal" +
@@ -91,7 +96,8 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(WhileStmt node) {
         node.getPredExpr().accept(this);
-        if(...the predExpr's type is not "boolean"...) {
+        //the predExpr's type is not "boolean"
+        if(!node.getPredExpr().getExprType().equals("boolean")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The type of the predicate is " + node.getPredExpr().getExprType()
@@ -123,7 +129,9 @@ public class TypeCheckerVisitor extends Visitor
      * @return null
      */
     public Object visit(NewExpr node) {
-        if(...the node's type is not a defined class type...) {
+        //the node's type is not a defined class type
+        //TODO: idk if this is right
+        if(currentSymbolTable.lookup(node.getType())==null) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The type " + node.getType() + " does not exist.");
@@ -146,7 +154,8 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        if(...if neither type1 nor type2 is a subtype of the other...) {
+        //if neither type1 nor type2 is a subtype of the other
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                 currentClass.getASTNode().getFilename(), node.getLineNum(),
                 "The two values being compared for equality are not compatible types.");
@@ -206,5 +215,7 @@ public class TypeCheckerVisitor extends Visitor
         node.setExprType("String");
         return null;
     }
+
+
 
 }
