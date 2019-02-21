@@ -29,7 +29,9 @@
 package proj12DeGrawHangMarcello.bantam.semant;
 
 import proj12DeGrawHangMarcello.bantam.ast.*;
+import proj12DeGrawHangMarcello.bantam.parser.Parser;
 import proj12DeGrawHangMarcello.bantam.util.*;
+import proj12DeGrawHangMarcello.bantam.util.Error;
 
 
 import java.util.*;
@@ -162,10 +164,10 @@ public class SemanticAnalyzer
         astNode = new Class_(-1, "<built-in class>", "String", "Object",
                 (MemberList) (new MemberList(-1)).addElement(new Field(-1, "int",
                         "length", /*0 by default*/null))
-                /* note: str is the character sequence -- no applicable type for a
-               character sequence so it is just made an int.  it's OK to
-               do this since this field is only accessed (directly) within
-               the runtime system */.addElement(new Method(-1, "int", "length",
+                        /* note: str is the character sequence -- no applicable type for a
+                       character sequence so it is just made an int.  it's OK to
+                       do this since this field is only accessed (directly) within
+                       the runtime system */.addElement(new Method(-1, "int", "length",
                                 new FormalList(-1),
                                 (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstIntExpr(-1, "0"))))).addElement(new Method(-1, "boolean", "equals", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "Object", "str")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstBooleanExpr(-1, "false"))))).addElement(new Method(-1, "String", "toString", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "String", "substring", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "int", "beginIndex")).addElement(new Formal(-1, "int", "endIndex")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "String", "concat", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "String", "str")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))));
         // create class tree node for String, add it to the mapping
@@ -200,4 +202,98 @@ public class SemanticAnalyzer
         classMap.put("Sys", new ClassTreeNode(astNode, /*built-in?*/true, /*extendable
         ?*/false, classMap));
     }
+
+
+    /**
+     * takes an ErrorHandler as input, prints its errors to the console
+     *
+     * @param errorHandler an ErrorHandler that should have at least 1 registered error
+     */
+    private static void printErrors(ErrorHandler errorHandler) {
+
+        // if any errors were registered
+        if (errorHandler.errorsFound()) {
+            List<Error> errorList = errorHandler.getErrorList();  // get the list of errors
+            Iterator<Error> errorIterator = errorList.iterator(); // create an iterator for it
+
+            // loop through the errors
+            while (errorIterator.hasNext()) {
+
+                // print the error
+                System.out.println("\n" + errorIterator.next().toString());
+            }
+        }
+    }
+
+
+    /**
+     * takes an array of file names as input,
+     * loops through files and scan, parses and checks each one,
+     * prints errors to the console
+     * @param args an array of file names
+     */
+    public static void main(String[] args) {
+
+        // verify that input was provided
+        if (args.length == 0) {
+            System.out.println("PROVIDE A FILENAME AS INPUT");
+            return;
+        }
+
+        // initialize parser data
+        ErrorHandler parseErrorHandler;
+        Parser parser;
+        Program ast;
+
+        // initialize analyzer data
+        ErrorHandler checkerErrorHandler;
+        SemanticAnalyzer semanticAnalyzer;
+
+        // denotes whether or not the program was successfully parsed
+        Boolean parsingSuccessful;
+
+
+        // loop through the file names
+        for (int i = 0; i < args.length; i++) {
+
+            // reset parser data
+            parseErrorHandler = new ErrorHandler();
+            parser = new Parser(parseErrorHandler);
+            ast = null;
+
+            // reset analyzer data
+            checkerErrorHandler = new ErrorHandler();
+            semanticAnalyzer = new SemanticAnalyzer(checkerErrorHandler);
+
+            System.out.println("\n\nCOMPILING: " + args[i]);
+
+            // try to scan and parse the file
+            try{
+                ast = parser.parse(args[i]);
+                System.out.println("\nParsing Successful");
+                parsingSuccessful = true;
+            }
+            catch (CompilationException e){
+                printErrors(parseErrorHandler);
+                parsingSuccessful = false;
+            }
+
+            // if the program was parsed with no errors
+            if (parsingSuccessful) {
+
+                // try to check the program (semantic analysis)
+                try{
+                    semanticAnalyzer.analyze(ast);
+                    System.out.println("\nChecking Successful.");
+                }
+                // includes CompilationExceptions (it's a subclass)
+                catch (RuntimeException e){
+                    printErrors(checkerErrorHandler);
+                }
+            }
+
+        }
+    }
+
+
 }
