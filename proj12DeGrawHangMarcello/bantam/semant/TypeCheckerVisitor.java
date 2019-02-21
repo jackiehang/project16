@@ -122,7 +122,7 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO: Jackie Implemented
+    //TODO: Jackie Implemented idk about this one
 
     /**
      * Visit a for statement
@@ -168,6 +168,18 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
+
+
+    public Object visit(DispatchExpr node){
+        //visit the ref expr- check to see if the class method symbol table has that method
+        //check if the method takes in the right type of arguments  & right #
+        //if the arg of the dispatch is an object make sure the object isnt a subtype of
+        //the parameter before throwing an error
+        //set type of dispatch expr to the return type of the ref
+
+        return null;
+    }
+
     /**
      * Visit a new expression node
      *
@@ -176,8 +188,7 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(NewExpr node) {
         //the node's type is not a defined class type
-        //TODO: idk if this is right
-        if(currentSymbolTable.lookup(node.getType())==null) {
+        if(currentClass.getClassMap().get(node.getType())==null) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The type " + node.getType() + " does not exist.");
@@ -211,6 +222,233 @@ public class TypeCheckerVisitor extends Visitor
     }
 
     /**
+     * Visit a binary comparison not equals expression node
+     *
+     *
+     * @param node the binary comparison not equals expression node
+     * @return null
+     */
+    public Object visit (BinaryCompNeExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        //if neither type1 nor type2 is a subtype of the other
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being compared for equality are not compatible types.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    /**
+     * Visit a binary comparison greater than expression node
+     *
+     * @param node the binary comparison greater than expression node
+     * @return null
+     */
+    public Object visit(BinaryCompGtExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        //if neither type1 nor type2 is a subtype of the other
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))|| !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being compared for greater than are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    /**
+     * Visit a binary comparison less than expression node
+     *
+     * @param node the binary comparison less than expression node
+     * @return null
+     */
+    public Object visit(BinaryCompLtExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        //if neither type1 nor type2 is a subtype of the other
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))|| !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being compared for less than are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    /**
+     * Visit a binary comparison greater to or equal to expression node
+     *
+     * @param node the binary comparison greater to or equal to expression node
+     * @return
+     */
+    public Object visit(BinaryCompGeqExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        //if neither type1 nor type2 is a subtype of the other
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))|| !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being compared for greater than or equal to are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+
+    /**
+     * Visit a binary comparison less than or equal to expression node
+     *
+     * @param node the binary comparison less than or equal to expression node
+     * @return
+     */
+    public Object visit(BinaryCompLeqExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        //if neither type1 nor type2 is a subtype of the other
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))|| !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being compared for less than or equal to are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+
+
+
+
+    //TODO:Jackie implemented this
+
+    /**
+     * Visit a binary arithmetic divide expression node
+     * @param node the binary arithmetic divide expression node
+     * @return null
+     */
+    public Object visit(BinaryArithDivideExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being used in the arithmetic division are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("int");
+        return null;
+    }
+
+    /**
+     * Visit a binary arithmetic minus expression node
+     *
+     * @param node the binary arithmetic minus expression node
+     * @return
+     */
+    public Object visit(BinaryArithMinusExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being used in the arithmetic subtraction are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("int");
+        return null;
+    }
+
+    /**
+     * Visit a binary arithmetic plus expression node
+     *
+     * @param node the binary arithmetic plus expression node
+     * @return
+     */
+    public Object visit(BinaryArithPlusExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being used in the arithmetic addition are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("int");
+
+        return null;
+    }
+
+    /**
+     * Visit a binary arithmetic times expression node
+     *
+     * @param node the binary arithmetic times expression node
+     * @return
+     */
+    public Object visit(BinaryArithTimesExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being used in the arithmetic multiplication are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("int");
+
+        return null;
+    }
+
+    /**
+     * Visit a binary arithmetic modulus expression node
+     *
+     * @param node the binary arithmetic modulus expression node
+     * @return
+     */
+    public Object visit(BinaryArithModulusExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being used in the arithmetic modulus are of types "+ type1
+                            +" and " +type2+ ". They should both be of type int.");
+        }
+        node.setExprType("int");
+
+        return null;
+    }
+
+
+
+
+    /**
      * Visit a unary NOT expression node
      *
      * @param node the unary NOT expression node
@@ -229,56 +467,65 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-
-    //TODO:Jackie implemented -- rly not sure about this one lol
+    /**
+     * Visit a unary decrement expression node
+     *
+     * @param node the unary decrement expression node
+     * @return null
+     */
     public Object visit(UnaryDecrExpr node){
         node.getExpr().accept(this);
         String type = node.getExpr().getExprType();
-        //TODO: I dont think this is right lol
-        if(!type.equals("VarExpr")&& !type.equals("ArrayExpr")) {
+        if(!type.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The -- operator should only be used with VarExpr or Array Expr" +
+                    "The -- operator should only be used with int" +
                             " not " + type + " expressions.");
         }
-        node.setExprType("VarExpr"); //to continue checking
+        node.setExprType("int"); //to continue checking
 
         return null;
     }
 
-    //TODO:Jackie implemented -- rly not sure about this one lol
+    /**
+     * Visit a unary increment expression node
+     *
+     * @param node the unary increment expression node
+     * @return null
+     */
     public Object visit(UnaryIncrExpr node){
         node.getExpr().accept(this);
         String type = node.getExpr().getExprType();
-        //TODO: I dont think this is right lol
-        if(!type.equals("VarExpr")&& !type.equals("ArrayExpr")) {
+        if(!type.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The ++ operator should only be used with VarExpr or Array Expr" +
+                    "The ++ operator should only be used with int" +
                             " not " + type + " expressions.");
         }
-        node.setExprType("VarExpr"); //to continue checking
+        node.setExprType("int"); //to continue checking
 
         return null;
     }
 
-    //TODO:Jackie implemented -- rly not sure about this one lol
+    /**
+     * Visit a unary negation expression node
+     *
+     * @param node the unary negation expression node
+     * @return null
+     */
     public Object visit(UnaryNegExpr node){
         node.getExpr().accept(this);
         String type = node.getExpr().getExprType();
-        //TODO: I dont think this is right lol
-        if(!type.equals("VarExpr")) {
+        if(!type.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The - operator should only be used with VarExpr" +
+                    "The - operator should only be used with int" +
                             " not " + type + " expressions.");
         }
-        node.setExprType("VarExpr"); //to continue checking
+        node.setExprType("int"); //to continue checking
 
         return null;
     }
-
-
 
 
 
