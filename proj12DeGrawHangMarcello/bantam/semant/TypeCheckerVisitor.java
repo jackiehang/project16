@@ -122,6 +122,52 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
+    //TODO: Jackie Implemented
+
+    /**
+     * Visit a for statement
+     * @param node the for statement node
+     * @return
+     */
+    public Object visit(ForStmt node){
+        node.getPredExpr().accept(this);
+        //the predExpr's type is not "boolean"
+        if(!node.getPredExpr().getExprType().equals("boolean")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The type of the predicate is " + node.getPredExpr().getExprType()
+                            + " which is not boolean.");
+        }
+        currentSymbolTable.enterScope();
+        node.getBodyStmt().accept(this);
+        currentSymbolTable.exitScope();
+        return null;
+
+    }
+
+    //TODO: Jackie Implemented
+
+    /**
+     * visit an if statement
+     * @param node the if statement node
+     * @return
+     */
+    public Object visit(IfStmt node) {
+        node.getPredExpr().accept(this);
+        //the predExpr's type is not "boolean"
+        if(!node.getPredExpr().getExprType().equals("boolean")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The type of the predicate is " + node.getPredExpr().getExprType()
+                            + " which is not boolean.");
+        }
+        currentSymbolTable.enterScope();
+        node.getThenStmt().accept(this);
+        node.getElseStmt().accept(this);
+        currentSymbolTable.exitScope();
+        return null;
+    }
+
     /**
      * Visit a new expression node
      *
@@ -183,6 +229,59 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
+
+    //TODO:Jackie implemented -- rly not sure about this one lol
+    public Object visit(UnaryDecrExpr node){
+        node.getExpr().accept(this);
+        String type = node.getExpr().getExprType();
+        //TODO: I dont think this is right lol
+        if(!type.equals("VarExpr")&& !type.equals("ArrayExpr")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The -- operator should only be used with VarExpr or Array Expr" +
+                            " not " + type + " expressions.");
+        }
+        node.setExprType("VarExpr"); //to continue checking
+
+        return null;
+    }
+
+    //TODO:Jackie implemented -- rly not sure about this one lol
+    public Object visit(UnaryIncrExpr node){
+        node.getExpr().accept(this);
+        String type = node.getExpr().getExprType();
+        //TODO: I dont think this is right lol
+        if(!type.equals("VarExpr")&& !type.equals("ArrayExpr")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The ++ operator should only be used with VarExpr or Array Expr" +
+                            " not " + type + " expressions.");
+        }
+        node.setExprType("VarExpr"); //to continue checking
+
+        return null;
+    }
+
+    //TODO:Jackie implemented -- rly not sure about this one lol
+    public Object visit(UnaryNegExpr node){
+        node.getExpr().accept(this);
+        String type = node.getExpr().getExprType();
+        //TODO: I dont think this is right lol
+        if(!type.equals("VarExpr")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The - operator should only be used with VarExpr" +
+                            " not " + type + " expressions.");
+        }
+        node.setExprType("VarExpr"); //to continue checking
+
+        return null;
+    }
+
+
+
+
+
     /**
      * Visit an int constant expression node
      *
@@ -215,6 +314,9 @@ public class TypeCheckerVisitor extends Visitor
         node.setExprType("String");
         return null;
     }
+
+
+
 
 
 
