@@ -122,6 +122,7 @@ public class SemanticAnalyzer
         throw new RuntimeException("Semantic analyzer unimplemented");
 
         // add code here...
+        //addUserClasses();
 
         // uncomment the following statement
         // return root;
@@ -138,9 +139,11 @@ public class SemanticAnalyzer
      */
     private void addBuiltins() {
         // create AST node for object
-        Class_ astNode = new Class_(-1, "<built-in class>", "Object", null,
-                (MemberList) (new MemberList(-1)).addElement(new Method(-1, "Object",
-                        "clone", new FormalList(-1),
+        Class_ astNode = new Class_(-1,
+                "<built-in class>",
+                "Object",
+                null,
+                (MemberList) (new MemberList(-1)).addElement(new Method(-1, "Object", "clone", new FormalList(-1),
                         (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1,
                                 new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "boolean",
                         "equals", (FormalList) (new FormalList(-1)).addElement(new Formal(-1,
@@ -161,7 +164,10 @@ public class SemanticAnalyzer
         // accessed by other classes, so they do not have to be included in the AST.
 
         // create AST node for String
-        astNode = new Class_(-1, "<built-in class>", "String", "Object",
+        astNode = new Class_(-1,
+                "<built-in class>",
+                "String",
+                "Object",
                 (MemberList) (new MemberList(-1)).addElement(new Field(-1, "int",
                         "length", /*0 by default*/null))
                         /* note: str is the character sequence -- no applicable type for a
@@ -201,6 +207,18 @@ public class SemanticAnalyzer
         // create class tree node for Sys, add it to the mapping
         classMap.put("Sys", new ClassTreeNode(astNode, /*built-in?*/true, /*extendable
         ?*/false, classMap));
+    }
+
+    /**
+     * Add user-defined classes to the classMap
+     */
+    private void addUserClasses() {
+
+        //create AST node for Class
+        Class_ astNode = new Class_(-1, "<user-class>", className, "Object",
+                (MemberList) (new MemberList(-1).addElement(/*stuff*/)));
+        //create class tree node for Class
+        classMap.put(className, new ClassTreeNode(astNode, false, true, classMap));
     }
 
 
