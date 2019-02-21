@@ -433,68 +433,79 @@ public class MasterController {
     }
 
     /**
-     * Handles scanning the current CodeArea
+     * routes to compilation phase handler
+     * tells it to scan the current file
      */
     @FXML
     public void handleScan(){
-        this.handleScanOrScanParse("scan");
+        this.handleCompilationPhases("scan");
     }
 
     /**
-     * Handles parsing the current CodeArea
+     * routes to compilation phase handler
+     * tells it to scan and parse the current file
      */
     @FXML
     private void handleScanAndParse(){
-        this.handleScanOrScanParse("scanParse");
+        this.handleCompilationPhases("scanParse");
     }
 
+    /**
+     * routes to compilation phase handler
+     * tells it to scan, parse and check (semantic analysis) the current file
+     */
     @FXML
-    private void handleScanParseCheck() {this.toolbarController.handleScanParseCheck();}
+    private void handleScanParseCheck() {
+        handleCompilationPhases("scanParseCheck");
+    }
 
-    private void handleScanOrScanParse(String method){
+    /**
+     * prompts user to save file before telling the toolbarController to handle the
+     * appropriate compilation steps indicate by the phasesToExecute string
+     *
+     * @param phasesToExecute a string indicating which compilation phases should be done
+     *                        either: "scan", "scanParse" or "scanParseCheck"
+     */
+    private void handleCompilationPhases(String phasesToExecute) {
         Tab curTab = this.codeTabPane.getSelectionModel().getSelectedItem();
-        if(this.codeTabPane.getSaveStatus(curTab)) {
-            toolbarController.handleScanOrScanParse(method);
+
+        if (this.codeTabPane.getSaveStatus(curTab)) {
+            toolbarController.handleCompilationPhases(phasesToExecute);
         } else {
-            String saveResult = this.askSaveDialog(null,
-                    "Do you want to save your changes?",null);
-            switch (saveResult) {
-                case("yesButton"):
-                    boolean isNotCancelled = fileController.handleSave();
-                    if(isNotCancelled){
-                        toolbarController.handleScanOrScanParse(method);
-                    }
-                    break;
-                case("noButton"):
-                    if (this.codeTabPane.getFileName() == null) {
-                        this.console.writeToConsole("File Not Found: " + curTab.getText() +"\n","Error");
-                        this.console.writeToConsole("File must be saved to scan \n","Error");
-                        return;
-                    }
-                    toolbarController.handleScanOrScanParse(method);
-                    return;
-                case("cancelButton"):
-                    return;
-            }
+            askToSave(curTab, phasesToExecute);
         }
     }
 
-    /**
-     * Calls the handleChecks method in the toolbarController
-     */
-    @FXML
-    public void handleCheckMain(){toolbarController.handleChecks("checkMain");}
 
     /**
-     * Calls the handleChecks method in the toolbarController
+     *
+     * @param curTab the currently selected tab in the IDE
+     * @param phasesToExecute a string indicating which compilation phases should be done
+     *                        either: "scan", "scanParse" or "scanParseCheck"
      */
-    @FXML
-    public void handleCheckString(){toolbarController.handleChecks("checkString");}
+    private void askToSave(Tab curTab, String phasesToExecute) {
+        String saveResult = this.askSaveDialog(null,
+                "Do you want to save your changes?",null);
+        switch (saveResult) {
+            case("yesButton"):  // if they saved
 
-    /**
-     * Calls the handleChecks method in the toolbarController
-     */
-    @FXML
-    public void handleCheckNumLocal(){toolbarController.handleChecks("checkNumLoc");}
+                // false only when the "current" file is null from closing file
+                boolean isNotCancelled = fileController.handleSave();
+
+                if(isNotCancelled){
+                    toolbarController.handleCompilationPhases(phasesToExecute);
+                }
+
+                break;
+            case("noButton"):
+                if (this.codeTabPane.getFileName() == null) {
+                    this.console.writeToConsole("File Not Found: " + curTab.getText() +"\n","Error");
+                    this.console.writeToConsole("File must be saved to scan \n","Error");
+                }
+                return;
+            case("cancelButton"):
+                return;
+        }
+    }
 
 }

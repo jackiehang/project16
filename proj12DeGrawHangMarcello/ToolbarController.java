@@ -71,14 +71,24 @@ public class ToolbarController {
     }
 
     /**
-     * Handles actions for scan or scanParse buttons
-     * @param method the string indicating which method is called
+     * Handles actions for scan, scanParse and scanParseCheck buttons in IDE
+     * will only be called after the current file contents have been saved
+     * @param method the string indicating which compilation phases to execute
      */
-    public void handleScanOrScanParse(String method){
-        if(method.equals("scan")){
-            this.handleScan();
-        }else if(method.equals("scanParse")){
-            this.handleScanAndParse();
+    public void handleCompilationPhases(String method){
+
+        switch(method) {
+            case "scan":
+                this.handleScan();
+                break;
+            case "scanParse":
+                this.handleScanAndParse();
+                break;
+            case "scanParseCheck":
+                this.handleScanParseCheck();
+                break;
+            default:
+                System.out.println("ERROR: UNKNOWN COMPILATION PHASES");
         }
     }
 
