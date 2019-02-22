@@ -27,6 +27,7 @@ import proj12DeGrawHangMarcello.bantam.semant.MainMainVisitor;
 import proj12DeGrawHangMarcello.bantam.semant.NumLocalVarsVisitor;
 import proj12DeGrawHangMarcello.bantam.semant.SemanticAnalyzer;
 import proj12DeGrawHangMarcello.bantam.semant.StringConstantsVisitor;
+import proj12DeGrawHangMarcello.bantam.treedrawer.Drawer;
 import proj12DeGrawHangMarcello.bantam.util.ClassTreeNode;
 import proj12DeGrawHangMarcello.bantam.util.CompilationException;
 import proj12DeGrawHangMarcello.bantam.util.ErrorHandler;
@@ -120,11 +121,13 @@ public class ToolbarController {
             curExecutor.execute(curFutureTask);
             try{
                 AST = curFutureTask.get();
-                // don't need to draw at the moment
-//                if(AST != null){
-//                    Drawer drawer = new Drawer();
-//                    drawer.draw(this.codeTabPane.getFileName(),AST);
-//                }
+                //don't need to draw at the moment
+                /*
+                if(AST != null){
+                    Drawer drawer = new Drawer();
+                    drawer.draw(this.codeTabPane.getFileName(),AST); //gets stuck here
+                }
+                */
                 this.parseIsDone = true;
             }catch(InterruptedException| ExecutionException e){
                 Platform.runLater(()->
@@ -415,6 +418,7 @@ public class ToolbarController {
                             break;
                         case "checkNumLoc": handleCheckNumLocal();
                             break;
+                        default: break;
                     }
                 }
                 this.parseIsDone = true;

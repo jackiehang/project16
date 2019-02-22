@@ -63,7 +63,7 @@ public class SymbolTable {
     /**
      * SymbolTable constructor
      * create a symbol table from an existing one
-     * (used internally for cloning symbol tables
+     * (used internally for cloning symbol tables)
      *
      * @param scopes the scopes of symbols
      * @param parent parent symbol table

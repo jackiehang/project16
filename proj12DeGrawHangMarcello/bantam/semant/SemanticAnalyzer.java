@@ -32,6 +32,7 @@ import proj12DeGrawHangMarcello.bantam.ast.*;
 import proj12DeGrawHangMarcello.bantam.parser.Parser;
 import proj12DeGrawHangMarcello.bantam.util.*;
 import proj12DeGrawHangMarcello.bantam.util.Error;
+import proj12DeGrawHangMarcello.bantam.visitor.Visitor;
 
 
 import java.util.*;
@@ -80,6 +81,11 @@ public class SemanticAnalyzer
     private ErrorHandler errorHandler;
 
     /**
+     * current filename
+     */
+    private static String filename;
+
+    /**
      * Maximum number of inherited and non-inherited fields that can be defined for any
      * one class
      */
@@ -104,7 +110,7 @@ public class SemanticAnalyzer
      * <p>
      * Must add code to do the following:
      * 1 - add built-in classes in classMap (already done)
-     * 2 - add user-defined classes and build the inheritance tree of ClassTreeNodes
+     * 2 - add user-defined classes and build the inheritance tree of ClassTreeNodes - done
      * 3 - build the environment for each class (add class members only) and check
      *     that members are declared properly
      * 4 - check that the Main class and main method are declared properly
@@ -118,11 +124,17 @@ public class SemanticAnalyzer
         // step 1:  add built-in classes to classMap
         addBuiltins();
 
+        //step 2: add user-defined classes and build the inheritance tree of ClassTreeNodes
+        addUserClasses();
+
+        //step 3: build the environment for each class (add class members only) and check that members are declared properly
+        buildClassEnvironment();
+
         // remove the following statement
         throw new RuntimeException("Semantic analyzer unimplemented");
 
         // add code here...
-        //addUserClasses();
+        //
 
         // uncomment the following statement
         // return root;
@@ -213,14 +225,140 @@ public class SemanticAnalyzer
      * Add user-defined classes to the classMap
      */
     private void addUserClasses() {
-
-        //create AST node for Class
-        Class_ astNode = new Class_(-1, "<user-class>", className, "Object",
-                (MemberList) (new MemberList(-1).addElement(/*stuff*/)));
-        //create class tree node for Class
-        classMap.put(className, new ClassTreeNode(astNode, false, true, classMap));
+        //creates a new visitor and puts it through the AST
+        ClassTreeNodeBuilder classTreeNodeBuilder = new ClassTreeNodeBuilder();
+        classTreeNodeBuilder.build();
     }
 
+    /**
+     * Class for traversing the AST to build the ClassTreeNodes
+     */
+    private class ClassTreeNodeBuilder extends Visitor {
+
+        public void build() {
+            program.accept(this);
+        }
+
+        /**
+         * Visits each class Node and builds appropriate classTreeNodes for each
+         * @param node the class node
+         * @return null
+         */
+        @Override
+        public Object visit(Class_ node) {
+            //creates a new classTreeNode for the class
+            ClassTreeNode classTreeNode = new ClassTreeNode(node, false, true, classMap);
+
+            //get object class number of descendents
+            int objectDescendents = classMap.get("Object").getNumDescendants();
+
+            //sets parent
+            classTreeNode.setParent(classMap.get(node.getParent()));
+
+            //TODO - Not sure how to elegeantly "detect" that there was a inheritance cycle. see line 180 of ClassTreeNode
+            //current attempt - see if the Object has a new descendent. if not, there's a cycle
+            //if cycle, set the parent's parent to object as well as the current class's parent to object
+            if (objectDescendents == classMap.get("Object").getNumDescendants()) {
+                classTreeNode.getParent().setParent(classMap.get("Object"));
+                classTreeNode.setParent(classMap.get("Object"));
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Inheritance Cycle found between " + classTreeNode.getName() + "and "
+                                + classTreeNode.getParent().getName() );
+            }
+
+            classMap.put(node.getName(), classTreeNode);
+            //doesn't visit children yet, since we're just building the CTN
+            return null;
+        }
+    }
+
+    /**
+     * build the environment for each class
+     */
+    private void buildClassEnvironment() {
+        ClassEnvironmentBuilder classEnvironmentBuilder = new ClassEnvironmentBuilder();
+        classEnvironmentBuilder.build();
+    }
+
+    /**
+     * Visitor for building the environment for each class
+     */
+    private class ClassEnvironmentBuilder extends Visitor {
+
+        private ClassTreeNode currentClass;
+
+        public void build() {
+            currentClass = null;
+            program.accept(this);
+        }
+
+        /**
+         *
+         * @param node the class node
+         * @return null
+         */
+        @Override
+        public Object visit(Class_ node) {
+            //get the current class's tree node and enter its Symbol Table's scope
+            currentClass = classMap.get(node.getName());
+            currentClass.getVarSymbolTable().enterScope();
+            currentClass.getMethodSymbolTable().enterScope();
+
+            //traverse
+            node.getMemberList().accept(this);
+
+            //exit the current class's Symbol table's scopes.
+            currentClass.getVarSymbolTable().exitScope();
+            currentClass.getMethodSymbolTable().exitScope();
+            return null;
+        }
+
+        /**
+         * Add Fields to the current ClassTreeNode's Field Symbol Table
+         *
+         * @param node the field node
+         * @return null
+         */
+        @Override
+        public Object visit(Field node) {
+            //check to see if a Field of this name has already been declared in current class symbol table (an error)
+            if (currentClass.getVarSymbolTable().peek(node.getName()) != null) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Field of name" + node.getName() + "previously declared in class " + currentClass.getName());
+            }
+            //otherwise add it
+            else {
+                currentClass.getVarSymbolTable().add(node.getName(), node.getType());
+            }
+            return null;
+        }
+
+        /**
+         * Adds Methods to the current ClassTreeNode's Methods Symbol Table
+         *
+         * @param node the method node
+         * @return null
+         */
+        @Override
+        public Object visit(Method node) {
+            //check to see if a Method of this name has already been declared in current class symbol table (an error)
+            if (currentClass.getMethodSymbolTable().peek(node.getName()) != null) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Method of name " + node.getName() + "previously declared in class " + currentClass.getName());
+            }
+            //otherwise add it
+            else {
+                currentClass.getMethodSymbolTable().add(node.getName(), node);
+
+                //go into the method's symbol table
+                currentClass.getVarSymbolTable().enterScope();
+                node.getFormalList().accept(this);
+                node.getStmtList().accept(this);
+            }
+            return null;
+        }
+        //TODO - More Visitors to Complete Symbol Table Creation
+    }
 
     /**
      * takes an ErrorHandler as input, prints its errors to the console
@@ -273,6 +411,8 @@ public class SemanticAnalyzer
 
         // loop through the file names
         for (int i = 0; i < args.length; i++) {
+            //sets current filename for use with error handler
+            filename = args[i];
 
             // reset parser data
             parseErrorHandler = new ErrorHandler();
@@ -309,9 +449,6 @@ public class SemanticAnalyzer
                     printErrors(checkerErrorHandler);
                 }
             }
-
         }
     }
-
-
 }

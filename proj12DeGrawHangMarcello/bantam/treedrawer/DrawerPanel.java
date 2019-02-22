@@ -21,10 +21,7 @@ class DrawerPanel extends JPanel
 {
     private DrawingTree drawingTree;
 
-    public DrawerPanel()
-    {
-        setPreferredSize(new Dimension(4096, 4096));
-    }
+    public DrawerPanel() { setPreferredSize(new Dimension(4096, 4096)); }
 
     public void setDrawing(DrawingTree drawingTree)
     {

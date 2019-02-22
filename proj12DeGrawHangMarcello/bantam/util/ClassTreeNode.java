@@ -214,6 +214,20 @@ public class ClassTreeNode {
     }
 
     /**
+     * Remove an immediate subclass to this class, and resets its parent to Object
+     *
+     * @param child the class tree node of the immediate subclass
+     */
+    public void removeChild(ClassTreeNode child) {
+        if(!children.contains(child)) {
+            throw new RuntimeException("Internal error: child not found in children Vector in ClassTreeNode.removeChild");
+        }
+        children.remove(child);
+        child.setParent(lookupClass("Object"));
+    }
+
+
+    /**
      * Get an iterator of class tree nodes representing the immediate subclasses of this class
      *
      * @return list of children
