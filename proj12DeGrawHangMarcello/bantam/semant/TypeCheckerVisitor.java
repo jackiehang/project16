@@ -89,6 +89,57 @@ public class TypeCheckerVisitor extends Visitor
     }
 
     /**
+     * Visit a array assignment expression node
+     *
+     * @param node the array assignment expression node
+     * @return
+     */
+    public Object visit(ArrayAssignExpr node){
+        node.getExpr().accept(this);
+        node.getIndex().accept(this);
+        if(!node.getIndex().getExprType().equals("int")){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The index of the array assignment is a" + node.getIndex().getExprType() +
+                            " and it should be an integer.");
+        }
+        node.getIndex().setExprType("int");
+
+        return null;
+    }
+
+    //TODO: idk if this is right
+    /**
+     * Visit an array expression node
+     *
+     * @param node the array expression node
+     * @return
+     */
+    public Object visit(ArrayExpr node){
+        node.getRef().accept(this);
+        node.getIndex().accept(this);
+
+        node.setExprType(node.getIndex().getExprType());
+        return null;
+    }
+
+
+    //TODO: idk if this is right
+    /**
+     * Visit an assignment expression node
+     *
+     * @param node the assignment expression node
+     * @return
+     */
+    public Object visit(AssignExpr node){
+        node.getExpr().accept(this);
+
+        return null;
+
+    }
+
+
+    /**
      * Visit a while statement node
      *
      * @param node the while statement node
@@ -130,7 +181,9 @@ public class TypeCheckerVisitor extends Visitor
      * @return
      */
     public Object visit(ForStmt node){
+        node.getInitExpr().accept(this);
         node.getPredExpr().accept(this);
+        node.getUpdateExpr().accept(this);
         //the predExpr's type is not "boolean"
         if(!node.getPredExpr().getExprType().equals("boolean")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
@@ -199,6 +252,38 @@ public class TypeCheckerVisitor extends Visitor
         }
         return null;
     }
+
+    public Object visit(BinaryLogicAndExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))||! type1.equals("boolean")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being compared are of types "+ type1
+                            +" and " +type2+ ". They should both be of type boolean.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    public Object visit(BinaryLogicOrExpr node){
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))||! type1.equals("boolean")) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The two values being compared are of types "+ type1
+                            +" and " +type2+ ". They should both be of type boolean.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+
 
     /**
      * Visit a binary comparison equals expression node
