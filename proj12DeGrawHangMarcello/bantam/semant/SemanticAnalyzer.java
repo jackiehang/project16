@@ -113,8 +113,8 @@ public class SemanticAnalyzer
      * 2 - add user-defined classes and build the inheritance tree of ClassTreeNodes - done
      * 3 - build the environment for each class (add class members only) and check
      *     that members are declared properly
-     * 4 - check that the Main class and main method are declared properly
-     * 5 - type check everything
+     * 4 - check that the Main class and main method are declared properly - MainMainVisitor?
+     * 5 - type check everything - typeCheckVisitor?
      * See the lab manual for more details on each of these steps.
      */
     public ClassTreeNode analyze(Program program) {
@@ -321,10 +321,16 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(Field node) {
+            //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
+            if (reservedIdentifiers.contains(node.getName())) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Name " + node.getName() + " is reserved and cannot be used.");
+            }
             //check to see if a Field of this name has already been declared in current class symbol table (an error)
             if (currentClass.getVarSymbolTable().peek(node.getName()) != null) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
-                        "Field of name" + node.getName() + "previously declared in class " + currentClass.getName());
+                        "Field of name " + node.getName() +
+                                " previously declared in class " + currentClass.getName() + ".");
             }
             //otherwise add it
             else {
@@ -341,10 +347,16 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(Method node) {
+            //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
+            if (reservedIdentifiers.contains(node.getName())) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Name " + node.getName() + " is reserved and cannot be used.");
+            }
             //check to see if a Method of this name has already been declared in current class symbol table (an error)
             if (currentClass.getMethodSymbolTable().peek(node.getName()) != null) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
-                        "Method of name " + node.getName() + "previously declared in class " + currentClass.getName());
+                        "Method of name " + node.getName() + " previously declared in class "
+                                + currentClass.getName() + ".");
             }
             //otherwise add it
             else {
@@ -352,12 +364,108 @@ public class SemanticAnalyzer
 
                 //go into the method's symbol table
                 currentClass.getVarSymbolTable().enterScope();
-                node.getFormalList().accept(this);
-                node.getStmtList().accept(this);
+
+                //continue visitation
+                super.visit(node);
+
+                //exit
+                currentClass.getVarSymbolTable().exitScope();
             }
             return null;
         }
-        //TODO - More Visitors to Complete Symbol Table Creation
+        //TODO - Handle Class Inheritance
+
+        /**
+         * Adds the formal parameter to the current scope
+         * Shouldn't have to check for any overlap, but i guess someone could double up on parameters
+         *
+         * @param node the formal node
+         * @return null
+         */
+        @Override
+        public Object visit(Formal node) {
+            //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
+            if (reservedIdentifiers.contains(node.getName())) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Name " + node.getName() + " is reserved and cannot be used.");
+            }
+            //check to see if a parameter of this name has already been declared in current class symbol table (an error)
+            if (currentClass.getVarSymbolTable().peek(node.getName()) != null) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Parameter of name " + node.getName()
+                                + " previously declared in class " + currentClass.getName() + ".");
+            }
+            //otherwise add it
+            else {
+                currentClass.getVarSymbolTable().add(node.getName(), node.getType());
+            }
+            return null;
+        }
+
+        /**
+         * Adds the declared variable to the current scope
+         *
+         * @param node the declaration statement node
+         * @return null
+         */
+        @Override
+        public Object visit(DeclStmt node) {
+            //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
+            if (reservedIdentifiers.contains(node.getName())) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Name " + node.getName() + " is reserved and cannot be used.");
+            }
+            //check to see if a Var of this name has already been declared in current class symbol table (an error)
+            if (currentClass.getVarSymbolTable().peek(node.getName()) != null) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Var of name" + node.getName() + " previously declared in class " + currentClass.getName());
+            }
+            //otherwise add it
+            else {
+                currentClass.getVarSymbolTable().add(node.getName(), node.getType());
+                super.visit(node);
+            }
+            return null;
+        }
+
+        /**
+         * Enter new scope for For loop
+         *
+         * @param node the for statement node
+         * @return null
+         */
+        @Override
+        public Object visit(ForStmt node) {
+            //enter new scope
+            currentClass.getVarSymbolTable().enterScope();
+
+            //standard for loop visitation (see Visitor.java)
+            super.visit(node);
+
+            //exit scope after completing For loop
+            currentClass.getVarSymbolTable().exitScope();
+            return null;
+        }
+
+        /**
+         * Enter new scope for While loop
+         *
+         * @param node the while statement node
+         * @return null
+         */
+        @Override
+        public Object visit(WhileStmt node) {
+            //enter new scope
+            currentClass.getVarSymbolTable().enterScope();
+
+            //standard while loop visitation (see Visitor.java)
+            super.visit(node);
+
+            //exit scope after completing While loop
+            currentClass.getVarSymbolTable().exitScope();
+            return null;
+        }
+
     }
 
     /**

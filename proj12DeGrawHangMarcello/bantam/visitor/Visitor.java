@@ -170,7 +170,7 @@ public abstract class Visitor {
     }
 
     /**
-     * Visit a statement node (should never be calle)
+     * Visit a statement node (should never be called)
      *
      * @param node the statement node
      * @return result of the visit
