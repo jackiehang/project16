@@ -222,8 +222,20 @@ public class TypeCheckerVisitor extends Visitor
     }
 
 
-
+    //TODO: NOT DONE YET BISH DO THIS METHOD
     public Object visit(DispatchExpr node){
+        node.getRefExpr().accept(this);
+        if(currentClass.getMethodSymbolTable().lookup(node.getMethodName())== null){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The method "+node.getMethodName()+"was not found in the method " +
+                            "symbol table.");
+
+        }
+
+        node.getActualList().accept(this);
+
+
         //visit the ref expr- check to see if the class method symbol table has that method
         //check if the method takes in the right type of arguments  & right #
         //if the arg of the dispatch is an object make sure the object isnt a subtype of
@@ -268,6 +280,12 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
+    /**
+     * Visit a binary logical OR expression node
+     *
+     * @param node the binary logical OR expression node
+     * @return null
+     */
     public Object visit(BinaryLogicOrExpr node){
         node.getLeftExpr().accept(this);
         node.getRightExpr().accept(this);
@@ -282,7 +300,6 @@ public class TypeCheckerVisitor extends Visitor
         node.setExprType("boolean");
         return null;
     }
-
 
 
     /**
@@ -376,7 +393,7 @@ public class TypeCheckerVisitor extends Visitor
      * Visit a binary comparison greater to or equal to expression node
      *
      * @param node the binary comparison greater to or equal to expression node
-     * @return
+     * @return null
      */
     public Object visit(BinaryCompGeqExpr node){
         node.getLeftExpr().accept(this);
@@ -399,7 +416,7 @@ public class TypeCheckerVisitor extends Visitor
      * Visit a binary comparison less than or equal to expression node
      *
      * @param node the binary comparison less than or equal to expression node
-     * @return
+     * @return null
      */
     public Object visit(BinaryCompLeqExpr node){
         node.getLeftExpr().accept(this);
@@ -531,8 +548,6 @@ public class TypeCheckerVisitor extends Visitor
     }
 
 
-
-
     /**
      * Visit a unary NOT expression node
      *
@@ -647,7 +662,46 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
+    //TODO: Look over these 3 methods again
 
+    /**
+     * Visit a declaration statement node
+     *
+     * @param node the declaration statement node
+     * @return null
+     */
+    public Object visit(DeclStmt node){
+        node.getInit().accept(this);
+        return null;
+    }
+
+    /**
+     * Visit an expression statement node
+     *
+     * @param node the expression statement node
+     * @return null
+     */
+    public Object visit(ExprStmt node){
+        node.getExpr().accept(this);
+        return null;
+    }
+
+    /**
+     * Visit the return statement node
+     *
+     * @param node the return statement node
+     * @return
+     */
+    public Object visit(ReturnStmt node){
+        node.getExpr().accept(this);
+        return null;
+    }
+
+    //TODO:DO THIS ONE BRUH
+    public Object visit(InstanceofExpr node){
+
+        return null;
+    }
 
 
 
