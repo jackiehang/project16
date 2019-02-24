@@ -4,11 +4,38 @@ import proj12DeGrawHangMarcello.bantam.ast.*;
 import proj12DeGrawHangMarcello.bantam.util.Error;
 import proj12DeGrawHangMarcello.bantam.visitor.*;
 
+import java.util.Iterator;
+
 public class TypeCheckerVisitor extends Visitor
 {
     private ClassTreeNode currentClass;
     private SymbolTable currentSymbolTable;
     private ErrorHandler errorHandler;
+
+    /**
+     * Helper method to find if the
+     *
+     * @param type
+     * @return
+     */
+    private boolean isDefinedType(String type){
+        return currentClass.getClassMap().containsKey(type) || type.equals("boolean") || type.equals("int")
+                || type.equals("String");
+    }
+
+    private boolean isSubType(String node1, String node2){
+        if(currentClass.getClassMap().get(node1).getParent().equals("Object")){
+            return node1.equals(node2);
+        }
+        else{
+            return currentClass.getClassMap().get(node1).getParent().equals(node2);
+        }
+    }
+
+    private boolean isDefinedClassType(String type){
+        return currentClass.getClassMap().containsKey(type);
+    }
+
 
     /**
      * Visit a field node
@@ -22,7 +49,7 @@ public class TypeCheckerVisitor extends Visitor
         // expr's type with the field's type.
 
         //if node's type is not a defined type
-        if (currentSymbolTable.lookup(node.getType())== null) {
+        if (!isDefinedType(node.getType())) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The declared type " + node.getType() + " of the field "
@@ -32,7 +59,7 @@ public class TypeCheckerVisitor extends Visitor
         if (initExpr != null) {
             initExpr.accept(this);
             //if the initExpr's type is not a subtype of the node's type
-            if(!currentSymbolTable.lookup(initExpr.getExprType()).equals(node.getType())){
+            if(!isSubType(initExpr.getExprType(),node.getType())){
                 errorHandler.register(Error.Kind.SEMANT_ERROR,
                         currentClass.getASTNode().getFilename(), node.getLineNum(),
                         "The type of the initializer is " + initExpr.getExprType()
@@ -54,7 +81,7 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(Method node) {
         //if the node's return type is not a defined type and not "void"
-        if (currentSymbolTable.lookup(node.getReturnType()) == null && !node.getReturnType().equals("void")) {
+        if (!isDefinedType(node.getReturnType()) && !node.getReturnType().equals("void")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The return type " + node.getReturnType() + " of the method "
@@ -77,7 +104,7 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(Formal node) {
         //the node's type is not a defined type
-        if (currentSymbolTable.lookup(node.getType()) == null) {
+        if (!isDefinedType(node.getType())) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The declared type " + node.getType() + " of the formal" +
@@ -181,9 +208,20 @@ public class TypeCheckerVisitor extends Visitor
      * @return
      */
     public Object visit(ForStmt node){
-        node.getInitExpr().accept(this);
+
+        if(node.getInitExpr()!=null){
+            node.getInitExpr().accept(this);
+            if(!node.getInitExpr().getExprType().equals("int")) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR,
+                        currentClass.getASTNode().getFilename(), node.getLineNum(),
+                        "The type of the init is " + node.getInitExpr().getExprType()
+                                + " which is not int.");
+            }
+            node.getInitExpr().setExprType("int");
+        }
+
+
         node.getPredExpr().accept(this);
-        node.getUpdateExpr().accept(this);
         //the predExpr's type is not "boolean"
         if(!node.getPredExpr().getExprType().equals("boolean")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
@@ -191,6 +229,21 @@ public class TypeCheckerVisitor extends Visitor
                     "The type of the predicate is " + node.getPredExpr().getExprType()
                             + " which is not boolean.");
         }
+        node.getInitExpr().setExprType("boolean");
+
+        if(node.getUpdateExpr()!=null){
+            node.getUpdateExpr().accept(this);
+            if(!node.getInitExpr().getExprType().equals("int")) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR,
+                        currentClass.getASTNode().getFilename(), node.getLineNum(),
+                        "The type of the init is " + node.getInitExpr().getExprType()
+                                + " which is not int.");
+            }
+            node.getInitExpr().setExprType("int");
+
+        }
+
+
         currentSymbolTable.enterScope();
         node.getBodyStmt().accept(this);
         currentSymbolTable.exitScope();
@@ -214,9 +267,12 @@ public class TypeCheckerVisitor extends Visitor
                     "The type of the predicate is " + node.getPredExpr().getExprType()
                             + " which is not boolean.");
         }
+        node.getPredExpr().setExprType("boolean");
         currentSymbolTable.enterScope();
         node.getThenStmt().accept(this);
-        node.getElseStmt().accept(this);
+        if(node.getElseStmt()!=null){
+            node.getElseStmt().accept(this);
+        }
         currentSymbolTable.exitScope();
         return null;
     }
@@ -242,6 +298,7 @@ public class TypeCheckerVisitor extends Visitor
         //the parameter before throwing an error
         //set type of dispatch expr to the return type of the ref
 
+        node.setExprType(node.getRefExpr().getExprType());
         return null;
     }
 
@@ -253,7 +310,7 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(NewExpr node) {
         //the node's type is not a defined class type
-        if(currentClass.getClassMap().get(node.getType())==null) {
+        if(isDefinedClassType(node.getType())) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The type " + node.getType() + " does not exist.");
@@ -270,7 +327,7 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))||! type1.equals("boolean")) {
+        if(!type2.equals(type1)||!type1.equals("boolean")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being compared are of types "+ type1
@@ -291,7 +348,7 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))||! type1.equals("boolean")) {
+        if(!type2.equals(type1)||!type1.equals("boolean")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being compared are of types "+ type1
@@ -314,7 +371,7 @@ public class TypeCheckerVisitor extends Visitor
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
         //if neither type1 nor type2 is a subtype of the other
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))) {
+        if(!isSubType(type1,type2)|| !isSubType(type2, type1)) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                 currentClass.getASTNode().getFilename(), node.getLineNum(),
                 "The two values being compared for equality are not compatible types.");
@@ -336,7 +393,7 @@ public class TypeCheckerVisitor extends Visitor
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
         //if neither type1 nor type2 is a subtype of the other
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))) {
+        if(!isSubType(type1,type2)|| !isSubType(type2, type1)) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being compared for equality are not compatible types.");
@@ -357,7 +414,7 @@ public class TypeCheckerVisitor extends Visitor
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
         //if neither type1 nor type2 is a subtype of the other
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))|| !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being compared for greater than are of types "+ type1
@@ -379,7 +436,7 @@ public class TypeCheckerVisitor extends Visitor
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
         //if neither type1 nor type2 is a subtype of the other
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))|| !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being compared for less than are of types "+ type1
@@ -401,7 +458,7 @@ public class TypeCheckerVisitor extends Visitor
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
         //if neither type1 nor type2 is a subtype of the other
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))|| !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being compared for greater than or equal to are of types "+ type1
@@ -424,7 +481,7 @@ public class TypeCheckerVisitor extends Visitor
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
         //if neither type1 nor type2 is a subtype of the other
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2))|| !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being compared for less than or equal to are of types "+ type1
@@ -433,7 +490,6 @@ public class TypeCheckerVisitor extends Visitor
         node.setExprType("boolean");
         return null;
     }
-
 
 
 
@@ -450,7 +506,7 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being used in the arithmetic division are of types "+ type1
@@ -471,7 +527,7 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being used in the arithmetic subtraction are of types "+ type1
@@ -492,7 +548,7 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being used in the arithmetic addition are of types "+ type1
@@ -514,7 +570,7 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being used in the arithmetic multiplication are of types "+ type1
@@ -536,7 +592,7 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        if(!currentSymbolTable.lookup(type1).equals(currentSymbolTable.lookup(type2)) || !type1.equals("int")) {
+        if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The two values being used in the arithmetic modulus are of types "+ type1
@@ -671,6 +727,13 @@ public class TypeCheckerVisitor extends Visitor
      * @return null
      */
     public Object visit(DeclStmt node){
+        if(currentSymbolTable.lookup(node.getName())!=null){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The variable name " + node.getName() +
+                            " you are trying to use already exists in this scope.");
+        }
+
         node.getInit().accept(this);
         return null;
     }
@@ -697,11 +760,80 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO:DO THIS ONE BRUH
+
+    //TODO:Questionable
+
+    /**
+     * Visit a instanceof expression node
+     *
+     * @param node the instanceof expression node
+     * @return null
+     */
     public Object visit(InstanceofExpr node){
+        node.getExpr().accept(this);
+
+        String type1 = node.getExprType();
+        String type2 = node.getType();
+
+        if(currentClass.getVarSymbolTable().lookup(node.getExprType())==null){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The type "+ node.getType()+ " you are trying to find an InstanceOf does not exist.");
+        }
+
+        node.setExprType("boolean");
+        return null;
+    }
+
+    //TODO: Double check on this one
+
+    /**
+     * Visit a Variable Expression node
+     *
+     * @param node
+     * @return null
+     */
+    public Object visit(VarExpr node){
+        if(currentSymbolTable.lookup(node.getName())!=null){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The variable name " + node.getName() +
+                            " you are trying to use already exists in this scope.");
+        }
+
+        node.getRef().accept(this);
+        return null;
+
+    }
+
+    //TODO: Error checking needed??
+    /**
+     * Visit a Program node
+     * @param node the program node
+     * @return null
+     */
+    public Object visit(Program node){
+        node.getClassList().accept(this);
+        return null;
+    }
+
+    /**
+     * Visit a class node
+     * @param node the class node
+     * @return null
+     */
+    public Object visit(Class_ node){
+        return null;
+    }
+
+
+    public Object visit(ExprList node){
+        for(Iterator iterator = node.iterator(); iterator.hasNext();)
+            ((Expr)iterator.next()).accept(this);
 
         return null;
     }
+
 
 
 
