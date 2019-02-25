@@ -125,19 +125,25 @@ public class SemanticAnalyzer
         addBuiltins();
 
         //step 2: add user-defined classes and build the inheritance tree of ClassTreeNodes
+        System.out.println("Beginning Build of Class Map");
         addUserClasses();
 
+        System.out.println("Beginning Build of Inheritance");
+        buildInheritance();
+
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
+        System.out.println("Beginning Build of Class Environment");
         buildClassEnvironment();
 
+
         // remove the following statement
-        throw new RuntimeException("Semantic analyzer unimplemented");
+        //throw new RuntimeException("Semantic analyzer unimplemented");
 
         // add code here...
         //
 
         // uncomment the following statement
-        // return root;
+        return root;
     }
 
     /**
@@ -219,21 +225,39 @@ public class SemanticAnalyzer
         // create class tree node for Sys, add it to the mapping
         classMap.put("Sys", new ClassTreeNode(astNode, /*built-in?*/true, /*extendable
         ?*/false, classMap));
+        System.out.println(classMap);
     }
 
     /**
-     * Add user-defined classes to the classMap
+     * Add user-defined classes to the classMap, and creates
      */
     private void addUserClasses() {
-        //creates a new visitor and puts it through the AST
+        //creates a new visitor and puts it through the AST, adding classTreeNodes for each class
         ClassTreeNodeBuilder classTreeNodeBuilder = new ClassTreeNodeBuilder();
         classTreeNodeBuilder.build();
     }
 
+    /*
+     * creates the inheritance links for all classTreeNodes
+     */
+    private void buildInheritance() {
+        //adds inheritance to built-in classes
+        for(String key: classMap.keySet()) {
+            if (key != "Object") {
+                classMap.get(key).setParent(classMap.get("Object"));
+            }
+        }
+
+        //adds inheritance to user classes
+        InheritanceBuilder inheritanceBuilder = new InheritanceBuilder();
+        inheritanceBuilder.build();
+    }
+
     /**
-     * Class for traversing the AST to build the ClassTreeNodes
+     * Visitor for traversing the AST to build the ClassTreeNodes
      */
     private class ClassTreeNodeBuilder extends Visitor {
+        ClassTreeNode classTreeNode;
 
         public void build() {
             program.accept(this);
@@ -247,27 +271,49 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Class_ node) {
             //creates a new classTreeNode for the class
-            ClassTreeNode classTreeNode = new ClassTreeNode(node, false, true, classMap);
-
+            classTreeNode = new ClassTreeNode(node, false, true, classMap);
+            classMap.put(node.getName(), classTreeNode);
             //get object class number of descendents
-            int objectDescendents = classMap.get("Object").getNumDescendants();
 
+            //doesn't visit children yet, since we're just building the CTN
+            return true;
+        }
+    }
+
+    /**
+     * Visitor for traversing the AST to create inheritance links between ClassTreeNodes
+     */
+    private class InheritanceBuilder extends Visitor {
+        ClassTreeNode classTreeNode;
+
+        public void build() {
+            program.accept(this);
+        }
+
+        @Override
+        public Object visit(Class_ node) {
+            classTreeNode = classMap.get(node.getName());
+
+            int numObjectDescendants = classMap.get("Object").getNumDescendants();
             //sets parent
-            classTreeNode.setParent(classMap.get(node.getParent()));
-
-            //TODO - Not sure how to elegeantly "detect" that there was a inheritance cycle. see line 180 of ClassTreeNode
-            //current attempt - see if the Object has a new descendent. if not, there's a cycle
-            //if cycle, set the parent's parent to object as well as the current class's parent to object
-            if (objectDescendents == classMap.get("Object").getNumDescendants()) {
-                classTreeNode.getParent().setParent(classMap.get("Object"));
+            if (!node.getParent().equals("")) {
+                classTreeNode.setParent(classMap.get(node.getParent()));
+                //TODO - Not sure how to elegantly "detect" that there was a inheritance cycle. see line 180 of ClassTreeNode
+                //current attempt - see if the Object has a new descendent. if not, there's a cycle
+                //if cycle, set the parent's parent to object as well as the current class's parent to object
+                if (numObjectDescendants == classMap.get("Object").getNumDescendants()) {
+                    classTreeNode.getParent().setParent(classMap.get("Object"));
+                    classTreeNode.setParent(classMap.get("Object"));
+                    errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                            "Inheritance Cycle found between " + classTreeNode.getName() + "and "
+                                    + classTreeNode.getParent().getName() );
+                }
+            }
+            else {
+                classMap.get("Object").addChild(classTreeNode);
                 classTreeNode.setParent(classMap.get("Object"));
-                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
-                        "Inheritance Cycle found between " + classTreeNode.getName() + "and "
-                                + classTreeNode.getParent().getName() );
             }
 
-            classMap.put(node.getName(), classTreeNode);
-            //doesn't visit children yet, since we're just building the CTN
             return null;
         }
     }
@@ -299,13 +345,24 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(Class_ node) {
-            //get the current class's tree node and enter its Symbol Table's scope
+            //get the current class's tree node
             currentClass = classMap.get(node.getName());
+            System.out.println("Entering class " + node.getName() + ", child of " + node.getParent());
+
+            //Two options for class parent symbol tables: Clone and Overwrite vs. Set Parent
+            //Not sure which of the two is right. Going with set parent for now.
+
+            //adds parent's Vars and Methods to currentClass symbol table.
+            currentClass.getVarSymbolTable().setParent(classMap.get(node.getParent()).getVarSymbolTable());
+            currentClass.getVarSymbolTable().setParent(classMap.get(node.getParent()).getMethodSymbolTable());
+
+            //enter current node's Symbol Table's scope
             currentClass.getVarSymbolTable().enterScope();
             currentClass.getMethodSymbolTable().enterScope();
 
             //traverse
             node.getMemberList().accept(this);
+            currentClass.getVarSymbolTable().dump();
 
             //exit the current class's Symbol table's scopes.
             currentClass.getVarSymbolTable().exitScope();
@@ -373,7 +430,6 @@ public class SemanticAnalyzer
             }
             return null;
         }
-        //TODO - Handle Class Inheritance
 
         /**
          * Adds the formal parameter to the current scope
@@ -546,7 +602,7 @@ public class SemanticAnalyzer
 
             // if the program was parsed with no errors
             if (parsingSuccessful) {
-
+                System.out.println("Starting Semantic Analysis");
                 // try to check the program (semantic analysis)
                 try{
                     semanticAnalyzer.analyze(ast);
