@@ -402,7 +402,12 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-
+    /**
+     * visit a binary logical AND expression node
+     *
+     * @param node the binary logical AND expression node
+     * @return null
+     */
     public Object visit(BinaryLogicAndExpr node) {
         node.getLeftExpr().accept(this);
         node.getRightExpr().accept(this);
@@ -463,7 +468,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-    //TODO: someone look over this one
 
     /**
      * Visit a cast expression node
@@ -496,23 +500,6 @@ public class TypeCheckerVisitor extends Visitor {
     }
 
 
-//    //TODO: WRITE CODE FOR THIS ONE
-//    /**
-//     * Visit a class node
-//     * @param node the class node
-//     * @return null
-//     */
-//    public Object visit(Class_ node){
-//        return null;
-//    }
-
-//    //TODO: WRITE CODE FOR THIS ONE
-//    public Object visit(ClassList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Class_)iterator.next()).accept(this);
-//
-//        return null;
-//    }
 
     /**
      * Visit a boolean constant expression node
@@ -554,6 +541,7 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(DeclStmt node) {
+
 
         node.getInit().accept(this);
         if (!isSubType(node.getInit().getExprType(), node.getType())) {
@@ -660,27 +648,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-//    //TODO: WRITE CODE HERE
-//    public Object visit(ExprList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Expr)iterator.next()).accept(this);
-//
-//        return null;
-//    }
-
-//    //TODO:IDK ABOUT THIS
-//    /**
-//     * Visit an expression statement node
-//     *
-//     * @param node the expression statement node
-//     * @return null
-//     */
-//    public Object visit(ExprStmt node){
-//        node.getExpr().accept(this);
-//        return null;
-//    }
-
-
     /**
      * Visit a field node
      *
@@ -735,14 +702,6 @@ public class TypeCheckerVisitor extends Visitor {
         currentSymbolTable.add(node.getName(), node.getType());
         return null;
     }
-
-//    //TODO: WRITE CODE HERE
-//    public Object visit(FormalList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Formal)iterator.next()).accept(this);
-//
-//        return null;
-//    }
 
 
     /**
@@ -846,13 +805,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-//    //TODO: WRITE CODE HERE
-//    public Object visit(MemberList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Member)iterator.next()).accept(this);
-//
-//        return null;
-//    }
 
     /**
      * Visit a method node
@@ -926,18 +878,6 @@ public class TypeCheckerVisitor extends Visitor {
     }
 
 
-//    //TODO: Error checking needed??
-//    /**
-//     * Visit a Program node
-//     * @param node the program node
-//     * @return null
-//     */
-//    public Object visit(Program node){
-//        node.getClassList().accept(this);
-//        return null;
-//    }
-
-
     /**
      * Visit the return statement node
      *
@@ -949,13 +889,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-//    //TODO: WRITE CODE HERE
-//    public Object visit(StmtList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Stmt)iterator.next()).accept(this);
-//
-//        return null;
-//    }
 
     /**
      * Visit a unary decrement expression node
