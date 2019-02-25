@@ -285,7 +285,7 @@ public class SemanticAnalyzer
     }
 
     /**
-     *
+     *Visitor to check if there exists a main method
      */
     private void checkMain() {
         MainMainVisitor mainMainVisitor = new MainMainVisitor();
@@ -383,7 +383,7 @@ public class SemanticAnalyzer
         }
 
         /**
-         *
+         *Visit a class node
          * @param node the class node
          * @return null
          */
