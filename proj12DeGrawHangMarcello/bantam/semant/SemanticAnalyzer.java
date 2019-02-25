@@ -121,7 +121,6 @@ public class SemanticAnalyzer
     public ClassTreeNode analyze(Program program) {
         this.program = program;
         this.classMap.clear();
-        System.out.println("CLEARING");
 
         // step 1:  add built-in classes to classMap
         addBuiltins();
@@ -134,44 +133,22 @@ public class SemanticAnalyzer
         System.out.println("Beginning Build of Inheritance");
         buildInheritance();
 
-        /*
-        System.out.println(classMap.toString());
-        for(String key: classMap.keySet()) {
-            if(!key.equals("Object")) {
-                System.out.println("Class " + key + " with parent: " + classMap.get(key).getParent().getName());
-            }
-        }
-        */
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
 
         buildClassEnvironment();
 
         checkMain();
 
-//        for (int i = 0; i < classMap.size(); i++) {
-//            ErrorHandler checkerErrorHandler = new ErrorHandler();
-//            TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
-//            typeCheckerVisitor.checkTypes(classMap.get(i));
-//            printErrors(checkerErrorHandler);
-//        }
-
         for(String key: classMap.keySet()) {
             if(!key.equals("Object") && !key.equals("String") && !key.equals("TextIO") && !key.equals("Sys")) {
-                //System.out.println(classMap.get(key).getVarSymbolTable().getSize());
-//                ErrorHandler checkerErrorHandler = new ErrorHandler();
-//                TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
-//                typeCheckerVisitor.checkTypes(classMap.get(key));
-//                printErrors(checkerErrorHandler);
+                ErrorHandler checkerErrorHandler = new ErrorHandler();
+                TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
+                typeCheckerVisitor.checkTypes(classMap.get(key));
+                printErrors(checkerErrorHandler);
             }
         }
 
-        // remove the following statement
-        //throw new RuntimeException("Semantic analyzer unimplemented");
 
-        // add code here...
-        //
-
-        // uncomment the following statement
         return root;
     }
 

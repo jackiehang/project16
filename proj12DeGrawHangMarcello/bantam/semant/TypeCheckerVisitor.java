@@ -33,12 +33,9 @@ public class TypeCheckerVisitor extends Visitor {
         // get class root
         Class_ root = currentClass.getASTNode();
 
-        System.out.println("BEGIN CHECKING: " + root.getName());
-
         // begin traversal
         root.accept(this);
 
-        System.out.println("DONE CHECKING");
     }
 
     /**
@@ -582,7 +579,6 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(DeclStmt node) {
-        System.out.println("DECL");
         node.getInit().accept(this);
         if (!isSubType(node.getInit().getExprType(), node.getType())) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
