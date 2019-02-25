@@ -360,7 +360,6 @@ public class SemanticAnalyzer
             }
             //otherwise add it
             else {
-                //TODO: wyett said this should be node.getreturn type??
                 currentClass.getMethodSymbolTable().add(node.getName(), node);
 
                 //go into the method's symbol table

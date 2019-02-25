@@ -13,25 +13,38 @@ public class TypeCheckerVisitor extends Visitor
     private ErrorHandler errorHandler;
 
     /**
-     * Helper method to find if the
+     * Helper method to find if the type is a defined type
      *
      * @param type
-     * @return
+     * @return boolean
      */
     private boolean isDefinedType(String type){
         return currentClass.getClassMap().containsKey(type) || type.equals("boolean") || type.equals("int")
                 || type.equals("String");
     }
 
+    /**
+     * Helper method to check if one node is a subtype of another
+     *
+     * @param node1 type of node 1
+     * @param node2 type of node 2
+     * @return boolean
+     */
     private boolean isSubType(String node1, String node2){
-        if(currentClass.getClassMap().get(node1).getParent().equals("Object")){
+        if(currentClass.getClassMap().get(node1).getParent().getName().equals("Object")){
             return node1.equals(node2);
         }
         else{
-            return currentClass.getClassMap().get(node1).getParent().equals(node2);
+            return currentClass.getClassMap().get(node1).getParent().getName().equals(node2);
         }
     }
 
+    /**
+     * Helper method to check if type is a defined class type
+     *
+     * @param type
+     * @return boolean
+     */
     private boolean isDefinedClassType(String type){
         return currentClass.getClassMap().containsKey(type);
     }
@@ -64,15 +77,24 @@ public class TypeCheckerVisitor extends Visitor
      * @return
      */
     public Object visit(ArrayExpr node){
-        node.getRef().accept(this);
+        if(node.getRef()!=null) {
+            node.getRef().accept(this);
+        }
         node.getIndex().accept(this);
+
+        if(!node.getIndex().getExprType().equals("int")){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The index of the array assignment is a" + node.getIndex().getExprType() +
+                            " and it should be an integer.");
+
+        }
 
         node.setExprType(node.getIndex().getExprType());
         return null;
     }
 
 
-    //TODO: idk if this is right
     /**
      * Visit an assignment expression node
      *
@@ -87,11 +109,20 @@ public class TypeCheckerVisitor extends Visitor
                     "The variable " + node.getName() + " has not been defined yet");
         }
 
+        String exprType = node.getExpr().getExprType();
+        if(!currentSymbolTable.lookup(node.getName()).equals(exprType)){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The value has a type of " + exprType +
+                            ",different than variable it is being assigned to, of type" +
+                            currentSymbolTable.lookup(node.getName()));
+        }
+        node.setExprType((String)currentSymbolTable.lookup(node.getName()));
+
         return null;
 
     }
 
-    //TODO:Jackie implemented this
 
     /**
      * Visit a binary arithmetic divide expression node
@@ -382,7 +413,47 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO: BREAKSTMT,CASTEXPR
+    /**
+     * visit a break statement node
+     *
+     * @param node the break statement node
+     * @return null
+     */
+    public Object visit(BreakStmt node){
+        node.accept(this);
+        return null;
+    }
+
+    /**
+     * Visit a cast expression node
+     *
+     * @param node the cast expression node
+     * @return
+     */
+    public Object visit(CastExpr node){
+        node.getExpr().accept(this);
+        String target = node.getType();
+        String exprType = node.getExpr().getExprType();
+        if(!isSubType(exprType, target)|| !isSubType(target,exprType)){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "You are attampting to cast a variable of type "+ exprType
+                            +" to type " + target+" This is illegal.");
+
+        }
+
+        if(currentClass.getClassMap().get(exprType).getParent().getName().equals(target)){
+            node.setUpCast(true);
+        }
+        else{
+            node.setUpCast(false);
+        }
+
+        node.setExprType(node.getType());
+
+        return null;
+    }
+
 
     //TODO: WRITE CODE FOR THIS ONE
     /**
@@ -563,7 +634,6 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO: Jackie Implemented idk about this one
 
     /**
      * Visit a for statement
@@ -615,8 +685,6 @@ public class TypeCheckerVisitor extends Visitor
     }
 
 
-
-    //TODO: Jackie Implemented
 
     /**
      * visit an if statement
@@ -691,8 +759,35 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
+    /**
+     * Visits a new array expression node
+     *
+     * @param node the new array expression node
+     * @return null
+     */
+    public Object visit(NewArrayExpr node){
+        node.getSize().accept(this);
+        if(!node.getSize().getExprType().equals("int")){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The size of the array should be an int, but " +
+                            "it has been defined as "+node.getSize().getExprType());
+            node.getSize().setExprType("int"); // to allow analysis to continue
+        }
 
-    //TODO: NEWARRAYEXPR
+        if(!isDefinedType(node.getType())) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The type " + node.getType() + " does not exist.");
+            node.setExprType("Object"); // to allow analysis to continue
+        }
+        else{
+            node.setExprType(node.getType());
+        }
+
+
+        return null;
+    }
 
     /**
      * Visit a new expression node
@@ -702,7 +797,7 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(NewExpr node) {
         //the node's type is not a defined class type
-        if(isDefinedClassType(node.getType())) {
+        if(!isDefinedClassType(node.getType())) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The type " + node.getType() + " does not exist.");
@@ -867,43 +962,6 @@ public class TypeCheckerVisitor extends Visitor
         currentSymbolTable.exitScope();
         return null;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }
