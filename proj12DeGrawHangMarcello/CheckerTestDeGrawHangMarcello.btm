@@ -5,9 +5,6 @@ class Food{
 
     void addCals(){
         calories = calories +1;
-        for(i = 0; i < 2; i++){ //testing for-loop
-                    j = j + i; //testing addition
-                }
     }
 
     void changeSweet(boolean newSweet){
@@ -24,6 +21,11 @@ class Food{
 
     boolean tasteTwo(){
         return sweet && tasty; //test and operator
+    }
+
+    //incorrect AssignExpr
+    void incorrectChange(){
+        tasty = 2;
     }
 
 }
@@ -57,10 +59,12 @@ class Main extends Dessert{
     int z = 20;
     Food[] foods = new Food[5];
     Food cake;
-    
+    Food wrong;
+    int[] q;
+
 
     void methodTest(){
-        var j = false;
+        var j = 0; //testing var expr
         for(i = 0; i < 2; i++){ //testing for-loop
             j = j + i; //testing addition
         }
@@ -96,25 +100,36 @@ class Main extends Dessert{
         return x; //testing return statements
     }
 
+    void testMethodFour(int j , int t){
+        j = j+ t;
+    }
+
     void main(){
+        q[2] = "test"; // testing incorrect array assignment
 	    var x = 2;
         cake = new Dessert();
         var iceCream = new Dessert();
         var spoon = new Utensil();
         spoon.setType("spoon");
+
+        var fork = new Utensil();
+        fork.setType("fork");
         iceCream.setUtensil(spoon);
-        iceCream.u.getType(); //testing chaining
+        iceCream.u.getType(); //testing dispatch expr
 
         iceCream.addCals(); //testing inherited method
         //testing instanceof
         if( cake instanceof Dessert){
-              var wrong = new Utensil();
+              wrong = new Utensil(); //Incorrect assignment
         }
 
-        var copy = cast(Food,cake);
-
+        var copy = cast(Food,cake); // testing casting
         foods[3] = iceCream;
+        foods[3].setUtensil(fork); //testing dispatch
+
         foods[2] = spoon; //testing wrong array assignment
+
+        testMethodFour(true, 3); //testing dispatch expr
 
     }
 

@@ -135,16 +135,14 @@ public class SemanticAnalyzer
         System.out.println("Beginning Build of Inheritance");
         buildInheritance();
 
-
+        /*
         System.out.println(classMap.toString());
         for(String key: classMap.keySet()) {
             if(!key.equals("Object")) {
                 System.out.println("Class " + key + " with parent: " + classMap.get(key).getParent().getName());
-                System.out.println("has child: " + classMap.get(key).getParent().getNumChildren());
             }
         }
-
-
+        */
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
 //        System.out.println("Beginning Build of Class Environment");
         buildClassEnvironment();
@@ -175,7 +173,6 @@ public class SemanticAnalyzer
                 printErrors(checkerErrorHandler);
             }
         }
-
 
         // remove the following statement
         //throw new RuntimeException("Semantic analyzer unimplemented");
@@ -269,7 +266,7 @@ public class SemanticAnalyzer
     }
 
     /**
-     * Add user-defined classes to the classMap, and creates
+     * Add user-defined classes to the classMap, and creates classTreeNodes
      */
     private void addUserClasses() {
         //creates a new visitor and puts it through the AST, adding classTreeNodes for each class
@@ -399,7 +396,6 @@ public class SemanticAnalyzer
             System.out.println("class: " + node.getName());
             //get the current class's tree node
             currentClass = classMap.get(node.getName());
-            //System.out.println("Entering class " + currentClass.getName());
 
             //Two options for class parent symbol tables: Clone and Overwrite vs. Set Parent
             //Not sure which of the two is right. Going with set parent for now.
@@ -408,13 +404,11 @@ public class SemanticAnalyzer
             currentClass.getVarSymbolTable().setParent(currentClass.getParent().getVarSymbolTable());
             currentClass.getVarSymbolTable().setParent(currentClass.getParent().getMethodSymbolTable());
 
-            //System.out.println("Entering Class Scope");
             //enter current node's Symbol Table's scope
             currentClass.getVarSymbolTable().enterScope();
             currentClass.getMethodSymbolTable().enterScope();
 
             //traverse
-            //System.out.println("Beginning Traversal of Class Members");
             node.getMemberList().accept(this);
 
             //exit the current class's Symbol table's scopes.
@@ -702,7 +696,7 @@ public class SemanticAnalyzer
                 parsingSuccessful = true;
             }
             catch (CompilationException e){
-                System.out.println("Parse Failed, Check File Name/Location");
+                System.out.println("Parse Failed");
                 printErrors(parseErrorHandler);
                 parsingSuccessful = false;
             }

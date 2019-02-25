@@ -1,5 +1,5 @@
 class Main extends B{
-    int b = 2
+    int b = 2;
     boolean a = true;
 
     void main() {

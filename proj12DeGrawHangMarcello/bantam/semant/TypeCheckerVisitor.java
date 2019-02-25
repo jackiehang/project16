@@ -418,7 +418,12 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-
+    /**
+     * visit a binary logical AND expression node
+     *
+     * @param node the binary logical AND expression node
+     * @return null
+     */
     public Object visit(BinaryLogicAndExpr node) {
         node.getLeftExpr().accept(this);
         node.getRightExpr().accept(this);
@@ -662,27 +667,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-//    //TODO: WRITE CODE HERE
-//    public Object visit(ExprList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Expr)iterator.next()).accept(this);
-//
-//        return null;
-//    }
-
-//    //TODO:IDK ABOUT THIS
-//    /**
-//     * Visit an expression statement node
-//     *
-//     * @param node the expression statement node
-//     * @return null
-//     */
-//    public Object visit(ExprStmt node){
-//        node.getExpr().accept(this);
-//        return null;
-//    }
-
-
     /**
      * Visit a field node
      *
@@ -738,14 +722,6 @@ public class TypeCheckerVisitor extends Visitor {
         currentSymbolTable.add(node.getName(), node.getType());
         return null;
     }
-
-//    //TODO: WRITE CODE HERE
-//    public Object visit(FormalList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Formal)iterator.next()).accept(this);
-//
-//        return null;
-//    }
 
 
     /**
@@ -849,13 +825,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-//    //TODO: WRITE CODE HERE
-//    public Object visit(MemberList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Member)iterator.next()).accept(this);
-//
-//        return null;
-//    }
 
     /**
      * Visit a method node
@@ -946,6 +915,17 @@ public class TypeCheckerVisitor extends Visitor {
 //    }
 
 
+
+    /**
+     * Visit the return statement node
+     *
+     * @param node the return statement node
+     * @return
+     */
+    public Object visit(ReturnStmt node) {
+        node.getExpr().accept(this);
+        return null;
+    }
 
 
     /**
