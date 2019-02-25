@@ -112,7 +112,6 @@ public class ToolbarController {
      * Draw the AST to a Java Swing window
      */
     public void handleScanAndParse(){
-        System.out.println("scan&parse");
         this.parseIsDone = false;
         Thread scanParseThread = new Thread (()->{
             ParseTask parseTask = new ParseTask();
@@ -122,6 +121,7 @@ public class ToolbarController {
             try{
                 AST = curFutureTask.get();
                 //don't need to draw at the moment
+
                 /*
                 if(AST != null){
                     Drawer drawer = new Drawer();
@@ -196,7 +196,6 @@ public class ToolbarController {
      * @return true if this task is done, and false otherwise
      */
     public boolean scanIsDone(){
-        System.out.println("is scan done?");
         return this.scanIsDone;
     }
 
@@ -315,7 +314,6 @@ public class ToolbarController {
          */
         @Override
         public String call(){
-            System.out.println("calling scan");
             ErrorHandler errorHandler = new ErrorHandler();
             Scanner scanner = new Scanner(ToolbarController.this.codeTabPane.getFileName(), errorHandler);
             Token token = scanner.scan();
