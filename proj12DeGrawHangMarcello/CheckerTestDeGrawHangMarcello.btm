@@ -5,6 +5,9 @@ class Food{
 
     void addCals(){
         calories = calories +1;
+        for(i = 0; i < 2; i++){ //testing for-loop
+                    j = j + i; //testing addition
+                }
     }
 
     void changeSweet(boolean newSweet){
@@ -31,6 +34,7 @@ class Dessert extends Food{
 
     void setUtensil(Utensil utensil){
         u = utensil;
+        var x = 2;
     }
 
 }
@@ -56,10 +60,11 @@ class Main extends Dessert{
     
 
     void methodTest(){
-        var j = 0;
+        var j = false;
         for(i = 0; i < 2; i++){ //testing for-loop
             j = j + i; //testing addition
         }
+
         for(i = 0; i < 2; i++){ //testing for-loop
             j++; //testing unary incr
         }

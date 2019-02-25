@@ -10,8 +10,11 @@ import java.util.*;
 public class TypeCheckerVisitor extends Visitor {
     private ClassTreeNode currentClass;
     private SymbolTable currentSymbolTable;
-    private ErrorHandler errorHandler = new ErrorHandler();
+    private ErrorHandler errorHandler;
 
+    public TypeCheckerVisitor(ErrorHandler e) {
+        errorHandler = e;
+    }
     /**
      * begins traversal of AST to perform type checking
      * @param curClass the top level class
@@ -27,9 +30,12 @@ public class TypeCheckerVisitor extends Visitor {
         // get class root
         Class_ root = currentClass.getASTNode();
 
+        System.out.println("BEGIN CHECKING: " + root);
+
         // begin traversal
         root.accept(this);
 
+        System.out.println("DONE CHECKING");
     }
 
     /**
@@ -144,13 +150,21 @@ public class TypeCheckerVisitor extends Visitor {
      * @return
      */
     public Object visit(AssignExpr node) {
-        node.getExpr().accept(this);
+        System.out.println("ASSIGNEXPR: " + node.getName());
+//        node.getExpr().accept(this);
+//        System.out.println("ASSIGNEXPR2: " + node.getName());
+//        System.out.println(currentSymbolTable.lookup(node.getName()).toString());
+        currentSymbolTable.dump();
+//        currentSymbolTable.
         if (currentSymbolTable.lookup(node.getName()) == null) {
+            System.out.println("ASSIGNEXPR error");
+
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The variable " + node.getName() + " has not been defined yet");
         }
 
+        System.out.println("ASSIGNEXPR1");
         String exprType = node.getExpr().getExprType();
         String variableType = (String) currentSymbolTable.lookup(node.getName());
 
@@ -162,6 +176,8 @@ public class TypeCheckerVisitor extends Visitor {
                             currentSymbolTable.lookup(node.getName()));
         }
         node.setExprType(variableType);
+        node.getExpr().accept(this);
+        System.out.println("ASSIGNEXPR2");
         return null;
 
     }
@@ -463,8 +479,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-    //TODO: someone look over this one
-
     /**
      * Visit a cast expression node
      *
@@ -495,16 +509,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-
-//    //TODO: WRITE CODE FOR THIS ONE
-//    /**
-//     * Visit a class node
-//     * @param node the class node
-//     * @return null
-//     */
-//    public Object visit(Class_ node){
-//        return null;
-//    }
 
 //    //TODO: WRITE CODE FOR THIS ONE
 //    public Object visit(ClassList node){
@@ -554,7 +558,7 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(DeclStmt node) {
-
+        System.out.println("DECL");
         node.getInit().accept(this);
         if (!isSubType(node.getInit().getExprType(), node.getType())) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
@@ -562,8 +566,6 @@ public class TypeCheckerVisitor extends Visitor {
                     "The variable declaration you are making is invalid. Variable of type " +
                             node.getType() + " cannot have value of type " + node.getInit().getExprType());
         }
-
-
 
         return null;
     }
@@ -587,7 +589,7 @@ public class TypeCheckerVisitor extends Visitor {
                         .lookup(node.getMethodName());
 
         // visit child nodes
-        node.getActualList().accept(this);
+//        node.getActualList().accept(this);
 
         if (methodNode == null) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
@@ -724,6 +726,7 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(Formal node) {
+
         //the node's type is not a defined type
         if (!isDefinedType(node.getType())) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
@@ -861,6 +864,8 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(Method node) {
+        System.out.println("VISITING METHOD: " + node.getName());
+        System.out.println(currentClass.getName());
         //if the node's return type is not a defined type and not "void"
         if (!isDefinedType(node.getReturnType()) && !node.getReturnType().equals("void")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
@@ -872,8 +877,11 @@ public class TypeCheckerVisitor extends Visitor {
         //create a new scope for the method body
         currentSymbolTable.enterScope();
         node.getFormalList().accept(this);
+//        System.out.println("HERE: " + node.getStmtList().getSize());
         node.getStmtList().accept(this);
+        System.out.println("HERE1");
         currentSymbolTable.exitScope();
+        System.out.println("HERE2");
         return null;
     }
 
@@ -938,24 +946,7 @@ public class TypeCheckerVisitor extends Visitor {
 //    }
 
 
-    /**
-     * Visit the return statement node
-     *
-     * @param node the return statement node
-     * @return
-     */
-    public Object visit(ReturnStmt node) {
-        node.getExpr().accept(this);
-        return null;
-    }
 
-//    //TODO: WRITE CODE HERE
-//    public Object visit(StmtList node){
-//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-//            ((Stmt)iterator.next()).accept(this);
-//
-//        return null;
-//    }
 
     /**
      * Visit a unary decrement expression node
@@ -1077,6 +1068,5 @@ public class TypeCheckerVisitor extends Visitor {
         currentSymbolTable.exitScope();
         return null;
     }
-
 
 }
