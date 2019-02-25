@@ -1,0 +1,74 @@
+class Food{
+    boolean sweet = false;
+    int calories=0;
+
+    void addCals(){
+        calories = calories +1;
+    }
+
+    void changeSweet(boolean newSweet){
+        sweet = newSweet;
+    }
+
+    int getCals(){
+        return calories;
+    }
+}
+
+//testing inheritance
+class Dessert extends Food{
+    Utensil u;
+
+    void setUtensil(Utensil utensil){
+        u = utensil;
+    }
+
+}
+
+class Utensil{
+    String type;
+
+    void setType(String typeOfUtensil){
+        type = typeOfUtensil;
+    }
+
+    String getType(){
+        return type;
+    }
+
+}
+
+class Main{
+    int x = 5;
+
+    void methodTest(){
+        var j = 0;
+        for(i = 0; i < 2; i++){
+            j = j + i;
+        }
+    }
+
+    int getX(){
+        return x;
+    }
+
+    void main(){
+        Food cake = new Dessert();
+        Dessert iceCream = new Dessert();
+        Utensil spoon = new Utensil();
+        spoon.setType("spoon");
+        iceCream.setUtensil(spoon);
+        iceCream.u.getType();
+
+        //testing instanceOf
+        if( cake instanceOf Dessert){
+
+             //testing incorrect assignment
+              Food wrong = new Utensil();
+        }
+
+        Dessert copy = (Dessert)cake;
+
+    }
+
+}
