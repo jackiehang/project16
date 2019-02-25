@@ -1,3 +1,10 @@
+/*
+ * File: CheckerTestDeGrawHangMarcello.btm
+ * author: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Feb 25, 2019
+ */
+
 class Food{
     boolean sweet = false; //testing field
     boolean tasty = true;
@@ -41,10 +48,11 @@ class Food{
          return calories >= tasty;
       }
 
-
       void classy(){
         calories = 100;
       }
+
+
 }
 
 //testing inheritance
@@ -59,7 +67,6 @@ class Dessert extends Food{
     void changeYum(boolean yum){
         yummy == Food.tasty; //testing BinaryCompEqExpr
     }
-
 
 }
 

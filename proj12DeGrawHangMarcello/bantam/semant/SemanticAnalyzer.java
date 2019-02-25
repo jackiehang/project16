@@ -24,7 +24,16 @@
    PARTICULAR PURPOSE.
 
    This file was modified by Dale Skrien, February, 2019.
+
 */
+
+/*
+ * File: SymbolTable.java
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Date: February 25, 2019
+ */
+
 
 package proj12DeGrawHangMarcello.bantam.semant;
 
@@ -33,7 +42,6 @@ import proj12DeGrawHangMarcello.bantam.parser.Parser;
 import proj12DeGrawHangMarcello.bantam.util.*;
 import proj12DeGrawHangMarcello.bantam.util.Error;
 import proj12DeGrawHangMarcello.bantam.visitor.Visitor;
-
 
 import javax.swing.text.html.StyleSheet;
 import java.util.*;
@@ -46,7 +54,13 @@ import java.util.*;
  * legal class member declaration, (3) there is a correct bantam.Main class
  * and main() method, and (4) each class member is correctly typed.
  * <p>
- * This class is incomplete and will need to be implemented by the student.
+ *
+ *
+ * Completed by:
+ * @author Lucas DeGraw, Jackie Hang, Chris Marcello
+ * @version 1.0
+ * @since Feb 25, 2019
+ *
  */
 public class SemanticAnalyzer
 {
@@ -81,6 +95,11 @@ public class SemanticAnalyzer
      */
     private ErrorHandler errorHandler;
 
+    /*
+     * If true (running from local main method) print out progress updates.
+     */
+    private static boolean verbose;
+
     /**
      * current filename
      */
@@ -99,7 +118,6 @@ public class SemanticAnalyzer
      */
     public SemanticAnalyzer(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
-
     }
 
     /**
@@ -114,40 +132,38 @@ public class SemanticAnalyzer
      * 2 - add user-defined classes and build the inheritance tree of ClassTreeNodes - done
      * 3 - build the environment for each class (add class members only) and check
      *     that members are declared properly
-     * 4 - check that the Main class and main method are declared properly - MainMainVisitor?
+     * 4 - check that the Main class and main method are declared properly
      * 5 - type check everything
      * See the lab manual for more details on each of these steps.
      */
     public ClassTreeNode analyze(Program program) {
         this.program = program;
         this.classMap.clear();
-        System.out.println("CLEARING");
 
         // step 1:  add built-in classes to classMap
         addBuiltins();
 
         //step 2: add user-defined classes and build the inheritance tree of ClassTreeNodes
-        System.out.println("Beginning Build of Class Map");
+        if(verbose) { System.out.print("Beginning Build of Class Map... "); }
         addUserClasses();
+        if(verbose) { System.out.println("Class Map Completed"); }
 
-        this.root.getVarSymbolTable().dump();
-        System.out.println("Beginning Build of Inheritance");
+        if(verbose) { System.out.print("Beginning Build of Inheritance Relationships... "); }
         buildInheritance();
+        if(verbose) { System.out.println("Inheritance Relationships Completed"); }
 
-        /*
-        System.out.println(classMap.toString());
-        for(String key: classMap.keySet()) {
-            if(!key.equals("Object")) {
-                System.out.println("Class " + key + " with parent: " + classMap.get(key).getParent().getName());
-            }
-        }
-        */
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
+        if(verbose) { System.out.print("Beginning Build of Class Environment... "); }
         buildClassEnvironment();
+        if(verbose) { System.out.println("Class Environment Completed"); }
 
-        //
+        //step 4: check that the Main class and main method are declared properly
+        if(verbose) { System.out.print("Checking for Main Class & Method... "); }
         checkMain();
+        if(verbose) { System.out.println("Main Class & Method Found"); }
 
+        //step 5: Type Checking
+        if(verbose) { System.out.print("Beginning Type Checking... "); }
         for(String key: classMap.keySet()) {
             if(!key.equals("Object") && !key.equals("String") && !key.equals("TextIO") && !key.equals("Sys")) {
                 ErrorHandler checkerErrorHandler = new ErrorHandler();
@@ -156,14 +172,8 @@ public class SemanticAnalyzer
                 printErrors(checkerErrorHandler);
             }
         }
+        if(verbose) { System.out.println("Type Checking Completed"); }
 
-        // remove the following statement
-        //throw new RuntimeException("Semantic analyzer unimplemented");
-
-        // add code here...
-        //
-
-        // uncomment the following statement
         return root;
     }
 
@@ -263,7 +273,7 @@ public class SemanticAnalyzer
     private void buildInheritance() {
         //adds inheritance to built-in classes
         for(String key: classMap.keySet()) {
-            if (key != "Object") {
+            if (!key.equals("Object")) {
                 classMap.get(key).setParent(classMap.get("Object"));
             }
         }
@@ -275,7 +285,7 @@ public class SemanticAnalyzer
     }
 
     /**
-     *
+     *Visitor to check if there exists a main method
      */
     private void checkMain() {
         MainMainVisitor mainMainVisitor = new MainMainVisitor();
@@ -305,7 +315,6 @@ public class SemanticAnalyzer
             //creates a new classTreeNode for the class
             classTreeNode = new ClassTreeNode(node, false, true, classMap);
             classMap.put(node.getName(), classTreeNode);
-            //get object class number of descendents
 
             //doesn't visit children yet, since we're just building the CTN
             return true;
@@ -374,7 +383,7 @@ public class SemanticAnalyzer
         }
 
         /**
-         *
+         *Visit a class node
          * @param node the class node
          * @return null
          */
@@ -397,11 +406,9 @@ public class SemanticAnalyzer
             //traverse
             node.getMemberList().accept(this);
 
-
             //exit the current class's Symbol table's scopes.
             currentClass.getVarSymbolTable().exitScope();
             currentClass.getMethodSymbolTable().exitScope();
-
 
             return null;
         }
@@ -524,16 +531,13 @@ public class SemanticAnalyzer
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Var of name " + node.getName() + " previously declared in class " + currentClass.getName());
             }
-            //otherwise add it
+            //check if the initialization statement is null
             if (node.getInit() == null) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Var of name " + node.getName() + " cannot be initialized to type null.");
             }
+            //otherwise add it
             else {
-
-//                node.getInit().
-//                Expr exprObjType = node.getInit();
-
                 node.getInit().setExprType(node.getInit().toString());
                 currentClass.getVarSymbolTable().add(node.getName(), node.getInit().toString());
                 return super.visit(node);
@@ -592,13 +596,11 @@ public class SemanticAnalyzer
         // if any errors were registered
         if (errorHandler.errorsFound()) {
             List<Error> errorList = errorHandler.getErrorList();  // get the list of errors
-            Iterator<Error> errorIterator = errorList.iterator(); // create an iterator for it
 
             // loop through the errors
-            while (errorIterator.hasNext()) {
-
+            for (Error anErrorList : errorList) {
                 // print the error
-                System.out.println("\n" + errorIterator.next().toString());
+                System.out.println("\n" + anErrorList.toString());
             }
         }
     }
@@ -632,9 +634,9 @@ public class SemanticAnalyzer
 
 
         // loop through the file names
-        for (int i = 0; i < args.length; i++) {
+        for (String arg : args) {
             //sets current filename for use with error handler
-            filename = args[i];
+            filename = arg;
 
             // reset parser data
             parseErrorHandler = new ErrorHandler();
@@ -645,15 +647,14 @@ public class SemanticAnalyzer
             checkerErrorHandler = new ErrorHandler();
             semanticAnalyzer = new SemanticAnalyzer(checkerErrorHandler);
 
-            System.out.println("\n\nCOMPILING: " + args[i]);
+            System.out.println("\n\nCOMPILING: " + arg);
 
             // try to scan and parse the file
-            try{
-                ast = parser.parse(args[i]);
+            try {
+                ast = parser.parse(arg);
                 System.out.println("\nParsing Successful");
                 parsingSuccessful = true;
-            }
-            catch (CompilationException e){
+            } catch (CompilationException e) {
                 System.out.println("Parse Failed");
                 printErrors(parseErrorHandler);
                 parsingSuccessful = false;
@@ -663,13 +664,14 @@ public class SemanticAnalyzer
             if (parsingSuccessful) {
                 System.out.println("Starting Semantic Analysis");
                 // try to check the program (semantic analysis)
-                try{
+                try {
+                    verbose = true;
                     semanticAnalyzer.analyze(ast);
                     System.out.println("\nChecking Complete");
                     printErrors(checkerErrorHandler);
                 }
                 // includes CompilationExceptions (it's a subclass)
-                catch (RuntimeException e){
+                catch (RuntimeException e) {
                     printErrors(checkerErrorHandler);
                 }
             }

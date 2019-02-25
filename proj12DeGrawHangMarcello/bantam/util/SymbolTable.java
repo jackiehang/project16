@@ -24,6 +24,14 @@
    PARTICULAR PURPOSE. 
 */
 
+/*
+ * File: SymbolTable.java
+ * Used By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Date: February 25, 2019
+ */
+
+
 package proj12DeGrawHangMarcello.bantam.util;
 
 import java.util.Enumeration;
@@ -122,7 +130,6 @@ public class SymbolTable {
      * @param value value of symbol (i.e., type)
      */
     public void add(String s, Object value) {
-//        System.out.println("adding: " + s + ", " + value + " to level: " + this.getCurrScopeLevel());
         if (scopes.size() == 0) {
             throw new RuntimeException("Must enter a scope before adding to table");
         }
@@ -142,11 +149,8 @@ public class SymbolTable {
         for (int i = scopes.size() - 1; i >= 0; i--) {
             Hashtable<String, Object> h = scopes.elementAt(i);
 
-            System.out.println(scopes.elementAt(i));
-
             Object value = h.get(s);
 
-            System.out.println(s + ", " + value);
             if (value != null) {
                 return value;
             }
@@ -399,7 +403,6 @@ public class SymbolTable {
      * @return size of current scope
      */
     public int getSize() {
-//        System.out.println("getSize()");
         int size = 0;
 
         for (int i = 0; i < scopes.size(); i++)

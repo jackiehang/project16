@@ -4,6 +4,12 @@
  * Class: CS 461
  * Project 11
  * Date: February 12, 2019
+ *
+ * ------------------------------
+ *
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Date: February 25, 2019
  */
 
 package proj12DeGrawHangMarcello.bantam.semant;
