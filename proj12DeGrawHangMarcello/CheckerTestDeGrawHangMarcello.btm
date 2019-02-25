@@ -24,11 +24,11 @@ class Food{
     }
 
     boolean taste(){
-        return sweet || tasty; //test or operator
+        return num || tasty; //error: binaryLogicOrExpr
     }
 
     boolean tasteTwo(){
-        return sweet && tasty; //test and operator
+        return sweet && tasty; //error: binaryLogicAndExpr
     }
 
     //error : AssignExpr
@@ -42,16 +42,15 @@ class Food{
         return calories <= tasty;
     }
 
-     // error : BinaryCompGeqExpr
-      boolean badComp2(){
+    // error : BinaryCompGeqExpr
+    boolean badComp2(){
 
-         return calories >= tasty;
-      }
+       return calories >= tasty;
+    }
 
-      void classy(){
+    void classy(){
         calories = 100;
-      }
-
+    }
 
 }
 
@@ -64,8 +63,12 @@ class Dessert extends Food{
         u = utensil;
         var x = 2;
     }
-    void changeYum(boolean yum){
-        yummy == Food.tasty; //testing BinaryCompEqExpr
+    boolean isYum(boolean yum){
+        return u == yum ; //error: BinaryCompEqExpr
+    }
+
+    boolean isNotYum(boolean yum){
+        return yum != u;  //error: BinaryCompNEqExpr
     }
 
 }
@@ -83,24 +86,31 @@ class Utensil{
 
 }
 
-class Main extends Dessert{
+class Main{
     int x = 5;
     int z = 20;
     Food[] foods = new Food[5];
     Food cake;
     Food wrong;
+    Dessert pie = new Dessert();
     int[] q;
 
 
     void methodTest(){
         var j = 0; //testing var expr
         for(i = 0; i < 2; i++){ //testing for-loop
-            j = j + i; //testing addition
+            j = j + pie; //testing addition
         }
 
         for(i = 0; i < 2; i++){ //testing for-loop
             j++; //testing unary incr
         }
+
+        j = z-cake; //testing subtraction
+
+        j=j*pie; //testing multiplication
+
+        j= j%pie; // testing modulus
 
     }
 
@@ -121,8 +131,12 @@ class Main extends Dessert{
 
     void testWhileStmt(){
         var potato = 0;
-        while(potato < 5){ //testing while stmt
+        while(potato < 5){ //testing while stmt and less than
             potato ++;
+        }
+
+        while(potato == true){ // error: whileStmt
+            potato --;
         }
     }
 
@@ -137,6 +151,7 @@ class Main extends Dessert{
     void main(){
         q[2] = "test"; // error: incorrect array assignment
 	    var x = 2;
+	    var n = null; // error : null varExpr
         cake = new Dessert();
         var iceCream = new Dessert();
         var spoon = new Utensil();

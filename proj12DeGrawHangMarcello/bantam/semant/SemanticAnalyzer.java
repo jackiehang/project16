@@ -339,7 +339,7 @@ public class SemanticAnalyzer
             //sets parent
             if (!node.getParent().equals("")) {
                 classTreeNode.setParent(classMap.get(node.getParent()));
-                //TODO - Not sure how to elegantly "detect" that there was a inheritance cycle. see line 180 of ClassTreeNode
+                //see line 180 of ClassTreeNode
                 //current attempt - see if the Object has a new descendent. if not, there's a cycle
                 //if cycle, set the parent's parent to object as well as the current class's parent to object
                 if (numObjectDescendants == classMap.get("Object").getNumDescendants()) {
@@ -448,11 +448,6 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Method node) {
 
-//            super.visit(node);
-            // TODO: uncommenting this catches an error ??
-//            node.getStmtList().accept(this);
-
-
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
@@ -518,8 +513,6 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(DeclStmt node) {
-            // TODO: check for this. and super.
-
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
