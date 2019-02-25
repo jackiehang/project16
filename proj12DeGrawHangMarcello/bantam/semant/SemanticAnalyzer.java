@@ -81,6 +81,11 @@ public class SemanticAnalyzer
      */
     private ErrorHandler errorHandler;
 
+    /*
+     * If true (running from local main method) print out progress updates.
+     */
+    private static boolean verbose;
+
     /**
      * current filename
      */
@@ -99,7 +104,6 @@ public class SemanticAnalyzer
      */
     public SemanticAnalyzer(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
-
     }
 
     /**
@@ -126,26 +130,26 @@ public class SemanticAnalyzer
         addBuiltins();
 
         //step 2: add user-defined classes and build the inheritance tree of ClassTreeNodes
-        System.out.print("Beginning Build of Class Map... ");
+        if(verbose) { System.out.print("Beginning Build of Class Map... "); }
         addUserClasses();
-        System.out.println("Class Map Completed");
+        if(verbose) { System.out.println("Class Map Completed"); }
 
-        System.out.print("Beginning Build of Inheritance Relationships... ");
+        if(verbose) { System.out.print("Beginning Build of Inheritance Relationships... "); }
         buildInheritance();
-        System.out.println("Inheritance Relationships Completed");
+        if(verbose) { System.out.println("Inheritance Relationships Completed"); }
 
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
-        System.out.print("Beginning Build of Class Environment... ");
+        if(verbose) { System.out.print("Beginning Build of Class Environment... "); }
         buildClassEnvironment();
-        System.out.println("Class Environment Completed");
+        if(verbose) { System.out.println("Class Environment Completed"); }
 
         //step 4: check that the Main class and main method are declared properly
-        System.out.print("Checking for Main Class & Method... ");
+        if(verbose) { System.out.print("Checking for Main Class & Method... "); }
         checkMain();
-        System.out.println("Main Class & Method Found");
+        if(verbose) { System.out.println("Main Class & Method Found"); }
 
         //step 5: Type Checking
-        System.out.print("Beginning Type Checking... ");
+        if(verbose) { System.out.print("Beginning Type Checking... "); }
         for(String key: classMap.keySet()) {
             if(!key.equals("Object") && !key.equals("String") && !key.equals("TextIO") && !key.equals("Sys")) {
                 ErrorHandler checkerErrorHandler = new ErrorHandler();
@@ -154,7 +158,7 @@ public class SemanticAnalyzer
                 printErrors(checkerErrorHandler);
             }
         }
-        System.out.println("Type Checking Completed");
+        if(verbose) { System.out.println("Type Checking Completed"); }
 
         return root;
     }
@@ -644,6 +648,7 @@ public class SemanticAnalyzer
                 System.out.println("Starting Semantic Analysis");
                 // try to check the program (semantic analysis)
                 try {
+                    verbose = true;
                     semanticAnalyzer.analyze(ast);
                     System.out.println("\nChecking Complete");
                     printErrors(checkerErrorHandler);
