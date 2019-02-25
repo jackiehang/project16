@@ -10,7 +10,27 @@ public class TypeCheckerVisitor extends Visitor
 {
     private ClassTreeNode currentClass;
     private SymbolTable currentSymbolTable;
-    private ErrorHandler errorHandler;
+    private ErrorHandler errorHandler = new ErrorHandler();
+
+    /**
+     * begins traversal of AST to perform type checking
+     * @param curClass the top level class
+     */
+    public void checkTypes(ClassTreeNode curClass) {
+
+        // save the top level class
+        currentClass = curClass;
+
+        // save top level symbol table
+        currentSymbolTable = currentClass.getVarSymbolTable();
+
+        // get class root
+        Class_ root = currentClass.getASTNode();
+
+        // begin traversal
+        root.accept(this);
+
+    }
 
     /**
      * Helper method to find if the type is a defined type
