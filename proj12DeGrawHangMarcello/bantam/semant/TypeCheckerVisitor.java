@@ -98,16 +98,6 @@ public class TypeCheckerVisitor extends Visitor {
     }
 
     /**
-     * Helper method to check if type is a defined class type
-     *
-     * @param type
-     * @return boolean
-     */
-    private boolean isDefinedClassType(String type) {
-        return currentClass.getClassMap().containsKey(type);
-    }
-
-    /**
      * Visit a array assignment expression node
      *
      * @param node the array assignment expression node
@@ -348,7 +338,6 @@ public class TypeCheckerVisitor extends Visitor {
         return null;
     }
 
-
     /**
      * Helper method to visit the BinaryCompExpr nodes
      *
@@ -583,9 +572,6 @@ public class TypeCheckerVisitor extends Visitor {
                 (Method) currentClass.getMethodSymbolTable()
                         .lookup(node.getMethodName());
 
-        // visit child nodes
-//        node.getActualList().accept(this);
-
         if (methodNode == null) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
@@ -620,12 +606,11 @@ public class TypeCheckerVisitor extends Visitor {
      * @param actualParamTypes list of param types passed into DispatchExpr's method
      * @param allowedParamTypes list of param types allowed for DispatchExpr's method
      */
-    private Object compareParamTypes(DispatchExpr node, ExprList actualParamTypes,
+    private void compareParamTypes(DispatchExpr node, ExprList actualParamTypes,
                                    FormalList allowedParamTypes) {
 
         // list of types that cannot be subclassed in Bantam Java
         Set<String> nonObjectTypes = Set.of("int", "boolean", "String");
-
 
         // get the length of each parameter list
         int numActualParams = actualParamTypes.getSize();
@@ -633,7 +618,7 @@ public class TypeCheckerVisitor extends Visitor {
 
         // this var gets the greater of the two lengths, used as the loop variable
         int greaterNumParams =
-                (numActualParams > numActualParams) ? numActualParams : numAllowedParams;
+                (numActualParams > numAllowedParams) ? numActualParams : numAllowedParams;
 
         // initialize param nodes that will update on each iteration of param comparisons
         Formal actualArg;
@@ -657,8 +642,8 @@ public class TypeCheckerVisitor extends Visitor {
                         currentClass.getASTNode().getFilename(),
                         node.getLineNum(), errorMsg);
 
-                // stop comparing params because at least one list has been completed
-                break;
+                // stop comparing params because at least one list has been exhausted
+                return;
             }
 
 
@@ -696,9 +681,7 @@ public class TypeCheckerVisitor extends Visitor {
                 }
             }
         }
-        return null;
     }
-
 
     /**
      * Visit a field node
@@ -933,7 +916,7 @@ public class TypeCheckerVisitor extends Visitor {
      * Visit the return statement node
      *
      * @param node the return statement node
-     * @return
+     * @return the result of the visit
      */
     public Object visit(ReturnStmt node) {
         node.getExpr().accept(this);
@@ -1026,8 +1009,8 @@ public class TypeCheckerVisitor extends Visitor {
     /**
      * Visit a Variable Expression node
      *
-     * @param node
-     * @return null
+     * @param node the VarExpr node being visited
+     * @return the result of the visit
      */
     public Object visit(VarExpr node) {
         node.getRef().accept(this);
