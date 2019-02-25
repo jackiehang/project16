@@ -143,25 +143,17 @@ public class SemanticAnalyzer
         }
         */
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
-
         buildClassEnvironment();
 
+        //
         checkMain();
-
-//        for (int i = 0; i < classMap.size(); i++) {
-//            ErrorHandler checkerErrorHandler = new ErrorHandler();
-//            TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
-//            typeCheckerVisitor.checkTypes(classMap.get(i));
-//            printErrors(checkerErrorHandler);
-//        }
 
         for(String key: classMap.keySet()) {
             if(!key.equals("Object") && !key.equals("String") && !key.equals("TextIO") && !key.equals("Sys")) {
-                //System.out.println(classMap.get(key).getVarSymbolTable().getSize());
-//                ErrorHandler checkerErrorHandler = new ErrorHandler();
-//                TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
-//                typeCheckerVisitor.checkTypes(classMap.get(key));
-//                printErrors(checkerErrorHandler);
+                ErrorHandler checkerErrorHandler = new ErrorHandler();
+                TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
+                typeCheckerVisitor.checkTypes(classMap.get(key));
+                printErrors(checkerErrorHandler);
             }
         }
 
@@ -388,15 +380,15 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(Class_ node) {
+
             //get the current class's tree node
             currentClass = classMap.get(node.getName());
 
-            //Two options for class parent symbol tables: Clone and Overwrite vs. Set Parent
-            //Not sure which of the two is right. Going with set parent for now.
-
             //adds parent's Vars and Methods to currentClass symbol table.
-            currentClass.getVarSymbolTable().setParent(currentClass.getParent().getVarSymbolTable());
-            currentClass.getVarSymbolTable().setParent(currentClass.getParent().getMethodSymbolTable());
+            currentClass.getVarSymbolTable().setParent(
+                    currentClass.getParent().getVarSymbolTable());
+            currentClass.getVarSymbolTable().setParent(
+                    currentClass.getParent().getMethodSymbolTable());
 
             //enter current node's Symbol Table's scope
             currentClass.getVarSymbolTable().enterScope();

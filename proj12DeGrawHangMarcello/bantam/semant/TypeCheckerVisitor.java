@@ -627,65 +627,107 @@ public class TypeCheckerVisitor extends Visitor {
 
         // get the parameters being passed in
         ExprList actualParams = node.getActualList();
-        int numActualParams = actualParams.getSize();
 
         // get the acceptable parameters
-        FormalList allowedArgs = methodNode.getFormalList();
+        FormalList allowedParams = methodNode.getFormalList();
 
-        // if they have the same number of parameters
-        if (numActualParams == allowedArgs.getSize()) {
+        // compare corresponding parameter types from each list
+        compareParamTypes(node, actualParams, allowedParams);
 
-            // list of types that cannot be subclassed in Bantam Java
-            Set<String> nonObjectTypes = Set.of("int", "boolean", "String");
-
-            // loop through the arguments of both lists (same length)
-            for (int i = 0; i < numActualParams; i++) {
-
-                // get the two argument objects
-                Formal actualArg = (Formal) actualParams.get(i);
-                Formal allowedArg = (Formal) allowedArgs.get(i);
-
-                // get the two argument types
-                String actualType = actualArg.getType();
-                String allowedType = allowedArg.getType();
-
-                // if the types don't match
-                if (!actualType.equals(allowedType)) {
-
-                    // if one type is not an object
-                    if (nonObjectTypes.contains(actualType)
-                            || nonObjectTypes.contains(allowedType)) {
-
-                        String errorMsg = "Actual type " + "\'" + actualType + "\' of parameter "
-                                + i + " to method " + node.getMethodName() + " "
-                                + "does not match expected type " + "\'" + allowedType + "\'";
-
-                        // throw an error
-                        errorHandler.register(Error.Kind.SEMANT_ERROR,
-                                currentClass.getASTNode().getFilename(),
-                                node.getLineNum(), errorMsg);
-                    }
-                    // else if actual param is not a subtype of acceptable param
-                    else if (!isSubType(actualType, allowedType)) {
-
-                        String errorMsg = "Actual type " + "\'" + actualType +
-                                "\' of parameter " + i + " to method " + node.getMethodName()
-                                + " " + "is not a subtype of " + "\'" + allowedType + "\'";
-
-                        // throw an error
-                        errorHandler.register(Error.Kind.SEMANT_ERROR,
-                                currentClass.getASTNode().getFilename(),
-                                node.getLineNum(), errorMsg);
-                    }
-                }
-            }
-
-        }
 
         //set type of dispatch expr to the return type of the ref
         node.setExprType(refExpr.getExprType());
+
         return null;
     }
+
+    /**
+     * compares corresponding parameter list types until one or both lists have
+     * been exhausted, registers appropriate error messages
+     *
+     * @param node a DispatchExpr node
+     * @param actualParamTypes list of param types passed into DispatchExpr's method
+     * @param allowedParamTypes list of param types allowed for DispatchExpr's method
+     */
+    private Object compareParamTypes(DispatchExpr node, ExprList actualParamTypes,
+                                   FormalList allowedParamTypes) {
+
+        // list of types that cannot be subclassed in Bantam Java
+        Set<String> nonObjectTypes = Set.of("int", "boolean", "String");
+
+
+        // get the length of each parameter list
+        int numActualParams = actualParamTypes.getSize();
+        int numAllowedParams = allowedParamTypes.getSize();
+
+        // this var gets the greater of the two lengths, used as the loop variable
+        int greaterNumParams =
+                (numActualParams > numActualParams) ? numActualParams : numAllowedParams;
+
+        // initialize param nodes that will update on each iteration of param comparisons
+        Formal actualArg;
+        Formal allowedArg;
+
+        // loop through the arguments of both lists
+        for (int i = 0; i < greaterNumParams; i++) {
+
+            try {
+                // try to get the two argument objects
+                actualArg = (Formal) actualParamTypes.get(i);
+                allowedArg = (Formal) allowedParamTypes.get(i);
+
+            } catch (IndexOutOfBoundsException e) {
+
+                String errorMsg = "Actual arguments list takes " + numAllowedParams +
+                                  " arguments but " + numActualParams + " were provided";
+
+                // throw an error
+                errorHandler.register(Error.Kind.SEMANT_ERROR,
+                        currentClass.getASTNode().getFilename(),
+                        node.getLineNum(), errorMsg);
+
+                // stop comparing params because at least one list has been completed
+                break;
+            }
+
+
+            // get the two argument types
+            String actualType = actualArg.getType();
+            String allowedType = allowedArg.getType();
+
+            // if the types don't match
+            if (!actualType.equals(allowedType)) {
+
+                // if one type is not an object
+                if (nonObjectTypes.contains(actualType)
+                        || nonObjectTypes.contains(allowedType)) {
+
+                    String errorMsg = "Actual type " + "\'" + actualType + "\' of parameter "
+                            + i + " to method " + node.getMethodName() + " "
+                            + "does not match expected type " + "\'" + allowedType + "\'";
+
+                    // throw an error
+                    errorHandler.register(Error.Kind.SEMANT_ERROR,
+                            currentClass.getASTNode().getFilename(),
+                            node.getLineNum(), errorMsg);
+                }
+                // else if actual param is not a subtype of acceptable param
+                else if (!isSubType(actualType, allowedType)) {
+
+                    String errorMsg = "Actual type " + "\'" + actualType +
+                            "\' of parameter " + i + " to method " + node.getMethodName()
+                            + " " + "is not a subtype of " + "\'" + allowedType + "\'";
+
+                    // throw an error
+                    errorHandler.register(Error.Kind.SEMANT_ERROR,
+                            currentClass.getASTNode().getFilename(),
+                            node.getLineNum(), errorMsg);
+                }
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Visit a field node
@@ -872,7 +914,9 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(NewArrayExpr node) {
+
         node.getSize().accept(this);
+
         if (!node.getSize().getExprType().equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
@@ -889,7 +933,6 @@ public class TypeCheckerVisitor extends Visitor {
         } else {
             node.setExprType(node.getType());
         }
-
 
         return null;
     }
@@ -914,8 +957,6 @@ public class TypeCheckerVisitor extends Visitor {
         }
         return null;
     }
-
-
 
     /**
      * Visit the return statement node
@@ -975,8 +1016,10 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(UnaryNegExpr node) {
+
         node.getExpr().accept(this);
         String type = node.getExpr().getExprType();
+
         if (!type.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
@@ -995,6 +1038,8 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(UnaryNotExpr node) {
+
+        // visit child expression node
         node.getExpr().accept(this);
         String type = node.getExpr().getExprType();
         if (!type.equals("boolean")) {
@@ -1034,6 +1079,7 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(WhileStmt node) {
+
         node.getPredExpr().accept(this);
         //the predExpr's type is not "boolean"
         if (!node.getPredExpr().getExprType().equals("boolean")) {
