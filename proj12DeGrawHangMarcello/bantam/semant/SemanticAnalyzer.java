@@ -128,14 +128,17 @@ public class SemanticAnalyzer
         //step 2: add user-defined classes and build the inheritance tree of ClassTreeNodes
         System.out.println("Beginning Build of Class Map");
         addUserClasses();
+        System.out.println("Class Map Completed");
 
         this.root.getVarSymbolTable().dump();
-        System.out.println("Beginning Build of Inheritance");
+        System.out.println("Beginning Build of Inheritance Relationships");
         buildInheritance();
+        System.out.println("Inheritance Relationships Completed");
 
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
-
+        System.out.println("Beginning Build of Class Environment");
         buildClassEnvironment();
+        System.out.println("Class Environment Completed");
 
         checkMain();
 
@@ -248,7 +251,7 @@ public class SemanticAnalyzer
     private void buildInheritance() {
         //adds inheritance to built-in classes
         for(String key: classMap.keySet()) {
-            if (key != "Object") {
+            if (!key.equals("Object")) {
                 classMap.get(key).setParent(classMap.get("Object"));
             }
         }
@@ -290,7 +293,6 @@ public class SemanticAnalyzer
             //creates a new classTreeNode for the class
             classTreeNode = new ClassTreeNode(node, false, true, classMap);
             classMap.put(node.getName(), classTreeNode);
-            //get object class number of descendents
 
             //doesn't visit children yet, since we're just building the CTN
             return true;
@@ -368,9 +370,6 @@ public class SemanticAnalyzer
             //get the current class's tree node
             currentClass = classMap.get(node.getName());
 
-            //Two options for class parent symbol tables: Clone and Overwrite vs. Set Parent
-            //Not sure which of the two is right. Going with set parent for now.
-
             //adds parent's Vars and Methods to currentClass symbol table.
             currentClass.getVarSymbolTable().setParent(currentClass.getParent().getVarSymbolTable());
             currentClass.getVarSymbolTable().setParent(currentClass.getParent().getMethodSymbolTable());
@@ -382,11 +381,9 @@ public class SemanticAnalyzer
             //traverse
             node.getMemberList().accept(this);
 
-
             //exit the current class's Symbol table's scopes.
             currentClass.getVarSymbolTable().exitScope();
             currentClass.getMethodSymbolTable().exitScope();
-
 
             return null;
         }
@@ -509,16 +506,13 @@ public class SemanticAnalyzer
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Var of name " + node.getName() + " previously declared in class " + currentClass.getName());
             }
-            //otherwise add it
+            //check if the initialization statement is null
             if (node.getInit() == null) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Var of name " + node.getName() + " cannot be initialized to type null.");
             }
+            //otherwise add it
             else {
-
-//                node.getInit().
-//                Expr exprObjType = node.getInit();
-
                 node.getInit().setExprType(node.getInit().toString());
                 currentClass.getVarSymbolTable().add(node.getName(), node.getInit().toString());
                 return super.visit(node);
@@ -577,13 +571,11 @@ public class SemanticAnalyzer
         // if any errors were registered
         if (errorHandler.errorsFound()) {
             List<Error> errorList = errorHandler.getErrorList();  // get the list of errors
-            Iterator<Error> errorIterator = errorList.iterator(); // create an iterator for it
 
             // loop through the errors
-            while (errorIterator.hasNext()) {
-
+            for (Error anErrorList : errorList) {
                 // print the error
-                System.out.println("\n" + errorIterator.next().toString());
+                System.out.println("\n" + anErrorList.toString());
             }
         }
     }
@@ -617,9 +609,9 @@ public class SemanticAnalyzer
 
 
         // loop through the file names
-        for (int i = 0; i < args.length; i++) {
+        for (String arg : args) {
             //sets current filename for use with error handler
-            filename = args[i];
+            filename = arg;
 
             // reset parser data
             parseErrorHandler = new ErrorHandler();
@@ -630,15 +622,14 @@ public class SemanticAnalyzer
             checkerErrorHandler = new ErrorHandler();
             semanticAnalyzer = new SemanticAnalyzer(checkerErrorHandler);
 
-            System.out.println("\n\nCOMPILING: " + args[i]);
+            System.out.println("\n\nCOMPILING: " + arg);
 
             // try to scan and parse the file
-            try{
-                ast = parser.parse(args[i]);
+            try {
+                ast = parser.parse(arg);
                 System.out.println("\nParsing Successful");
                 parsingSuccessful = true;
-            }
-            catch (CompilationException e){
+            } catch (CompilationException e) {
                 System.out.println("Parse Failed");
                 printErrors(parseErrorHandler);
                 parsingSuccessful = false;
@@ -648,13 +639,13 @@ public class SemanticAnalyzer
             if (parsingSuccessful) {
                 System.out.println("Starting Semantic Analysis");
                 // try to check the program (semantic analysis)
-                try{
+                try {
                     semanticAnalyzer.analyze(ast);
                     System.out.println("\nChecking Complete");
                     printErrors(checkerErrorHandler);
                 }
                 // includes CompilationExceptions (it's a subclass)
-                catch (RuntimeException e){
+                catch (RuntimeException e) {
                     printErrors(checkerErrorHandler);
                 }
             }
