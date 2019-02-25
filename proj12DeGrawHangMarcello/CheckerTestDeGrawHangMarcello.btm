@@ -42,16 +42,15 @@ class Food{
         return calories <= tasty;
     }
 
-     // error : BinaryCompGeqExpr
-      boolean badComp2(){
+    // error : BinaryCompGeqExpr
+    boolean badComp2(){
 
-         return calories >= tasty;
-      }
+       return calories >= tasty;
+    }
 
-      void classy(){
+    void classy(){
         calories = 100;
-      }
-
+    }
 
 }
 
@@ -83,7 +82,7 @@ class Utensil{
 
 }
 
-class Main extends Dessert{
+class Main{
     int x = 5;
     int z = 20;
     Food[] foods = new Food[5];
@@ -101,6 +100,10 @@ class Main extends Dessert{
         for(i = 0; i < 2; i++){ //testing for-loop
             j++; //testing unary incr
         }
+
+        j = z-cake; //testing subtraction
+
+        j=j*j; //testing multiplication
 
     }
 
@@ -121,7 +124,7 @@ class Main extends Dessert{
 
     void testWhileStmt(){
         var potato = 0;
-        while(potato < 5){ //testing while stmt
+        while(potato < 5){ //testing while stmt and less than
             potato ++;
         }
     }
