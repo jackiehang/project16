@@ -130,7 +130,6 @@ public class SemanticAnalyzer
         System.out.println("Beginning Build of Class Map");
         addUserClasses();
 
-//        System.out.println();
         this.root.getVarSymbolTable().dump();
         System.out.println("Beginning Build of Inheritance");
         buildInheritance();
@@ -144,16 +143,9 @@ public class SemanticAnalyzer
         }
         */
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
-//        System.out.println("Beginning Build of Class Environment");
+
         buildClassEnvironment();
-//
-//        System.out.println("root: " + root);
-        System.out.println("var table:");
-        this.root.getVarSymbolTable().dump();
-        System.out.println("method table:");
-        this.root.getMethodSymbolTable().dump();
-//
-//        System.out.println("Checking for Main Method");
+
         checkMain();
 
 //        for (int i = 0; i < classMap.size(); i++) {
@@ -165,12 +157,11 @@ public class SemanticAnalyzer
 
         for(String key: classMap.keySet()) {
             if(!key.equals("Object") && !key.equals("String") && !key.equals("TextIO") && !key.equals("Sys")) {
-
-                System.out.println("KEY: " + key);
-                ErrorHandler checkerErrorHandler = new ErrorHandler();
-                TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
-                typeCheckerVisitor.checkTypes(classMap.get(key));
-                printErrors(checkerErrorHandler);
+                //System.out.println(classMap.get(key).getVarSymbolTable().getSize());
+//                ErrorHandler checkerErrorHandler = new ErrorHandler();
+//                TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
+//                typeCheckerVisitor.checkTypes(classMap.get(key));
+//                printErrors(checkerErrorHandler);
             }
         }
 
@@ -346,7 +337,6 @@ public class SemanticAnalyzer
             int numObjectDescendants = classMap.get("Object").getNumDescendants();
             //sets parent
             if (!node.getParent().equals("")) {
-                System.out.println("SETTING: " + classMap.get(node.getParent()));
                 classTreeNode.setParent(classMap.get(node.getParent()));
                 //TODO - Not sure how to elegantly "detect" that there was a inheritance cycle. see line 180 of ClassTreeNode
                 //current attempt - see if the Object has a new descendent. if not, there's a cycle
@@ -364,6 +354,8 @@ public class SemanticAnalyzer
                 classMap.get("Object").addChild(classTreeNode);
                 classTreeNode.setParent(classMap.get("Object"));
             }
+
+
 
             return null;
         }
@@ -396,7 +388,6 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(Class_ node) {
-            System.out.println("class: " + node.getName());
             //get the current class's tree node
             currentClass = classMap.get(node.getName());
 
@@ -414,9 +405,11 @@ public class SemanticAnalyzer
             //traverse
             node.getMemberList().accept(this);
 
+
             //exit the current class's Symbol table's scopes.
             currentClass.getVarSymbolTable().exitScope();
             currentClass.getMethodSymbolTable().exitScope();
+
 
             return null;
         }
@@ -429,10 +422,7 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(Field node) {
-//            System.out.println("field: " + node.getName());
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
-            //System.out.println("Entering Field");
-
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
@@ -445,10 +435,7 @@ public class SemanticAnalyzer
             }
             //otherwise add it
             else {
-                System.out.println("field: " + node.getName());
-                System.out.println("type: " + node.getType());
                 currentClass.getVarSymbolTable().add(node.getName(), node.getType());
-                System.out.println(currentClass);
             }
             return null;
         }
@@ -462,23 +449,18 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Method node) {
 
-//            currentClass.getVarSymbolTable().dump();
-//            currentClass.getMethodSymbolTable().dump();
 //            super.visit(node);
             // TODO: uncommenting this catches an error ??
 //            node.getStmtList().accept(this);
 
-//            System.out.println("method: " + node.getName());
+
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
-            //System.out.println("Entering Method");
             if (reservedIdentifiers.contains(node.getName())) {
-//                System.out.println("error1");
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
             }
             //check to see if a Method of this name has already been declared in current class symbol table (an error)
             if (currentClass.getMethodSymbolTable().peek(node.getName()) != null) {
-//                System.out.println("error2");
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Method of name " + node.getName() + " previously declared in class "
                                 + currentClass.getName() + ".");
@@ -491,8 +473,8 @@ public class SemanticAnalyzer
                 currentClass.getVarSymbolTable().enterScope();
 
                 //continue visitation
-                super.visit(node);
-//                node.getStmtList().accept(this);
+                //super.visit(node);
+                node.getStmtList().accept(this);
 
                 //exit
                 currentClass.getVarSymbolTable().exitScope();
@@ -500,6 +482,7 @@ public class SemanticAnalyzer
 
             return null;
         }
+
 
         /**
          * Adds the formal parameter to the current scope
@@ -510,9 +493,7 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(Formal node) {
-//            System.out.println("formal: " + node.getName());
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
-            System.out.println("Entering Formal");
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
@@ -539,45 +520,32 @@ public class SemanticAnalyzer
         @Override
         public Object visit(DeclStmt node) {
             // TODO: check for this. and super.
-//            node.getInit().accept(this);
-//            System.out.println("decl stmt: " + node.getName());
-//            System.out.println(node.getInit());
-            //System.out.println("Entering Declaration Statement");
 
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
             if (reservedIdentifiers.contains(node.getName())) {
-//                System.out.println("err0");
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
             }
             //check to see if a Var of this name has already been declared in current class symbol table (an error)
             if (currentClass.getVarSymbolTable().peek(node.getName()) != null) {
-//                System.out.println("err1");
+
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Var of name " + node.getName() + " previously declared in class " + currentClass.getName());
             }
             //otherwise add it
             if (node.getInit() == null) {
-//                System.out.println("err2");
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Var of name " + node.getName() + " cannot be initialized to type null.");
             }
             else {
-//                System.out.println("here: " + node.getName());
 
 //                node.getInit().
 //                Expr exprObjType = node.getInit();
 
-//                if (exprObjType instanceof ConstIntExpr)
-//                System.out.println("TYPE: " + node.getInit().toString());
-
                 node.getInit().setExprType(node.getInit().toString());
                 currentClass.getVarSymbolTable().add(node.getName(), node.getInit().toString());
-//                System.out.println("here1");
                 return super.visit(node);
             }
-//            super.visit(node);
-//            System.out.println("done with DeclStmt");
             return null;
         }
 
@@ -590,8 +558,6 @@ public class SemanticAnalyzer
         @Override
         public Object visit(ForStmt node) {
 
-            System.out.println("ForStmt");
-            //System.out.println("Entering For Statement");
             //enter new scope
             currentClass.getVarSymbolTable().enterScope();
 
@@ -611,8 +577,6 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(WhileStmt node) {
-            System.out.println("WhileStmt");
-            //System.out.println("Entering While Statement");
             //enter new scope
             currentClass.getVarSymbolTable().enterScope();
 

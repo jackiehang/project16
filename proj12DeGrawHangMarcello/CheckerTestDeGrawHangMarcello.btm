@@ -2,6 +2,7 @@ class Food{
     boolean sweet = false; //testing field
     boolean tasty = true;
     int calories=0;
+    int num = 90;
 
     void addCals(){
         calories = calories +1;
@@ -23,21 +24,42 @@ class Food{
         return sweet && tasty; //test and operator
     }
 
-    //incorrect AssignExpr
+    //error : AssignExpr
     void incorrectChange(){
         tasty = 2;
     }
 
+    // error : BinaryCompLeqExpr
+    boolean badComp(){
+        addCals();
+        return calories <= tasty;
+    }
+
+     // error : BinaryCompGeqExpr
+      boolean badComp2(){
+
+         return calories >= tasty;
+      }
+
+
+      void classy(){
+        calories = 100;
+      }
 }
 
 //testing inheritance
 class Dessert extends Food{
-    Utensil u; //test DeclStmt
+    Utensil u;
+    boolean yummy = true;
 
     void setUtensil(Utensil utensil){
         u = utensil;
         var x = 2;
     }
+    void changeYum(boolean yum){
+        yummy == Food.tasty; //testing BinaryCompEqExpr
+    }
+
 
 }
 
@@ -81,11 +103,12 @@ class Main extends Dessert{
         if(y > 2){ //testing if statement and relational gt
             return 5;
         }
+
         return 0;
     }
 
     int methodTestThree(){
-       undeclaredVariable = z/x; //testing undeclared variable assignment
+       undeclaredVariable = z/x; //error : undeclared variable assignment
        return 2;
     }
 
@@ -105,7 +128,7 @@ class Main extends Dessert{
     }
 
     void main(){
-        q[2] = "test"; // testing incorrect array assignment
+        q[2] = "test"; // error: incorrect array assignment
 	    var x = 2;
         cake = new Dessert();
         var iceCream = new Dessert();
@@ -129,7 +152,7 @@ class Main extends Dessert{
 
         foods[2] = spoon; //testing wrong array assignment
 
-        testMethodFour(true, 3); //testing dispatch expr
+        testMethodFour(true, 3); //Error :  dispatch expr
 
     }
 

@@ -33,7 +33,7 @@ public class TypeCheckerVisitor extends Visitor {
         // get class root
         Class_ root = currentClass.getASTNode();
 
-        System.out.println("BEGIN CHECKING: " + root);
+        System.out.println("BEGIN CHECKING: " + root.getName());
 
         // begin traversal
         root.accept(this);
@@ -179,15 +179,13 @@ public class TypeCheckerVisitor extends Visitor {
      * @return the result of the visit
      */
     public Object visit(AssignExpr node) {
-//        node.getExpr().accept(this);
-
-        currentSymbolTable.dump();
-        if (currentSymbolTable.lookup(node.getName()) == null) {
-
-            String errorMsg = "The variable " + node.getName() + " has not been defined yet";
+        node.getExpr().accept(this);
+        String errorMsg = "The variable " + node.getName() + " has not been defined yet";
+        if (currentSymbolTable.lookup(node.getName()) == null ) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(), errorMsg);
         }
+
 
         String exprType = node.getExpr().getExprType();
         String variableType = (String) currentSymbolTable.lookup(node.getName());
@@ -200,7 +198,7 @@ public class TypeCheckerVisitor extends Visitor {
                             currentSymbolTable.lookup(node.getName()));
         }
         node.setExprType(variableType);
-        node.getExpr().accept(this);
+
         return null;
 
     }
@@ -605,6 +603,7 @@ public class TypeCheckerVisitor extends Visitor {
      */
     public Object visit(DispatchExpr node) {
 
+
         //visit the ref expr- check to see if the class method symbol table has that method
         Expr refExpr = node.getRefExpr();
         refExpr.accept(this);
@@ -718,7 +717,7 @@ public class TypeCheckerVisitor extends Visitor {
                                 " field's type " + node.getType());
             }
         }
-        // Note: if there is no initExpr, then leave it to the Code Generator to
+        //Note: if there is no initExpr, then leave it to the Code Generator to
         //      initialize it to the default value since it is irrelevant to the
         //      SemanticAnalyzer.
         return null;
@@ -850,8 +849,6 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(Method node) {
-        System.out.println("VISITING METHOD: " + node.getName());
-        System.out.println(currentClass.getName());
         //if the node's return type is not a defined type and not "void"
         if (!isDefinedType(node.getReturnType()) && !node.getReturnType().equals("void")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
@@ -863,11 +860,8 @@ public class TypeCheckerVisitor extends Visitor {
         //create a new scope for the method body
         currentSymbolTable.enterScope();
         node.getFormalList().accept(this);
-//        System.out.println("HERE: " + node.getStmtList().getSize());
         node.getStmtList().accept(this);
-        System.out.println("HERE1");
         currentSymbolTable.exitScope();
-        System.out.println("HERE2");
         return null;
     }
 
@@ -920,6 +914,8 @@ public class TypeCheckerVisitor extends Visitor {
         }
         return null;
     }
+
+
 
     /**
      * Visit the return statement node
@@ -1018,6 +1014,7 @@ public class TypeCheckerVisitor extends Visitor {
      * @return null
      */
     public Object visit(VarExpr node) {
+        node.getRef().accept(this);
         if (currentSymbolTable.peek(node.getName()) != null) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
@@ -1025,7 +1022,6 @@ public class TypeCheckerVisitor extends Visitor {
                             " you are trying to use already exists in this scope.");
         }
 
-        node.getRef().accept(this);
         node.setExprType(node.getRef().getExprType());
         return null;
 

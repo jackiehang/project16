@@ -94,16 +94,14 @@ public class SymbolTable {
      */
     public void enterScope() {
         hash = new Hashtable<String, Object>();
-//        System.out.println("ENTER SCOPE");
         scopes.add(hash);
-//        System.out.println("NUMSCOPES: " + scopes.size());
+
     }
 
     /**
      * Exit a scope
      */
     public void exitScope() {
-//        System.out.println("EXIT SCOPE");
         if (scopes.size() == 0) {
             throw new RuntimeException("No scope to exit");
         }
@@ -124,13 +122,11 @@ public class SymbolTable {
      * @param value value of symbol (i.e., type)
      */
     public void add(String s, Object value) {
-        System.out.println("adding: " + s + ", " + value + " to level: " + this.getCurrScopeLevel());
+//        System.out.println("adding: " + s + ", " + value + " to level: " + this.getCurrScopeLevel());
         if (scopes.size() == 0) {
             throw new RuntimeException("Must enter a scope before adding to table");
         }
-//        System.out.println("adding2");
         hash.put(s, value);
-//        System.out.println("added");
     }
 
     /**
@@ -140,13 +136,10 @@ public class SymbolTable {
      * @return value of symbol (i.e., type), null if not found
      */
     public Object lookup(String s) {
-        System.out.println("lookup()");
         if (scopes.size() == 0) {
             throw new RuntimeException("Must enter a scope before looking up in table");
         }
-        System.out.println("lookup() 2");
         for (int i = scopes.size() - 1; i >= 0; i--) {
-//            scopes.elementAt(i)
             Hashtable<String, Object> h = scopes.elementAt(i);
 
             System.out.println(scopes.elementAt(i));
@@ -155,16 +148,13 @@ public class SymbolTable {
 
             System.out.println(s + ", " + value);
             if (value != null) {
-                System.out.println("returning: " + value);
                 return value;
             }
         }
 
         if (parent != null) {
-            System.out.println("parent lookup");
             return parent.lookup(s);
         }
-        System.out.println("returning null");
         return null;
     }
 
@@ -481,11 +471,7 @@ public class SymbolTable {
      * towards the lowest scope level (current level)
      */
     public void dump() {
-
-//        System.out.println("numScopes: " + scopes.size());
-//        System.out.println("scopeLevel: " + this.getCurrScopeLevel());
         if (parent != null) {
-            System.out.println("dumping parent");
             parent.dump();
         }
 
