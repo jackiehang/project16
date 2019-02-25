@@ -24,11 +24,11 @@ class Food{
     }
 
     boolean taste(){
-        return sweet || tasty; //test or operator
+        return num || tasty; //error: binaryLogicOrExpr
     }
 
     boolean tasteTwo(){
-        return sweet && tasty; //test and operator
+        return sweet && tasty; //error: binaryLogicAndExpr
     }
 
     //error : AssignExpr
@@ -63,8 +63,12 @@ class Dessert extends Food{
         u = utensil;
         var x = 2;
     }
-    void changeYum(boolean yum){
-        yummy == Food.tasty; //testing BinaryCompEqExpr
+    boolean isYum(boolean yum){
+        return u == yum ; //error: BinaryCompEqExpr
+    }
+
+    boolean isNotYum(boolean yum){
+        return yum != u;  //error: BinaryCompNEqExpr
     }
 
 }
@@ -88,13 +92,14 @@ class Main{
     Food[] foods = new Food[5];
     Food cake;
     Food wrong;
+    Dessert pie = new Dessert();
     int[] q;
 
 
     void methodTest(){
         var j = 0; //testing var expr
         for(i = 0; i < 2; i++){ //testing for-loop
-            j = j + i; //testing addition
+            j = j + pie; //testing addition
         }
 
         for(i = 0; i < 2; i++){ //testing for-loop
@@ -103,7 +108,9 @@ class Main{
 
         j = z-cake; //testing subtraction
 
-        j=j*j; //testing multiplication
+        j=j*pie; //testing multiplication
+
+        j= j%pie; // testing modulus
 
     }
 
@@ -127,6 +134,10 @@ class Main{
         while(potato < 5){ //testing while stmt and less than
             potato ++;
         }
+
+        while(potato == true){ // error: whileStmt
+            potato --;
+        }
     }
 
     int getX(){
@@ -140,6 +151,7 @@ class Main{
     void main(){
         q[2] = "test"; // error: incorrect array assignment
 	    var x = 2;
+	    var n = null; // error : null varExpr
         cake = new Dessert();
         var iceCream = new Dessert();
         var spoon = new Utensil();
