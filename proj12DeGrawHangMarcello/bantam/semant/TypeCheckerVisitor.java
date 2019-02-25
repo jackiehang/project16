@@ -4,7 +4,7 @@ import proj12DeGrawHangMarcello.bantam.ast.*;
 import proj12DeGrawHangMarcello.bantam.util.Error;
 import proj12DeGrawHangMarcello.bantam.visitor.*;
 
-import java.util.Iterator;
+import java.util.*;
 
 public class TypeCheckerVisitor extends Visitor
 {
@@ -526,27 +526,96 @@ public class TypeCheckerVisitor extends Visitor
     }
 
 
-    //TODO: NOT DONE YET BISH DO THIS METHOD
+    /**
+     * checks that the parameter types of the dispatch expression match the allowed types
+     * and visits the child nodes
+     *
+     * @param node the dispatch expression node
+     * @return the result of the visit
+     */
     public Object visit(DispatchExpr node){
-        node.getRefExpr().accept(this);
-        if(currentClass.getMethodSymbolTable().lookup(node.getMethodName())== null){
+
+        //visit the ref expr- check to see if the class method symbol table has that method
+        Expr refExpr = node.getRefExpr();
+        refExpr.accept(this);
+
+        Method methodNode =
+                (Method)currentClass.getMethodSymbolTable()
+                        .lookup(node.getMethodName());
+
+        // visit child nodes
+        node.getActualList().accept(this);
+
+        if(methodNode == null){
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The method "+node.getMethodName()+"was not found in the method " +
                             "symbol table.");
+            node.setExprType("Object");
+            return null;
+        }
+
+        //check if the method takes in the right type of arguments  & right #
+
+        // get the parameters being passed in
+        ExprList actualParams = node.getActualList();
+        int numActualParams = actualParams.getSize();
+
+        // get the acceptable parameters
+        FormalList allowedArgs = methodNode.getFormalList();
+
+        // if they have the same number of parameters
+        if (numActualParams == allowedArgs.getSize()) {
+
+            // list of types that cannot be subclassed in Bantam Java
+            Set<String> nonObjectTypes = Set.of("int", "bool", "String");
+
+            // loop through the arguments of both lists (same length)
+            for (int i = 0; i < numActualParams; i++) {
+
+                // get the two argument objects
+                Formal actualArg = (Formal)actualParams.get(i);
+                Formal allowedArg = (Formal)allowedArgs.get(i);
+
+                // get the two argument types
+                String actualType = actualArg.getType();
+                String allowedType = allowedArg.getType();
+
+                // if the types don't match
+                if (!actualType.equals(allowedType)) {
+
+                    // if one type is not an object
+                    if ( nonObjectTypes.contains(actualType)
+                            || nonObjectTypes.contains(allowedType) ) {
+
+                        String errorMsg = "Actual type " + "\'" + actualType + "\' of parameter "
+                                + i +" to method " + node.getMethodName() + " " +
+                                "does not match expected type " + "\'" + allowedType + "\'";
+
+                        // throw an error
+                        errorHandler.register(Error.Kind.SEMANT_ERROR,
+                                currentClass.getASTNode().getFilename(),
+                                node.getLineNum(), errorMsg);
+                    }
+                    // else if actual param is not a subtype of acceptable param
+                    else if (!isSubType(actualType, allowedType)) {
+
+                        String errorMsg = "Actual type " + "\'" + actualType + "\' of parameter "
+                                + i +" to method " + node.getMethodName() + " " +
+                                "is not a subtype of " + "\'" + allowedType + "\'";
+
+                            // throw an error
+                            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                                    currentClass.getASTNode().getFilename(),
+                                    node.getLineNum(), errorMsg);
+                    }
+                }
+            }
 
         }
 
-        node.getActualList().accept(this);
-
-
-        //visit the ref expr- check to see if the class method symbol table has that method
-        //check if the method takes in the right type of arguments  & right #
-        //if the arg of the dispatch is an object make sure the object isnt a subtype of
-        //the parameter before throwing an error
         //set type of dispatch expr to the return type of the ref
-
-        node.setExprType(node.getRefExpr().getExprType());
+        node.setExprType(refExpr.getExprType());
         return null;
     }
 
