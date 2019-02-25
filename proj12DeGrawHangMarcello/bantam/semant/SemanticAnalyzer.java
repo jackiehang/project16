@@ -114,7 +114,7 @@ public class SemanticAnalyzer
      * 2 - add user-defined classes and build the inheritance tree of ClassTreeNodes - done
      * 3 - build the environment for each class (add class members only) and check
      *     that members are declared properly
-     * 4 - check that the Main class and main method are declared properly - MainMainVisitor?
+     * 4 - check that the Main class and main method are declared properly
      * 5 - type check everything
      * See the lab manual for more details on each of these steps.
      */
@@ -130,18 +130,21 @@ public class SemanticAnalyzer
         addUserClasses();
         System.out.println("Class Map Completed");
 
-        this.root.getVarSymbolTable().dump();
-        System.out.println("Beginning Build of Inheritance Relationships");
+        System.out.println("\nBeginning Build of Inheritance Relationships");
         buildInheritance();
         System.out.println("Inheritance Relationships Completed");
 
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
-        System.out.println("Beginning Build of Class Environment");
+        System.out.println("\nBeginning Build of Class Environment");
         buildClassEnvironment();
         System.out.println("Class Environment Completed");
 
+        //step 4: check that the Main class and main method are declared properly
+        System.out.println("\nChecking for Main Class & Method");
         checkMain();
+        System.out.println("Main Class & Method Found");
 
+        //step 5: Type Checking
         for(String key: classMap.keySet()) {
             if(!key.equals("Object") && !key.equals("String") && !key.equals("TextIO") && !key.equals("Sys")) {
                 ErrorHandler checkerErrorHandler = new ErrorHandler();
@@ -150,7 +153,6 @@ public class SemanticAnalyzer
                 printErrors(checkerErrorHandler);
             }
         }
-
 
         return root;
     }
