@@ -274,7 +274,7 @@ public class SemanticAnalyzer
         classTreeNodeBuilder.build();
     }
 
-    /*
+    /**
      * creates the inheritance links for all classTreeNodes
      */
     private void buildInheritance() {
@@ -291,6 +291,9 @@ public class SemanticAnalyzer
         inheritanceBuilder.build();
     }
 
+    /**
+     *
+     */
     private void checkMain() {
         MainMainVisitor mainMainVisitor = new MainMainVisitor();
         if(!mainMainVisitor.hasMain(this.program)) {
@@ -482,7 +485,6 @@ public class SemanticAnalyzer
             }
             //otherwise add it
             else {
-                System.out.println("elseee");
                 currentClass.getMethodSymbolTable().add(node.getName(), node.getReturnType());
 
                 //go into the method's symbol table

@@ -142,10 +142,9 @@ public class SymbolTable {
     public Object lookup(String s) {
         System.out.println("lookup()");
         if (scopes.size() == 0) {
-            System.out.println("ex");
             throw new RuntimeException("Must enter a scope before looking up in table");
         }
-        System.out.println("lookup()2");
+        System.out.println("lookup() 2");
         for (int i = scopes.size() - 1; i >= 0; i--) {
 //            scopes.elementAt(i)
             Hashtable<String, Object> h = scopes.elementAt(i);
