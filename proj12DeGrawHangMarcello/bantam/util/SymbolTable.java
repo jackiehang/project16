@@ -124,7 +124,12 @@ public class SymbolTable {
         if (scopes.size() == 0) {
             throw new RuntimeException("Must enter a scope before adding to table");
         }
-        hash.put(s, value);
+        try {
+            hash.put(s, value);
+        }
+        catch (NullPointerException e) {
+            System.out.println("kill me now");
+        }
     }
 
     /**
