@@ -1,5 +1,6 @@
 class Food{
-    boolean sweet = false;
+    boolean sweet = false; //testing field
+    boolean tasty = true;
     int calories=0;
 
     void addCals(){
@@ -13,11 +14,20 @@ class Food{
     int getCals(){
         return calories;
     }
+
+    boolean taste(){
+        return sweet || tasty; //test or operator
+    }
+
+    boolean tasteTwo(){
+        return sweet && tasty; //test and operator
+    }
+
 }
 
 //testing inheritance
 class Dessert extends Food{
-    Utensil u;
+    Utensil u; //test DeclStmt
 
     void setUtensil(Utensil utensil){
         u = utensil;
@@ -26,7 +36,7 @@ class Dessert extends Food{
 }
 
 class Utensil{
-    String type;
+    String type = "hi";
 
     void setType(String typeOfUtensil){
         type = typeOfUtensil;
@@ -38,41 +48,65 @@ class Utensil{
 
 }
 
-class Main{
+class Main extends Dessert{
     int x = 5;
-    Food[] foods;
+    int z = 20;
+    Food[] foods = new Food[5];
+    Food cake;
+    
 
     void methodTest(){
         var j = 0;
         for(i = 0; i < 2; i++){ //testing for-loop
             j = j + i; //testing addition
         }
+        for(i = 0; i < 2; i++){ //testing for-loop
+            j++; //testing unary incr
+        }
+
     }
 
-    void methodTestTwo(){
+    int methodTestTwo(){
+        var y = z/x; //testing division and var expr
+
+        if(y > 2){ //testing if statement and relational gt
+            return 5;
+        }
+        return 0;
+    }
+
+    int methodTestThree(){
+       undeclaredVariable = z/x; //testing undeclared variable assignment
+       return 2;
+    }
+
+    void testWhileStmt(){
+        var potato = 0;
+        while(potato < 5){ //testing while stmt
+            potato ++;
+        }
+    }
 
     int getX(){
         return x; //testing return statements
     }
 
     void main(){
-        foods = new Food[10];
-        Food cake = new Dessert();
-        Dessert iceCream = new Dessert();
-        Utensil spoon = new Utensil();
+	    var x = 2;
+        cake = new Dessert();
+        var iceCream = new Dessert();
+        var spoon = new Utensil();
         spoon.setType("spoon");
         iceCream.setUtensil(spoon);
         iceCream.u.getType(); //testing chaining
 
         iceCream.addCals(); //testing inherited method
-        //testing instanceOf
-        if( cake instanceOf Dessert){
-
-             //testing incorrect assignment
-              Food wrong = new Utensil();
+        //testing instanceof
+        if( cake instanceof Dessert){
+              var wrong = new Utensil();
         }
 
-        Dessert copy = (Dessert)cake;
+        var copy = cast(Food,cake);
 
         foods[3] = iceCream;
         foods[2] = spoon; //testing wrong array assignment

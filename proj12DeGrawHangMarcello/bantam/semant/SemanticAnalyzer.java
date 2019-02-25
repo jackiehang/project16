@@ -114,7 +114,7 @@ public class SemanticAnalyzer
      * 3 - build the environment for each class (add class members only) and check
      *     that members are declared properly
      * 4 - check that the Main class and main method are declared properly - MainMainVisitor?
-     * 5 - type check everything - typeCheckVisitor?
+     * 5 - type check everything
      * See the lab manual for more details on each of these steps.
      */
     public ClassTreeNode analyze(Program program) {
@@ -125,19 +125,37 @@ public class SemanticAnalyzer
         addBuiltins();
 
         //step 2: add user-defined classes and build the inheritance tree of ClassTreeNodes
+        System.out.println("Beginning Build of Class Map");
         addUserClasses();
 
+        System.out.println("Beginning Build of Inheritance");
+        buildInheritance();
+
+        /*
+        System.out.println(classMap.toString());
+        for(String key: classMap.keySet()) {
+            if(!key.equals("Object")) {
+                System.out.println("Class " + key + " with parent: " + classMap.get(key).getParent().getName());
+            }
+        }
+        */
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
+        System.out.println("Beginning Build of Class Environment");
         buildClassEnvironment();
 
+        System.out.println("Checking for Main Method");
+        checkMain();
+
+
+
         // remove the following statement
-        throw new RuntimeException("Semantic analyzer unimplemented");
+        //throw new RuntimeException("Semantic analyzer unimplemented");
 
         // add code here...
         //
 
         // uncomment the following statement
-        // return root;
+        return root;
     }
 
     /**
@@ -222,18 +240,43 @@ public class SemanticAnalyzer
     }
 
     /**
-     * Add user-defined classes to the classMap
+     * Add user-defined classes to the classMap, and creates
      */
     private void addUserClasses() {
-        //creates a new visitor and puts it through the AST
+        //creates a new visitor and puts it through the AST, adding classTreeNodes for each class
         ClassTreeNodeBuilder classTreeNodeBuilder = new ClassTreeNodeBuilder();
         classTreeNodeBuilder.build();
     }
 
+    /*
+     * creates the inheritance links for all classTreeNodes
+     */
+    private void buildInheritance() {
+        //adds inheritance to built-in classes
+        for(String key: classMap.keySet()) {
+            if (key != "Object") {
+                classMap.get(key).setParent(classMap.get("Object"));
+            }
+        }
+
+        //adds inheritance to user classes
+        InheritanceBuilder inheritanceBuilder = new InheritanceBuilder();
+        inheritanceBuilder.build();
+    }
+
+    private void checkMain() {
+        MainMainVisitor mainMainVisitor = new MainMainVisitor();
+        if(!mainMainVisitor.hasMain(this.program)) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR, filename, 0, "All Bantam Java " +
+                    "require a class Main and and method main to run correctly.");
+        }
+    }
+
     /**
-     * Class for traversing the AST to build the ClassTreeNodes
+     * Visitor for traversing the AST to build the ClassTreeNodes
      */
     private class ClassTreeNodeBuilder extends Visitor {
+        ClassTreeNode classTreeNode;
 
         public void build() {
             program.accept(this);
@@ -247,27 +290,50 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Class_ node) {
             //creates a new classTreeNode for the class
-            ClassTreeNode classTreeNode = new ClassTreeNode(node, false, true, classMap);
-
+            classTreeNode = new ClassTreeNode(node, false, true, classMap);
+            classMap.put(node.getName(), classTreeNode);
             //get object class number of descendents
-            int objectDescendents = classMap.get("Object").getNumDescendants();
 
+            //doesn't visit children yet, since we're just building the CTN
+            return true;
+        }
+    }
+
+    /**
+     * Visitor for traversing the AST to create inheritance links between ClassTreeNodes
+     */
+    private class InheritanceBuilder extends Visitor {
+        ClassTreeNode classTreeNode;
+
+        public void build() {
+            program.accept(this);
+        }
+
+        @Override
+        public Object visit(Class_ node) {
+            classTreeNode = classMap.get(node.getName());
+
+            int numObjectDescendants = classMap.get("Object").getNumDescendants();
             //sets parent
-            classTreeNode.setParent(classMap.get(node.getParent()));
-
-            //TODO - Not sure how to elegeantly "detect" that there was a inheritance cycle. see line 180 of ClassTreeNode
-            //current attempt - see if the Object has a new descendent. if not, there's a cycle
-            //if cycle, set the parent's parent to object as well as the current class's parent to object
-            if (objectDescendents == classMap.get("Object").getNumDescendants()) {
-                classTreeNode.getParent().setParent(classMap.get("Object"));
+            if (!node.getParent().equals("")) {
+                classTreeNode.setParent(classMap.get(node.getParent()));
+                //TODO - Not sure how to elegantly "detect" that there was a inheritance cycle. see line 180 of ClassTreeNode
+                //current attempt - see if the Object has a new descendent. if not, there's a cycle
+                //if cycle, set the parent's parent to object as well as the current class's parent to object
+                if (numObjectDescendants == classMap.get("Object").getNumDescendants()) {
+                    classTreeNode.getParent().setParent(classMap.get("Object"));
+                    classTreeNode.getParent().removeChild(classTreeNode);
+                    classTreeNode.setParent(classMap.get("Object"));
+                    errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                            "Inheritance Cycle found between " + classTreeNode.getName() + "and "
+                                    + classTreeNode.getParent().getName() );
+                }
+            }
+            else {
+                classMap.get("Object").addChild(classTreeNode);
                 classTreeNode.setParent(classMap.get("Object"));
-                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
-                        "Inheritance Cycle found between " + classTreeNode.getName() + "and "
-                                + classTreeNode.getParent().getName() );
             }
 
-            classMap.put(node.getName(), classTreeNode);
-            //doesn't visit children yet, since we're just building the CTN
             return null;
         }
     }
@@ -299,12 +365,24 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(Class_ node) {
-            //get the current class's tree node and enter its Symbol Table's scope
+            //get the current class's tree node
             currentClass = classMap.get(node.getName());
+            //System.out.println("Entering class " + currentClass.getName());
+
+            //Two options for class parent symbol tables: Clone and Overwrite vs. Set Parent
+            //Not sure which of the two is right. Going with set parent for now.
+
+            //adds parent's Vars and Methods to currentClass symbol table.
+            currentClass.getVarSymbolTable().setParent(currentClass.getParent().getVarSymbolTable());
+            currentClass.getVarSymbolTable().setParent(currentClass.getParent().getMethodSymbolTable());
+
+            //System.out.println("Entering Class Scope");
+            //enter current node's Symbol Table's scope
             currentClass.getVarSymbolTable().enterScope();
             currentClass.getMethodSymbolTable().enterScope();
 
             //traverse
+            //System.out.println("Beginning Traversal of Class Members");
             node.getMemberList().accept(this);
 
             //exit the current class's Symbol table's scopes.
@@ -322,6 +400,7 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Field node) {
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
+            //System.out.println("Entering Field");
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
@@ -348,6 +427,7 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Method node) {
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
+            //System.out.println("Entering Method");
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
@@ -373,7 +453,6 @@ public class SemanticAnalyzer
             }
             return null;
         }
-        //TODO - Handle Class Inheritance
 
         /**
          * Adds the formal parameter to the current scope
@@ -385,6 +464,7 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Formal node) {
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
+            //System.out.println("Entering Formal");
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
@@ -410,6 +490,8 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(DeclStmt node) {
+            //System.out.println("Entering Declaration Statement");
+
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
@@ -418,12 +500,16 @@ public class SemanticAnalyzer
             //check to see if a Var of this name has already been declared in current class symbol table (an error)
             if (currentClass.getVarSymbolTable().peek(node.getName()) != null) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
-                        "Var of name" + node.getName() + " previously declared in class " + currentClass.getName());
+                        "Var of name " + node.getName() + " previously declared in class " + currentClass.getName());
             }
             //otherwise add it
+            if (node.getInit() == null) {
+                errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
+                        "Var of name " + node.getName() + " cannot be initialized to type null.");
+            }
             else {
-                currentClass.getVarSymbolTable().add(node.getName(), node.getType());
-                super.visit(node);
+                currentClass.getVarSymbolTable().add(node.getName(), node.getInit().getExprType());
+                return super.visit(node);
             }
             return null;
         }
@@ -436,6 +522,7 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(ForStmt node) {
+            //System.out.println("Entering For Statement");
             //enter new scope
             currentClass.getVarSymbolTable().enterScope();
 
@@ -455,6 +542,7 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(WhileStmt node) {
+            //System.out.println("Entering While Statement");
             //enter new scope
             currentClass.getVarSymbolTable().enterScope();
 
@@ -540,17 +628,19 @@ public class SemanticAnalyzer
                 parsingSuccessful = true;
             }
             catch (CompilationException e){
+                System.out.println("Parse Failed, Check File Name/Location");
                 printErrors(parseErrorHandler);
                 parsingSuccessful = false;
             }
 
             // if the program was parsed with no errors
             if (parsingSuccessful) {
-
+                System.out.println("Starting Semantic Analysis");
                 // try to check the program (semantic analysis)
                 try{
                     semanticAnalyzer.analyze(ast);
-                    System.out.println("\nChecking Successful.");
+                    System.out.println("\nChecking Complete");
+                    printErrors(checkerErrorHandler);
                 }
                 // includes CompilationExceptions (it's a subclass)
                 catch (RuntimeException e){
