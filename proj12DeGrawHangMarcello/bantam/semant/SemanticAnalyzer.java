@@ -126,25 +126,26 @@ public class SemanticAnalyzer
         addBuiltins();
 
         //step 2: add user-defined classes and build the inheritance tree of ClassTreeNodes
-        System.out.println("Beginning Build of Class Map");
+        System.out.print("Beginning Build of Class Map... ");
         addUserClasses();
         System.out.println("Class Map Completed");
 
-        System.out.println("\nBeginning Build of Inheritance Relationships");
+        System.out.print("Beginning Build of Inheritance Relationships... ");
         buildInheritance();
         System.out.println("Inheritance Relationships Completed");
 
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
-        System.out.println("\nBeginning Build of Class Environment");
+        System.out.print("Beginning Build of Class Environment... ");
         buildClassEnvironment();
         System.out.println("Class Environment Completed");
 
         //step 4: check that the Main class and main method are declared properly
-        System.out.println("\nChecking for Main Class & Method");
+        System.out.print("Checking for Main Class & Method... ");
         checkMain();
         System.out.println("Main Class & Method Found");
 
         //step 5: Type Checking
+        System.out.print("Beginning Type Checking... ");
         for(String key: classMap.keySet()) {
             if(!key.equals("Object") && !key.equals("String") && !key.equals("TextIO") && !key.equals("Sys")) {
                 ErrorHandler checkerErrorHandler = new ErrorHandler();
@@ -153,6 +154,7 @@ public class SemanticAnalyzer
                 printErrors(checkerErrorHandler);
             }
         }
+        System.out.println("Type Checking Completed");
 
         return root;
     }
