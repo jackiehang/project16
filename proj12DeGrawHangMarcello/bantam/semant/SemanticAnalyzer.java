@@ -24,7 +24,16 @@
    PARTICULAR PURPOSE.
 
    This file was modified by Dale Skrien, February, 2019.
+
 */
+
+/*
+ * File: SymbolTable.java
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Date: February 25, 2019
+ */
+
 
 package proj12DeGrawHangMarcello.bantam.semant;
 
@@ -33,7 +42,6 @@ import proj12DeGrawHangMarcello.bantam.parser.Parser;
 import proj12DeGrawHangMarcello.bantam.util.*;
 import proj12DeGrawHangMarcello.bantam.util.Error;
 import proj12DeGrawHangMarcello.bantam.visitor.Visitor;
-
 
 import javax.swing.text.html.StyleSheet;
 import java.util.*;
@@ -46,7 +54,13 @@ import java.util.*;
  * legal class member declaration, (3) there is a correct bantam.Main class
  * and main() method, and (4) each class member is correctly typed.
  * <p>
- * This class is incomplete and will need to be implemented by the student.
+ *
+ *
+ * Completed by:
+ * @author Lucas DeGraw, Jackie Hang, Chris Marcello
+ * @version 1.0
+ * @since Feb 25, 2019
+ *
  */
 public class SemanticAnalyzer
 {

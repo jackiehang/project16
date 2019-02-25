@@ -16,6 +16,11 @@
  * Edited By: Lucas DeGraw, Iris Lian
  * Project 11
  * Date: October 12, 2018
+ * ----------------------------
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Date: February 25, 2019
+ *
  */
 
 package proj12DeGrawHangMarcello;

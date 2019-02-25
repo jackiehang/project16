@@ -24,6 +24,14 @@
    PARTICULAR PURPOSE. 
 */
 
+/*
+ * File: ClassTreeNode.java
+ * Used By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Date: February 25, 2019
+ */
+
+
 package proj12DeGrawHangMarcello.bantam.util;
 
 import proj12DeGrawHangMarcello.bantam.ast.Class_;
