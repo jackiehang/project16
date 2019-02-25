@@ -503,12 +503,12 @@ public class SemanticAnalyzer
                         "Var of name " + node.getName() + " previously declared in class " + currentClass.getName());
             }
             //otherwise add it
-            if (node.getType() == null) {
+            if (node.getInit() == null) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Var of name " + node.getName() + " cannot be initialized to type null.");
             }
             else {
-                currentClass.getVarSymbolTable().add(node.getName(), node.getType());
+                currentClass.getVarSymbolTable().add(node.getName(), node.getInit().getExprType());
                 return super.visit(node);
             }
             return null;
