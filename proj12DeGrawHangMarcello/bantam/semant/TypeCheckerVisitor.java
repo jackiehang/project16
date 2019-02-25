@@ -472,22 +472,24 @@ public class TypeCheckerVisitor extends Visitor {
      * @return
      */
     public Object visit(CastExpr node) {
+
         node.getExpr().accept(this);
         String target = node.getType();
         String exprType = node.getExpr().getExprType();
-        if (!isSubType(exprType, target) || !isSubType(target, exprType)) {
+
+        // if exprType is a subtype of target
+        if (isSubType(exprType, target)) {  // upcast
+            node.setUpCast(true);
+        }
+        else if (!isSubType(target, exprType)){ // if neither are subtypes of each other,
+
+            // throw error
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "You are attampting to cast a variable of type " + exprType
-                            + " to type " + target + " This is illegal.");
+                    "Illegal attempt to cast a variable of type \'" + exprType
+                            + "\' to type \'" + target + "\'");
         }
-
-        if (currentClass.getClassMap().get(exprType).getParent().getName().equals(target)) {
-            node.setUpCast(true);
-        } else {
-            node.setUpCast(false);
-        }
-
+        // make the expression type valid to continue analyzing
         node.setExprType(node.getType());
 
         return null;
