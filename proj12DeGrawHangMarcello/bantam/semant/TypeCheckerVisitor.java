@@ -475,23 +475,23 @@ public class TypeCheckerVisitor extends Visitor
     }
 
 
-    //TODO: WRITE CODE FOR THIS ONE
-    /**
-     * Visit a class node
-     * @param node the class node
-     * @return null
-     */
-    public Object visit(Class_ node){
-        return null;
-    }
+//    //TODO: WRITE CODE FOR THIS ONE
+//    /**
+//     * Visit a class node
+//     * @param node the class node
+//     * @return null
+//     */
+//    public Object visit(Class_ node){
+//        return null;
+//    }
 
-    //TODO: WRITE CODE FOR THIS ONE
-    public Object visit(ClassList node){
-        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-            ((Class_)iterator.next()).accept(this);
-
-        return null;
-    }
+//    //TODO: WRITE CODE FOR THIS ONE
+//    public Object visit(ClassList node){
+//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
+//            ((Class_)iterator.next()).accept(this);
+//
+//        return null;
+//    }
 
     /**
      * Visit a boolean constant expression node

@@ -40,26 +40,31 @@ class Utensil{
 
 class Main{
     int x = 5;
+    Food[] foods;
 
     void methodTest(){
         var j = 0;
-        for(i = 0; i < 2; i++){
-            j = j + i;
+        for(i = 0; i < 2; i++){ //testing for-loop
+            j = j + i; //testing addition
         }
     }
 
+    void methodTestTwo(){
+
     int getX(){
-        return x;
+        return x; //testing return statements
     }
 
     void main(){
+        foods = new Food[10];
         Food cake = new Dessert();
         Dessert iceCream = new Dessert();
         Utensil spoon = new Utensil();
         spoon.setType("spoon");
         iceCream.setUtensil(spoon);
-        iceCream.u.getType();
+        iceCream.u.getType(); //testing chaining
 
+        iceCream.addCals(); //testing inherited method
         //testing instanceOf
         if( cake instanceOf Dessert){
 
@@ -68,6 +73,9 @@ class Main{
         }
 
         Dessert copy = (Dessert)cake;
+
+        foods[3] = iceCream;
+        foods[2] = spoon; //testing wrong array assignment
 
     }
 
