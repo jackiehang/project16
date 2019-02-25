@@ -131,13 +131,14 @@ public class SemanticAnalyzer
         System.out.println("Beginning Build of Inheritance");
         buildInheritance();
 
+        /*
         System.out.println(classMap.toString());
         for(String key: classMap.keySet()) {
             if(!key.equals("Object")) {
                 System.out.println("Class " + key + " with parent: " + classMap.get(key).getParent().getName());
             }
         }
-
+        */
         //step 3: build the environment for each class (add class members only) and check that members are declared properly
         System.out.println("Beginning Build of Class Environment");
         buildClassEnvironment();
@@ -366,7 +367,7 @@ public class SemanticAnalyzer
         public Object visit(Class_ node) {
             //get the current class's tree node
             currentClass = classMap.get(node.getName());
-            System.out.println("Entering class " + currentClass.getName());
+            //System.out.println("Entering class " + currentClass.getName());
 
             //Two options for class parent symbol tables: Clone and Overwrite vs. Set Parent
             //Not sure which of the two is right. Going with set parent for now.
@@ -375,13 +376,13 @@ public class SemanticAnalyzer
             currentClass.getVarSymbolTable().setParent(currentClass.getParent().getVarSymbolTable());
             currentClass.getVarSymbolTable().setParent(currentClass.getParent().getMethodSymbolTable());
 
-            System.out.println("Entering Class Scope");
+            //System.out.println("Entering Class Scope");
             //enter current node's Symbol Table's scope
             currentClass.getVarSymbolTable().enterScope();
             currentClass.getMethodSymbolTable().enterScope();
 
             //traverse
-            System.out.println("Beginning Traversal of Class Members");
+            //System.out.println("Beginning Traversal of Class Members");
             node.getMemberList().accept(this);
 
             //exit the current class's Symbol table's scopes.
@@ -399,7 +400,7 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Field node) {
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
-            System.out.println("Entering Field");
+            //System.out.println("Entering Field");
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
@@ -426,7 +427,7 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Method node) {
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
-            System.out.println("Entering Method");
+            //System.out.println("Entering Method");
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
@@ -463,7 +464,7 @@ public class SemanticAnalyzer
         @Override
         public Object visit(Formal node) {
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
-            System.out.println("Entering Formal");
+            //System.out.println("Entering Formal");
             if (reservedIdentifiers.contains(node.getName())) {
                 errorHandler.register(Error.Kind.SEMANT_ERROR, filename, node.getLineNum(),
                         "Name " + node.getName() + " is reserved and cannot be used.");
@@ -489,7 +490,7 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(DeclStmt node) {
-            System.out.println("Entering Declaration Statement");
+            //System.out.println("Entering Declaration Statement");
 
             //standard check for reserved identifiers ("null", "this", "super", "void", "int", "boolean")
             if (reservedIdentifiers.contains(node.getName())) {
@@ -521,7 +522,7 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(ForStmt node) {
-            System.out.println("Entering For Statement");
+            //System.out.println("Entering For Statement");
             //enter new scope
             currentClass.getVarSymbolTable().enterScope();
 
@@ -541,7 +542,7 @@ public class SemanticAnalyzer
          */
         @Override
         public Object visit(WhileStmt node) {
-            System.out.println("Entering While Statement");
+            //System.out.println("Entering While Statement");
             //enter new scope
             currentClass.getVarSymbolTable().enterScope();
 
