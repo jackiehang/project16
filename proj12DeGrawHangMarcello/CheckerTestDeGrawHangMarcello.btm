@@ -15,6 +15,11 @@ class Food{
         calories = calories +1;
     }
 
+    void multiplyWrong (){
+        calories = calories * tasty; //error: binaryArithMultiplication
+
+    }
+
     void changeSweet(boolean newSweet){
         sweet = newSweet;
     }
@@ -90,27 +95,31 @@ class Main{
     int x = 5;
     int z = 20;
     Food[] foods = new Food[5];
+    int[] bad = new String[4]; //error: new array
     Food cake;
     Food wrong;
     Dessert pie = new Dessert();
     int[] q;
+    boolean test = true;
 
 
     void methodTest(){
         var j = 0; //testing var expr
         for(i = 0; i < 2; i++){ //testing for-loop
-            j = j + pie; //testing addition
+            j = j + pie; //error : addition
         }
 
         for(i = 0; i < 2; i++){ //testing for-loop
-            j++; //testing unary incr
+            pie++; //error: unary incr
         }
 
-        j = z-cake; //testing subtraction
+        j = z-cake; //error: subtraction
 
-        j=j*pie; //testing multiplication
+        j=j*pie; //error: multiplication
 
-        j= j%pie; // testing modulus
+        j= j%pie; // error: modulus
+
+        foods[-4] = 2; //error: unary neg
 
     }
 
@@ -120,6 +129,7 @@ class Main{
         if(y > 2){ //testing if statement and relational gt
             return 5;
         }
+        test--; // error: unary decr
 
         return 0;
     }
@@ -141,12 +151,13 @@ class Main{
     }
 
     int getX(){
-        return x; //testing return statements
+        return test; //error: return statements
     }
 
     void testMethodFour(int j , int t){
         j = j+ t;
     }
+
 
     void main(){
         q[2] = "test"; // error: incorrect array assignment
@@ -164,15 +175,15 @@ class Main{
 
         iceCream.addCals(); //testing inherited method
         //testing instanceof
-        if( cake instanceof Dessert){
-              wrong = new Utensil(); //Incorrect assignment
+        if( cake instanceof Utensil){ //error: incorrect instanceof
+              wrong = new Utensil(); //error : Incorrect assignment
         }
 
-        var copy = cast(Food,cake); // testing casting
+        var copy = cast(Utensil,cake); // error : casting
         foods[3] = iceCream;
         foods[3].setUtensil(fork); //testing dispatch
 
-        foods[2] = spoon; //testing wrong array assignment
+        foods[2] = spoon; // error: wrong array assignment
 
         testMethodFour(true, 3); //Error :  dispatch expr
 
