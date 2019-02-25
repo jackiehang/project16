@@ -24,18 +24,27 @@ public class TypeCheckerVisitor extends Visitor
     }
 
     /**
-     * Helper method to check if one node is a subtype of another
+     * Helper method to check if node1 is a subtype of node2
      *
      * @param node1 type of node 1
      * @param node2 type of node 2
      * @return boolean
      */
     private boolean isSubType(String node1, String node2){
-        if(currentClass.getClassMap().get(node1).getParent().getName().equals("Object")){
-            return node1.equals(node2);
+
+        if(node1.equals(node2)){
+            return true;
         }
         else{
-            return currentClass.getClassMap().get(node1).getParent().getName().equals(node2);
+            String nodeName= node1;
+            while(!nodeName.equals("Object")){
+                if(nodeName.equals(node2)){
+                    return true;
+                }
+                nodeName = currentClass.getClassMap().get(nodeName).getParent().getName();
+            }
+            return false;
+
         }
     }
 
@@ -65,16 +74,29 @@ public class TypeCheckerVisitor extends Visitor
                             " and it should be an integer.");
         }
         node.getIndex().setExprType("int");
+        String typeOfArray = (String)currentSymbolTable.lookup(node.getName());
+        typeOfArray = typeOfArray.substring(0,-2); //type of Array
+
+        String assignType = node.getExpr().getExprType();
+        if(!isSubType(assignType,typeOfArray)){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The type of array is " + typeOfArray +
+                            " and the value you are trying to assign is "+ assignType +
+                            ". They are not compatible");
+
+            node.getExpr().setExprType(typeOfArray);
+        }
+        node.setExprType(typeOfArray);
 
         return null;
     }
 
-    //TODO: idk if this is right
     /**
      * Visit an array expression node
      *
      * @param node the array expression node
-     * @return
+     * @return null
      */
     public Object visit(ArrayExpr node){
         if(node.getRef()!=null) {
@@ -87,10 +109,11 @@ public class TypeCheckerVisitor extends Visitor
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The index of the array assignment is a" + node.getIndex().getExprType() +
                             " and it should be an integer.");
-
         }
 
-        node.setExprType(node.getIndex().getExprType());
+        String typeOfArray = (String)currentSymbolTable.lookup(node.getName());
+        typeOfArray = typeOfArray.substring(0,-2); //type of Array
+        node.setExprType(typeOfArray);
         return null;
     }
 
@@ -110,15 +133,16 @@ public class TypeCheckerVisitor extends Visitor
         }
 
         String exprType = node.getExpr().getExprType();
-        if(!currentSymbolTable.lookup(node.getName()).equals(exprType)){
+        String variableType = (String)currentSymbolTable.lookup(node.getName());
+
+        if(!isSubType(exprType,variableType)){
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The value has a type of " + exprType +
                             ",different than variable it is being assigned to, of type" +
                             currentSymbolTable.lookup(node.getName()));
         }
-        node.setExprType((String)currentSymbolTable.lookup(node.getName()));
-
+        node.setExprType(variableType);
         return null;
 
     }
@@ -285,7 +309,6 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        //if neither type1 nor type2 is a subtype of the other
         if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
@@ -307,7 +330,6 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        //if neither type1 nor type2 is a subtype of the other
         if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
@@ -329,7 +351,6 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        //if neither type1 nor type2 is a subtype of the other
         if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
@@ -352,7 +373,6 @@ public class TypeCheckerVisitor extends Visitor
         node.getRightExpr().accept(this);
         String type1 = node.getLeftExpr().getExprType();
         String type2 = node.getRightExpr().getExprType();
-        //if neither type1 nor type2 is a subtype of the other
         if(!type2.equals(type1)|| !type1.equals("int")) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
@@ -424,6 +444,7 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
+    //TODO: someone look over this one
     /**
      * Visit a cast expression node
      *
@@ -439,7 +460,6 @@ public class TypeCheckerVisitor extends Visitor
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "You are attampting to cast a variable of type "+ exprType
                             +" to type " + target+" This is illegal.");
-
         }
 
         if(currentClass.getClassMap().get(exprType).getParent().getName().equals(target)){
@@ -506,7 +526,6 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO: LOOK OVER
     /**
      * Visit a declaration statement node
      *
@@ -514,7 +533,7 @@ public class TypeCheckerVisitor extends Visitor
      * @return null
      */
     public Object visit(DeclStmt node){
-        if(currentSymbolTable.lookup(node.getName())!=null){
+        if(currentSymbolTable.peek(node.getName())!=null){
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),
                     "The variable name " + node.getName() +
@@ -537,6 +556,7 @@ public class TypeCheckerVisitor extends Visitor
 
         }
 
+
         node.getActualList().accept(this);
 
 
@@ -550,25 +570,25 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO: WRITE CODE HERE
-    public Object visit(ExprList node){
-        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-            ((Expr)iterator.next()).accept(this);
+//    //TODO: WRITE CODE HERE
+//    public Object visit(ExprList node){
+//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
+//            ((Expr)iterator.next()).accept(this);
+//
+//        return null;
+//    }
 
-        return null;
-    }
-
-    //TODO:IDK ABOUT THIS
-    /**
-     * Visit an expression statement node
-     *
-     * @param node the expression statement node
-     * @return null
-     */
-    public Object visit(ExprStmt node){
-        node.getExpr().accept(this);
-        return null;
-    }
+//    //TODO:IDK ABOUT THIS
+//    /**
+//     * Visit an expression statement node
+//     *
+//     * @param node the expression statement node
+//     * @return null
+//     */
+//    public Object visit(ExprStmt node){
+//        node.getExpr().accept(this);
+//        return null;
+//    }
 
 
     /**
@@ -626,13 +646,13 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO: WRITE CODE HERE
-    public Object visit(FormalList node){
-        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-            ((Formal)iterator.next()).accept(this);
-
-        return null;
-    }
+//    //TODO: WRITE CODE HERE
+//    public Object visit(FormalList node){
+//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
+//            ((Formal)iterator.next()).accept(this);
+//
+//        return null;
+//    }
 
 
     /**
@@ -710,7 +730,6 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO:NOT RIGHT HELP
 
     /**
      * Visit a instanceof expression node
@@ -721,20 +740,28 @@ public class TypeCheckerVisitor extends Visitor
     public Object visit(InstanceofExpr node){
         node.getExpr().accept(this);
 
-        String type1 = node.getExprType();
-        String type2 = node.getType();
+        String leftExpr = node.getExprType();
+        String rightType = node.getType();
 
+        if(!isSubType(rightType, leftExpr)){
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    currentClass.getASTNode().getFilename(), node.getLineNum(),
+                    "The left expression of type "+leftExpr+
+                            " cannot be cast to the inconvertible right-hand type "+rightType);
+        }
+
+        node.setUpCheck(true);
         node.setExprType("boolean");
         return null;
     }
 
-    //TODO: WRITE CODE HERE
-    public Object visit(MemberList node){
-        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-            ((Member)iterator.next()).accept(this);
-
-        return null;
-    }
+//    //TODO: WRITE CODE HERE
+//    public Object visit(MemberList node){
+//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
+//            ((Member)iterator.next()).accept(this);
+//
+//        return null;
+//    }
 
     /**
      * Visit a method node
@@ -810,18 +837,18 @@ public class TypeCheckerVisitor extends Visitor
     }
 
 
-    //TODO: Error checking needed??
-    /**
-     * Visit a Program node
-     * @param node the program node
-     * @return null
-     */
-    public Object visit(Program node){
-        node.getClassList().accept(this);
-        return null;
-    }
+//    //TODO: Error checking needed??
+//    /**
+//     * Visit a Program node
+//     * @param node the program node
+//     * @return null
+//     */
+//    public Object visit(Program node){
+//        node.getClassList().accept(this);
+//        return null;
+//    }
 
-    //TODO: ADD ERROR CHECK?
+
     /**
      * Visit the return statement node
      *
@@ -833,13 +860,13 @@ public class TypeCheckerVisitor extends Visitor
         return null;
     }
 
-    //TODO: WRITE CODE HERE
-    public Object visit(StmtList node){
-        for(Iterator iterator = node.iterator(); iterator.hasNext();)
-            ((Stmt)iterator.next()).accept(this);
-
-        return null;
-    }
+//    //TODO: WRITE CODE HERE
+//    public Object visit(StmtList node){
+//        for(Iterator iterator = node.iterator(); iterator.hasNext();)
+//            ((Stmt)iterator.next()).accept(this);
+//
+//        return null;
+//    }
 
     /**
      * Visit a unary decrement expression node
@@ -921,8 +948,6 @@ public class TypeCheckerVisitor extends Visitor
     }
 
 
-    //TODO: Double check on this one
-
     /**
      * Visit a Variable Expression node
      *
@@ -938,6 +963,7 @@ public class TypeCheckerVisitor extends Visitor
         }
 
         node.getRef().accept(this);
+        node.setExprType(node.getRef().getExprType());
         return null;
 
     }
