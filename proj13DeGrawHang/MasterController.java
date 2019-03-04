@@ -459,6 +459,10 @@ public class MasterController {
         handleCompilationPhases("scanParseCheck");
     }
 
+
+    @FXML
+    private void handleRefactor(){ toolbarController.handleRefactor();}
+
     /**
      * prompts user to save file before telling the toolbarController to handle the
      * appropriate compilation steps indicate by the phasesToExecute string

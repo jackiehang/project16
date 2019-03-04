@@ -1,56 +1,192 @@
-class Main extends B{
-    int b = 2;
-    boolean a = true;
+/*
+ * File: CheckerTestDeGrawHangMarcello.btm
+ * author: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Feb 25, 2019
+ */
 
-    // test BinaryArithPlusExpr
-    int test1 = b + a;
+class Food{
+    boolean sweet = false; //testing field
+    boolean tasty = true;
+    int calories=0;
+    int num = 90;
 
-    // test
+    void addCals(){
+        calories = calories +1;
+    }
 
-    int result =
-    void main() {
-	a[3] = 5;
-	x = a[3];
-        foo(x,y);
-	var y = a.b().length;
-	var z = new ban();
-	cast(int,a+b.foo().get().bar(ab));
-	var x = "hey";
-	return;
+    void multiplyWrong (){
+        calories = calories * tasty; //error: binaryArithMultiplication
+
     }
-    void bar(int y, int z) {
-        y = y + 3;
-	var z = this.foo();
-	z = z * y;
-	for(i = 0; i < 2; i++){
-	    z = z + i;
-	    y = z + i;
-	}
-	while(z < 5 || x > 6){
-	   foo(z).get(x).ban().bar();
-	   this.counter ++;
-	   break;
-	}
-	if(x == 3){
-	    z = z / 2;
-	}else{
-	    y = y / 2;
-	}
+
+    void changeSweet(boolean newSweet){
+        sweet = newSweet;
     }
-    int foo(){
-	foo(d).fooo(x);
-	return 6;
+
+    int getCals(){
+        return calories;
     }
+
+    boolean taste(){
+        return num || tasty; //error: binaryLogicOrExpr
+    }
+
+    boolean tasteTwo(){
+        return sweet && tasty; //error: binaryLogicAndExpr
+    }
+
+    //error : AssignExpr
+    void incorrectChange(){
+        tasty = 2;
+    }
+
+    // error : BinaryCompLeqExpr
+    boolean badComp(){
+        addCals();
+        return calories <= tasty;
+    }
+
+    // error : BinaryCompGeqExpr
+    boolean badComp2(){
+
+       return calories >= tasty;
+    }
+
+    void classy(){
+        calories = 100;
+    }
+
 }
 
-class B{
-	int[] a;
+//testing inheritance
+class Dessert extends Food{
+    Utensil u;
+    boolean yummy = true;
 
-	void B(){
-		a = new int[3];
-		c = new int[1+5*c+6];
-		var myString = "hello";
-		(new A()).bar(car(a,cars(c),d,12),b);
-		(new A()).bar(car(a,cars(c)),b);
-	}
+    void setUtensil(Utensil utensil){
+        u = utensil;
+        var x = 2;
+    }
+    boolean isYum(boolean yum){
+        return u == yum ; //error: BinaryCompEqExpr
+    }
+
+    boolean isNotYum(boolean yum){
+        return yum != u;  //error: BinaryCompNEqExpr
+    }
+
+}
+
+class Utensil{
+    String type = "hi";
+
+    void setType(String typeOfUtensil){
+        type = typeOfUtensil;
+    }
+
+    String getType(){
+        return type;
+    }
+
+}
+
+class Main{
+    int x = 5;
+    int z = 20;
+    Food[] foods = new Food[5];
+    int[] bad = new String[4]; //error: new array
+    Food cake;
+    Food wrong;
+    Dessert pie = new Dessert();
+    int[] q;
+    boolean test = true;
+
+
+    void methodTest(){
+        var j = 0; //testing var expr
+        for(i = 0; i < 2; i++){ //testing for-loop
+            j = j + pie; //error : addition
+        }
+
+        for(i = 0; i < 2; i++){ //testing for-loop
+            pie++; //error: unary incr
+        }
+
+        j = z-cake; //error: subtraction
+
+        j=j*pie; //error: multiplication
+
+        j= j%pie; // error: modulus
+
+        foods[-4] = 2; //error: unary neg
+
+    }
+
+    int methodTestTwo(){
+        var y = z/x; //testing division and var expr
+
+        if(y > 2){ //testing if statement and relational gt
+            return 5;
+        }
+        test--; // error: unary decr
+
+        return 0;
+    }
+
+    int methodTestThree(){
+       undeclaredVariable = z/x; //error : undeclared variable assignment
+       return 2;
+    }
+
+    void testWhileStmt(){
+        var potato = 0;
+        while(potato < 5){ //testing while stmt and less than
+            potato ++;
+        }
+
+        while(potato == true){ // error: whileStmt
+            potato --;
+        }
+    }
+
+    int getX(){
+        return test; //error: return statements
+    }
+
+    void testMethodFour(int j , int t){
+        j = j+ t;
+    }
+
+
+    void main(){
+        q[2] = "test"; // error: incorrect array assignment
+	    var x = 2;
+	    var n = null; // error : null varExpr
+        cake = new Dessert();
+        var iceCream = new Dessert();
+        var spoon = new Utensil();
+        spoon.setType("spoon");
+
+        var fork = new Utensil();
+        fork.setType("fork");
+        iceCream.setUtensil(spoon);
+        iceCream.u.getType(); //testing dispatch expr
+
+        iceCream.addCals(); //testing inherited method
+        //testing instanceof
+        if( cake instanceof Utensil){ //error: incorrect instanceof
+              wrong = new Utensil(); //error : Incorrect assignment
+        }
+
+        var copy = cast(Utensil,cake); // error : casting
+        foods[3] = iceCream;
+        foods[3].setUtensil(fork); //testing dispatch
+
+        foods[2] = spoon; // error: wrong array assignment
+
+        testMethodFour(true, 3); //Error :  dispatch expr
+
+    }
+
 }

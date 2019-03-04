@@ -28,10 +28,7 @@ package proj13DeGrawHang;
 import javafx.application.Platform;
 import proj13DeGrawHang.bantam.ast.Program;
 import proj13DeGrawHang.bantam.parser.Parser;
-import proj13DeGrawHang.bantam.semant.MainMainVisitor;
-import proj13DeGrawHang.bantam.semant.NumLocalVarsVisitor;
-import proj13DeGrawHang.bantam.semant.SemanticAnalyzer;
-import proj13DeGrawHang.bantam.semant.StringConstantsVisitor;
+import proj13DeGrawHang.bantam.semant.*;
 import proj13DeGrawHang.bantam.util.ClassTreeNode;
 import proj13DeGrawHang.bantam.util.CompilationException;
 import proj13DeGrawHang.bantam.util.ErrorHandler;
@@ -39,9 +36,7 @@ import proj13DeGrawHang.bantam.util.Error;
 import proj13DeGrawHang.bantam.lexer.Scanner;
 import proj13DeGrawHang.bantam.lexer.Token;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -194,6 +189,30 @@ public class ToolbarController {
             }
         }).start();
     }
+
+
+    public void handleRefactor(){
+        NameVisitor visitor = new NameVisitor();
+        HashMap<String, ArrayList<String>> names = visitor.getClassFieldMethodNames(this.AST);
+
+        System.out.println("Fields:");
+        for(String s: names.get("Field")){
+            System.out.println(s);
+        }
+
+        System.out.println("Class: ");
+        for(String s: names.get("Class")){
+            System.out.println(s);
+        }
+
+        System.out.println("Method: ");
+        for(String s: names.get("Method")){
+            System.out.println(s);
+        }
+
+
+    }
+
 
     /**
      * Check if the scan task is still running.

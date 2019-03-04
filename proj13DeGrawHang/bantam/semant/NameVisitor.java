@@ -6,15 +6,24 @@ import proj13DeGrawHang.bantam.ast.Method;
 import proj13DeGrawHang.bantam.ast.Program;
 import proj13DeGrawHang.bantam.visitor.Visitor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 public class NameVisitor extends Visitor {
-    private HashMap<String, LinkedList<String>> names;
+    private HashMap<String, ArrayList<String>> names;
 
-    public Map<String,LinkedList<String>> getClassFieldMethodNames(Program ast) {
+    public HashMap<String, ArrayList<String>> getClassFieldMethodNames(Program ast) {
         names = new HashMap<>();
+
+        ArrayList<String> f = new ArrayList<>();
+        names.put("Field", f);
+        ArrayList<String> c = new ArrayList<>();
+        names.put("Class", c);
+        ArrayList<String> m = new ArrayList<>();
+        names.put("Method", m);
+
         // traverse the abstract syntax tree
         ast.accept(this);
 
@@ -22,28 +31,17 @@ public class NameVisitor extends Visitor {
     }
 
     public Object visit(Field node){
-        if(names.get("Field")==null){
-            LinkedList<String> f = new LinkedList<>();
-            names.put("Field", f);
-        }
         names.get("Field").add(node.getName());
         return null;
     }
 
     public Object visit(Class_ node){
-        if(names.get("Class")==null){
-            LinkedList<String> f = new LinkedList<>();
-            names.put("Class", f);
-        }
         names.get("Class").add(node.getName());
+        super.visit(node);
         return null;
     }
 
     public Object visit(Method node){
-        if(names.get("Method")==null){
-            LinkedList<String> f = new LinkedList<>();
-            names.put("Method", f);
-        }
         names.get("Method").add(node.getName());
         return null;
     }
