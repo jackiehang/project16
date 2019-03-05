@@ -39,6 +39,7 @@ import proj13DeGrawHang.bantam.lexer.Token;
 import java.util.*;
 import java.util.concurrent.*;
 
+
 /**
  * This class is the controller for all of the toolbar functionality.
  * Specifically, the compile, compile and run, and stop buttons
@@ -192,24 +193,16 @@ public class ToolbarController {
 
 
     public void handleRefactor(){
-        NameVisitor visitor = new NameVisitor();
-        HashMap<String, ArrayList<String>> names = visitor.getClassFieldMethodNames(this.AST);
 
-        System.out.println("Fields:");
-        for(String s: names.get("Field")){
-            System.out.println(s);
+        if(AST == null){
+            Platform.runLater(() -> this.console.writeToConsole("You must parse a program first.",
+                    "Error"));
         }
-
-        System.out.println("Class: ");
-        for(String s: names.get("Class")){
-            System.out.println(s);
+        else {
+            NameVisitor visitor = new NameVisitor();
+            HashMap<String, ArrayList<String>> names = visitor.getClassFieldMethodNames(this.AST);
+            RefactorHelper refactorHelper = new RefactorHelper(names);
         }
-
-        System.out.println("Method: ");
-        for(String s: names.get("Method")){
-            System.out.println(s);
-        }
-
 
     }
 
