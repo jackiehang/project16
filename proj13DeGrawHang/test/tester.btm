@@ -1,0 +1,16 @@
+class Main extends B{
+    int b = 2;
+    boolean a = true;
+
+    void main() {
+	a[3] = 5;
+	x = a[3];
+        foo(x,y);
+	var y = a.b().length;
+	var z = new ban();
+	cast(int,a+b.foo().get().bar(ab));
+	var x = "hey";
+	return;
+    }
+
+}

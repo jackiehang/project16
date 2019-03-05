@@ -29,6 +29,7 @@ import javafx.application.Platform;
 import proj13DeGrawHang.bantam.ast.Program;
 import proj13DeGrawHang.bantam.parser.Parser;
 import proj13DeGrawHang.bantam.semant.*;
+import proj13DeGrawHang.bantam.treedrawer.Drawer;
 import proj13DeGrawHang.bantam.util.ClassTreeNode;
 import proj13DeGrawHang.bantam.util.CompilationException;
 import proj13DeGrawHang.bantam.util.ErrorHandler;
@@ -128,6 +129,7 @@ public class ToolbarController {
                     drawer.draw(this.codeTabPane.getFileName(),AST); //gets stuck here
                 }
                 */
+
                 this.parseIsDone = true;
             }catch(InterruptedException| ExecutionException e){
                 Platform.runLater(()->
@@ -195,7 +197,7 @@ public class ToolbarController {
     public void handleRefactor(){
 
         if(AST == null){
-            Platform.runLater(() -> this.console.writeToConsole("You must parse a program first.",
+            Platform.runLater(() -> this.console.writeToConsole("You must parse a program first.\n",
                     "Error"));
         }
         else {
