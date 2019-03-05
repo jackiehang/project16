@@ -42,17 +42,17 @@ public class RefactorHelper {
         classes.setOnAction(event -> {
             this.createHelperDialog(classes.getText());
             event.consume();
-            //TODO: should the dialog close?
             dialogPane.getScene().getWindow().hide();
         });
         fields.setOnAction(event -> {
             this.createHelperDialog(fields.getText());
             event.consume();
-            this.refactorDialog.close();
+            dialogPane.getScene().getWindow().hide();
         });
-        methods.setOnAction( event->{this.createHelperDialog(methods.getText());
-        event.consume();
-        this.refactorDialog.close();
+        methods.setOnAction( event->{
+            this.createHelperDialog(methods.getText());
+            event.consume();
+            dialogPane.getScene().getWindow().hide();
         });
 
         outer.getChildren().addAll(classes, fields, methods);
@@ -61,7 +61,7 @@ public class RefactorHelper {
         Window window = refactorDialog.getDialogPane().getScene().getWindow();
         window.setOnCloseRequest(event -> window.hide());
 
-        this.refactorDialog.showAndWait();
+        this.refactorDialog.show();
     }
 
     private void createHelperDialog(String type){
