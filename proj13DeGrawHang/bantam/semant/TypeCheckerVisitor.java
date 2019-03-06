@@ -667,7 +667,6 @@ public class TypeCheckerVisitor extends Visitor
         }
         else { // ref is not null, "this", or "super"
             // check the ref and get its type name
-            System.out.println(node.getName());
             node.getRef().accept(this);
             String refTypeName = node.getRef().getExprType();
             if( refTypeName.endsWith("[]") && varName.equals("length")) {
@@ -719,32 +718,18 @@ public class TypeCheckerVisitor extends Visitor
     public Object visit(ArrayExpr node) {
         //check that the index's type is "int"
         node.getIndex().accept(this);
-        String refType;
         if (!node.getIndex().getExprType().equals("int")) {
             registerError(node, "The index into the array must be an integer.");
         }
         //check the ref and check whether the ref's type is an array type
-        System.out.println(node.getName());
-        if (node.getRef() == null) {
-            System.out.println("local");
-            refType = (String) currentSymbolTable.lookup(node.getName());
+        node.getRef().accept(this);
+        String refType = node.getRef().getExprType();
+        if (! refType.endsWith("[]")) {
+            registerError(node,"The  expression is not an array type.");
+            node.setExprType(refType); // to continue analysis
         }
         else {
-            System.out.println("global");
-            node.getRef().accept(this);
-            refType = node.getRef().getExprType();
-        }
-        System.out.println(refType);
-        if (refType == null) {
-            registerError(node, "The variable has not been declared.");
-        }
-        else {
-            if (!refType.endsWith("[]")) {
-                registerError(node, "The  expression is not an array type.");
-                node.setExprType(refType); // to continue analysis
-            } else {
-                node.setExprType(refType.substring(0, refType.length() - 2));
-            }
+            node.setExprType(refType.substring(0, refType.length() - 2));
         }
         return null;
     }

@@ -127,8 +127,8 @@ public class SemanticAnalyzer
         buildFieldAndMethodTables();
 
         //Dump Symbol Tables
-        this.root.getVarSymbolTable().dump();
-        this.root.getMethodSymbolTable().dump();
+        //this.root.getVarSymbolTable().dump();
+        //this.root.getMethodSymbolTable().dump();
 
         //step 4: check whether there is a Main class with a main method.
         checkForMainClassWithMainMethod();
