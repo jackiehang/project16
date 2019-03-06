@@ -38,6 +38,7 @@ import proj13DeGrawHang.bantam.util.CompilationException;
 import proj13DeGrawHang.bantam.util.Error;
 import proj13DeGrawHang.bantam.util.ErrorHandler;
 
+import java.awt.desktop.SystemSleepEvent;
 import java.io.Reader;
 import java.util.List;
 
@@ -128,14 +129,14 @@ public class Parser
     private Program parseProgram() {
 
         int position = currentToken.position;
-        ClassList clist = new ClassList(position);
+        ClassList clist = new ClassList(position,currentToken.colPos);
 
         while (currentToken.kind != EOF) {
             Class_ aClass = parseClass();
             clist.addElement(aClass);
         }
 
-        return new Program(position, clist);
+        return new Program(position,currentToken.colPos, clist);
     }
 
     //-----------------------------
@@ -147,8 +148,10 @@ public class Parser
         Class_ aClass;
         int position = currentToken.position;
 
+
         advanceIfMatches(CLASS);
         Token className = currentToken;
+        int colPos = currentToken.colPos;
         advanceIfMatches(IDENTIFIER);
         String parentName = null;
         if (currentToken.kind == EXTENDS) {
@@ -159,7 +162,7 @@ public class Parser
             parentName = "Object";
         }
 
-        MemberList memberList = new MemberList(currentToken.position);
+        MemberList memberList = new MemberList(currentToken.position,currentToken.colPos);
         advanceIfMatches(LCURLY);
         while (currentToken.kind != RCURLY && currentToken.kind != EOF) {
             Member member = parseMember();
@@ -167,7 +170,7 @@ public class Parser
         }
         advanceIfMatches(RCURLY);
 
-        aClass = new Class_(position, scanner.getFilename(), className.spelling,
+        aClass = new Class_(position,colPos, scanner.getFilename(), className.spelling,
                 parentName, memberList);
         return aClass;
     }
@@ -185,7 +188,7 @@ public class Parser
     private Member parseMember() {
         Method method;
         String type = parseType();
-
+        int colPos = currentToken.colPos;
         String id = parseIdentifier();
         BlockStmt stmt;
         int position = currentToken.position;
@@ -196,7 +199,7 @@ public class Parser
             FormalList parameters = parseParameters();
             advanceIfMatches(RPAREN);
             stmt = (BlockStmt) parseBlock();
-            method = new Method(position, type, id, parameters, stmt.getStmtList());
+            method = new Method(position,colPos, type, id, parameters, stmt.getStmtList());
             return method;
         }
 
@@ -210,7 +213,7 @@ public class Parser
 
             advanceIfMatches(SEMICOLON);
 
-            return new Field(position, type, id, init);
+            return new Field(position,colPos, type, id, init);
         }
 
     }
@@ -255,6 +258,7 @@ public class Parser
     //<WhileStmt>::= WHILE ( <Expression> ) <Stmt>
     private Stmt parseWhile() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
 
         advance(); // past "while"
         advanceIfMatches(LPAREN);
@@ -262,13 +266,14 @@ public class Parser
         advanceIfMatches(RPAREN);
         Stmt execution = parseStatement();
 
-        return new WhileStmt(position, expression, execution);
+        return new WhileStmt(position, colPos,expression, execution);
     }
 
 
     //<ReturnStmt>::= RETURN <Expression> ; | RETURN ;
     private Stmt parseReturn() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr expr = null;
 
         advance(); // accept the RETURN token
@@ -278,13 +283,13 @@ public class Parser
         }
         advanceIfMatches(SEMICOLON);
 
-        return new ReturnStmt(position, expr);
+        return new ReturnStmt(position,colPos, expr);
     }
 
 
     //<BreakStmt>::= BREAK ;
     private Stmt parseBreak() {
-        Stmt stmt = new BreakStmt(currentToken.position);
+        Stmt stmt = new BreakStmt(currentToken.position, currentToken.colPos);
         advance();
         advanceIfMatches(SEMICOLON);
         return stmt;
@@ -294,9 +299,10 @@ public class Parser
     //<ExpressionStmt>::= <Expression> ;
     private ExprStmt parseExpressionStmt() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr expr = parseExpression();
         advanceIfMatches(SEMICOLON);
-        return new ExprStmt(position, expr);
+        return new ExprStmt(position,colPos, expr);
     }
 
 
@@ -305,6 +311,7 @@ public class Parser
     private Stmt parseDeclStmt() {
 
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Stmt stmt;
         advance(); // the keyword var
 
@@ -312,7 +319,7 @@ public class Parser
         advanceIfMatches(ASSIGN);
         Expr value = parseExpression();
 
-        stmt = new DeclStmt(position, id, value);
+        stmt = new DeclStmt(position, colPos, id, value);
         advanceIfMatches(SEMICOLON);
 
         return stmt;
@@ -326,6 +333,7 @@ public class Parser
     private Stmt parseFor() {
 
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr start = null;
         Expr terminate = null;
         Expr increment = null;
@@ -352,16 +360,16 @@ public class Parser
 
         execute = parseStatement();
 
-        return new ForStmt(position, start, terminate, increment, execute);
+        return new ForStmt(position,colPos, start, terminate, increment, execute);
     }
 
 
     //<BlockStmt>::=  { <Body> }
     //<Body>::= EMPTY | <Stmt> <Body>
     private Stmt parseBlock() {
-
+        int colPos = currentToken.colPos;
         int position = currentToken.position;
-        StmtList stmtList = new StmtList(position);
+        StmtList stmtList = new StmtList(position,colPos);
         advanceIfMatches(LCURLY);
 
         while (currentToken.kind != RCURLY) {
@@ -369,7 +377,7 @@ public class Parser
         }
         advanceIfMatches(RCURLY);
 
-        return new BlockStmt(position, stmtList);
+        return new BlockStmt(position, colPos,stmtList);
     }
 
 
@@ -377,6 +385,7 @@ public class Parser
     private Stmt parseIf() {
 
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr condition;
         Stmt thenStmt;
         Stmt elseStmt = null;
@@ -392,7 +401,7 @@ public class Parser
             elseStmt = parseStatement();
         }
 
-        return new IfStmt(position, condition, thenStmt, elseStmt);
+        return new IfStmt(position,colPos, condition, thenStmt, elseStmt);
     }
 
 
@@ -405,6 +414,7 @@ public class Parser
     private Expr parseExpression() {
         Expr result;
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
 
         result = parseOrExpr();
         if (currentToken.kind == ASSIGN && result instanceof VarExpr) {
@@ -418,7 +428,7 @@ public class Parser
             String lhsName = lhs.getName();
             String lhsRefName = (lhs.getRef() == null ? null :
                     ((VarExpr) lhs.getRef()).getName());
-            result = new AssignExpr(position, lhsRefName, lhsName, right);
+            result = new AssignExpr(position,colPos, lhsRefName, lhsName, right);
         }
         else if (currentToken.kind == ASSIGN && result instanceof ArrayExpr) {
             advance();
@@ -437,7 +447,7 @@ public class Parser
             String lhsRefName = (lhsExpr.getRef() == null ? null :
                     ((VarExpr) lhsExpr.getRef()).getName());
             Expr index = lhs.getIndex();
-            result = new ArrayAssignExpr(position, lhsRefName, lhsName, index, right);
+            result = new ArrayAssignExpr(position, colPos, lhsRefName, lhsName, index, right);
         }
 
         return result;
@@ -448,13 +458,14 @@ public class Parser
     //<LogicalORRest>::= || <LogicalAND> <LogicalORRest> | EMPTY
     private Expr parseOrExpr() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr left;
 
         left = parseAndExpr();
         while (currentToken.spelling.equals("||")) {
             advance();
             Expr right = parseAndExpr();
-            left = new BinaryLogicOrExpr(position, left, right);
+            left = new BinaryLogicOrExpr(position, colPos,left, right);
         }
 
         return left;
@@ -465,11 +476,12 @@ public class Parser
     //<LogicalANDRest>::= && <ComparisonExpr> <LogicalANDRest> | EMPTY
     private Expr parseAndExpr() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr left = parseComparisonExpr();
         while (currentToken.spelling.equals("&&")) {
             advance();
             Expr right = parseComparisonExpr();
-            left = new BinaryLogicAndExpr(position, left, right);
+            left = new BinaryLogicAndExpr(position,colPos, left, right);
         }
 
         return left;
@@ -481,17 +493,18 @@ public class Parser
     //<EqualOrNotEqual>::=   == | !=
     private Expr parseComparisonExpr() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr left = parseRelationalExpr();
 
         if (currentToken.spelling.equals("==")) {
             advance();
             Expr right = parseRelationalExpr();
-            left = new BinaryCompEqExpr(position, left, right);
+            left = new BinaryCompEqExpr(position, colPos,left, right);
         }
         else if (currentToken.spelling.equals("!=")) {
             advance();
             Expr right = parseRelationalExpr();
-            left = new BinaryCompNeExpr(position, left, right);
+            left = new BinaryCompNeExpr(position,colPos, left, right);
         }
 
         return left;
@@ -502,6 +515,7 @@ public class Parser
     //<ComparisonOp>::= < | > | <= | >= | INSTANCEOF
     private Expr parseRelationalExpr() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr left, right;
 
         left = parseAddExpr();
@@ -509,23 +523,23 @@ public class Parser
             case "<":
                 advance();
                 right = parseAddExpr();
-                return new BinaryCompLtExpr(position, left, right);
+                return new BinaryCompLtExpr(position,colPos, left, right);
             case "<=":
                 advance();
                 right = parseAddExpr();
-                return new BinaryCompLeqExpr(position, left, right);
+                return new BinaryCompLeqExpr(position,colPos, left, right);
             case ">":
                 advance();
                 right = parseAddExpr();
-                return new BinaryCompGtExpr(position, left, right);
+                return new BinaryCompGtExpr(position, colPos,left, right);
             case ">=":
                 advance();
                 right = parseAddExpr();
-                return new BinaryCompGeqExpr(position, left, right);
+                return new BinaryCompGeqExpr(position, colPos, left, right);
             case "instanceof":
                 advance();
                 String type = parseType();
-                return new InstanceofExpr(position, left, type);
+                return new InstanceofExpr(position, colPos, left, type);
         }
 
         return left;
@@ -536,18 +550,19 @@ public class Parser
     //<MoreMult>::= + <MultExpr> <MoreMult> | - <MultiExpr> <MoreMult> | EMPTY
     private Expr parseAddExpr() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr left = parseMultExpr();
 
         while (currentToken.kind == PLUSMINUS) {
             if (currentToken.spelling.equals("+")) {
                 advance();
                 Expr right = parseMultExpr();
-                left = new BinaryArithPlusExpr(position, left, right);
+                left = new BinaryArithPlusExpr(position, colPos,left, right);
             }
             else {
                 advance();
                 Expr right = parseMultExpr();
-                left = new BinaryArithMinusExpr(position, left, right);
+                left = new BinaryArithMinusExpr(position, colPos, left, right);
             }
         }
 
@@ -562,6 +577,7 @@ public class Parser
     //             EMPTY
     private Expr parseMultExpr() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Expr left, right;
 
 
@@ -571,17 +587,17 @@ public class Parser
                 case "/":
                     advance();
                     right = parseNewCastOrUnary();
-                    left = new BinaryArithDivideExpr(position, left, right);
+                    left = new BinaryArithDivideExpr(position, colPos,left, right);
                     break;
                 case "*":
                     advance();
                     right = parseNewCastOrUnary();
-                    left = new BinaryArithTimesExpr(position, left, right);
+                    left = new BinaryArithTimesExpr(position,colPos, left, right);
                     break;
                 case "%":
                     advance();
                     right = parseNewCastOrUnary();
-                    left = new BinaryArithModulusExpr(position, left, right);
+                    left = new BinaryArithModulusExpr(position,colPos, left, right);
                     break;
             }
         }
@@ -611,19 +627,20 @@ public class Parser
     //<NewExpression>::= NEW <Identifier>() | NEW <Identifier> [ <Expression> ]
     private Expr parseNew() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         advance();
 
         String type = parseIdentifier();
         if (currentToken.kind == LPAREN) {
             advance();
             advanceIfMatches(RPAREN);
-            return new NewExpr(position, type);
+            return new NewExpr(position, colPos, type);
         }
         else {
             advanceIfMatches(LBRACKET);
             Expr sizeExpr = parseExpression();
             advanceIfMatches(RBRACKET);
-            return new NewArrayExpr(position, type, sizeExpr);
+            return new NewArrayExpr(position, colPos, type, sizeExpr);
         }
     }
 
@@ -633,6 +650,7 @@ public class Parser
 
         Expr castExpression;
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         advance();
 
         advanceIfMatches(LPAREN);
@@ -641,7 +659,7 @@ public class Parser
         Expr expression = parseExpression();
         advanceIfMatches(RPAREN);
 
-        castExpression = new CastExpr(position, type, expression);
+        castExpression = new CastExpr(position,colPos, type, expression);
         return castExpression;
     }
 
@@ -650,23 +668,24 @@ public class Parser
     //<PrefixOp>::= - | ! | ++ | --
     private Expr parseUnaryPrefix() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         Token.Kind kind = currentToken.kind;
 
         if (currentToken.spelling.equals("-") || kind == UNARYDECR || kind == UNARYINCR || kind == UNARYNOT) {
             advance();
             Expr expr = parseUnaryPrefix();
             if (kind == PLUSMINUS) {
-                return new UnaryNegExpr(position, expr);
+                return new UnaryNegExpr(position,colPos, expr);
             }
             else if (kind == UNARYDECR) {
-                return new UnaryDecrExpr(position, expr, false);
+                return new UnaryDecrExpr(position,colPos, expr, false);
             }
             else if (kind == UNARYINCR) {
-                return new UnaryIncrExpr(position, expr, false);
+                return new UnaryIncrExpr(position,colPos, expr, false);
             }
             else // kind == UNARYNOT
             {
-                return new UnaryNotExpr(position, expr);
+                return new UnaryNotExpr(position,colPos, expr);
             }
         }
         else {
@@ -682,14 +701,15 @@ public class Parser
 
         Expr unary;
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
 
         unary = parsePrimary();
         if (currentToken.kind == UNARYINCR) {
-            unary = new UnaryIncrExpr(position, unary, true);
+            unary = new UnaryIncrExpr(position,colPos, unary, true);
             advance();
         }
         else if (currentToken.kind == UNARYDECR) {
-            unary = new UnaryDecrExpr(position, unary, true);
+            unary = new UnaryDecrExpr(position, colPos, unary, true);
             advance();
         }
 
@@ -728,7 +748,7 @@ public class Parser
      */
     private Expr parsePrimary() {
         Expr primary;
-
+        int colPos = currentToken.colPos;
         switch (currentToken.kind) {
             case INTCONST:
                 return parseIntConst();
@@ -748,7 +768,7 @@ public class Parser
                 break;
             default:
                 String id = parseIdentifier();
-                primary = new VarExpr(currentToken.position, null, id);
+                primary = new VarExpr(currentToken.position, currentToken.colPos,null, id);
         }
         // now add the suffixes
         while (    currentToken.kind == DOT
@@ -759,19 +779,19 @@ public class Parser
                 ExprList ar = parseArguments();
                 advanceIfMatches(RPAREN);
                 VarExpr varExpr = (VarExpr) primary;
-                primary = new DispatchExpr(primary.getLineNum(), varExpr.getRef(),
+                primary = new DispatchExpr(primary.getLineNum(),primary.getColPos(), varExpr.getRef(),
                         varExpr.getName(), ar);
             }
             else if (currentToken.kind == LBRACKET) {
                 advance();
                 Expr index = parseExpression();
                 advanceIfMatches(RBRACKET);
-                primary = new ArrayExpr(primary.getLineNum(), primary, null, index);
+                primary = new ArrayExpr(primary.getLineNum(),primary.getColPos(), primary, null, index);
             }
             else { // currentToken is a DOT
                 advance();
                 String id = parseIdentifier();
-                primary = new VarExpr(currentToken.position, primary, id);
+                primary = new VarExpr(currentToken.position,currentToken.colPos, primary, id);
             }
         }
 
@@ -783,8 +803,8 @@ public class Parser
     //<MoreArgs> ::= EMPTY | , <Expression> <MoreArgs>
     private ExprList parseArguments() {
         int position = currentToken.position;
-
-        ExprList ar = new ExprList(position);
+        int colPos = currentToken.colPos;
+        ExprList ar = new ExprList(position,colPos);
 
         if (currentToken.kind == RPAREN) {
             return ar;
@@ -805,8 +825,9 @@ public class Parser
     //<MoreFormals> ::= EMPTY | , <Formal> <MoreFormals
     private FormalList parseParameters() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
 
-        FormalList parameters = new FormalList(position);
+        FormalList parameters = new FormalList(position, colPos);
 
         if (currentToken.kind == RPAREN) {
             return parameters;
@@ -825,7 +846,7 @@ public class Parser
 
     //<Formal> ::= <Type> <Identifier>
     private Formal parseFormal() {
-        return new Formal(currentToken.position, parseType(), parseIdentifier());
+        return new Formal(currentToken.position, currentToken.colPos, parseType(), parseIdentifier());
     }
 
 
@@ -864,25 +885,28 @@ public class Parser
 
     private ConstStringExpr parseStringConst() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         String spelling = currentToken.spelling;
         advanceIfMatches(STRCONST);
-        return new ConstStringExpr(position, spelling);
+        return new ConstStringExpr(position,colPos, spelling);
     }
 
 
     private ConstIntExpr parseIntConst() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         String spelling = currentToken.spelling;
         advanceIfMatches(INTCONST);
-        return new ConstIntExpr(position, spelling);
+        return new ConstIntExpr(position,colPos, spelling);
     }
 
 
     private ConstBooleanExpr parseBoolean() {
         int position = currentToken.position;
+        int colPos = currentToken.colPos;
         String spelling = currentToken.spelling;
         advanceIfMatches(BOOLEAN);
-        return new ConstBooleanExpr(position, spelling);
+        return new ConstBooleanExpr(position,colPos, spelling);
     }
 
 

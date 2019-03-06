@@ -51,8 +51,8 @@ public class UnaryIncrExpr extends UnaryExpr {
      * @param expr      expression for incrementing (expression must be either VarExpr or ArrayExpr)
      * @param isPostfix boolean indicating whether operator is postfix (true) or prefix (false)
      */
-    public UnaryIncrExpr(int lineNum, Expr expr, boolean isPostfix) {
-        super(lineNum, expr);
+    public UnaryIncrExpr(int lineNum, int colPos,  Expr expr, boolean isPostfix) {
+        super(lineNum,colPos, expr);
         this.isPostfix = isPostfix;
     }
 

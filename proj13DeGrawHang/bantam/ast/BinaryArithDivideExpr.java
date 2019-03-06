@@ -47,8 +47,8 @@ public class BinaryArithDivideExpr extends BinaryArithExpr {
      * @param leftExpr  left operand expression
      * @param rightExpr right operand expression
      */
-    public BinaryArithDivideExpr(int lineNum, Expr leftExpr, Expr rightExpr) {
-        super(lineNum, leftExpr, rightExpr);
+    public BinaryArithDivideExpr(int lineNum, int colPos,  Expr leftExpr, Expr rightExpr) {
+        super(lineNum, colPos,  leftExpr, rightExpr);
     }
 
     /**

@@ -59,14 +59,16 @@ public class Navigator {
      */
     private void createNavigatorDialog(){
         javafx.scene.control.Dialog<ButtonType> navigatorDialog = new Dialog<>();
-        navigatorDialog.setTitle("Declaration Finder");
 
         DialogPane dialogPane = new DialogPane();
-        VBox outer = new VBox();
+        VBox vBox = new VBox();
 
         Button classes= new Button("Class");
         Button fields = new Button("Field");
         Button methods = new Button("Method");
+        methods.setMinWidth(100);
+        fields.setMinWidth(100);
+        classes.setMinWidth(100);
 
         //setting on click actions
         classes.setOnAction(event -> {
@@ -85,8 +87,8 @@ public class Navigator {
             dialogPane.getScene().getWindow().hide();
         });
 
-        outer.getChildren().addAll(classes, fields, methods);
-        dialogPane.setContent(outer);
+        vBox.getChildren().addAll(classes, fields, methods);
+        dialogPane.setContent(vBox);
         navigatorDialog.setDialogPane(dialogPane);
         Window window = navigatorDialog.getDialogPane().getScene().getWindow();
         window.setOnCloseRequest(event -> window.hide());
@@ -162,25 +164,14 @@ public class Navigator {
      * @param name chosen class, field, or method
      */
     private void findDeclaration(String name){
-        //TODO: Make more dynamic
         ASTNode node = map.get(name);
-        String curText = curCodeArea.getText();
-        int index=0;
-        if(node instanceof Class_){
-             index = curText.indexOf("class "+name);
-             index+=6;
-        }
-        else if(node instanceof Field ){
-            String type = ((Field) node).getType();
-            index = curText.indexOf( type + " " +name);
-            index += type.length()+1;
-        }
-        else if(node instanceof Method){
-            String returnType = ((Method) node).getReturnType();
-            index = curText.indexOf(returnType + " " +name);
-            index += returnType.length()+1;
 
-        }
+        int index=0;
+        int rowNum = node.getLineNum()-1;
+        int colPos = node.getColPos();
+
+        curCodeArea.moveTo(rowNum, colPos);
+        index = curCodeArea.getCaretPosition();
 
         curCodeArea.selectRange(index, index+name.length());
         curCodeArea.showParagraphAtTop(node.getLineNum()-2);

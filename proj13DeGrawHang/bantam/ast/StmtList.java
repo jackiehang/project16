@@ -41,8 +41,8 @@ public class StmtList extends ListNode {
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    public StmtList(int lineNum) {
-        super(lineNum);
+    public StmtList(int lineNum, int colPos ) {
+        super(lineNum,colPos);
     }
 
     /**

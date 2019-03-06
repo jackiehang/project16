@@ -60,8 +60,8 @@ public class CastExpr extends Expr {
      * @param type    the target type
      * @param expr    expression to cast
      */
-    public CastExpr(int lineNum, String type, Expr expr) {
-        super(lineNum);
+    public CastExpr(int lineNum,  int colPos, String type, Expr expr) {
+        super(lineNum,colPos);
         this.type = type;
         this.expr = expr;
     }

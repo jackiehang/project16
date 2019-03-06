@@ -47,8 +47,8 @@ public class BinaryLogicAndExpr extends BinaryLogicExpr {
      * @param leftExpr  lefthand expression for AND-ing
      * @param rightExpr righthand expression for AND-ing
      */
-    public BinaryLogicAndExpr(int lineNum, Expr leftExpr, Expr rightExpr) {
-        super(lineNum, leftExpr, rightExpr);
+    public BinaryLogicAndExpr(int lineNum,  int colPos, Expr leftExpr, Expr rightExpr) {
+        super(lineNum, colPos, leftExpr, rightExpr);
     }
 
     /**

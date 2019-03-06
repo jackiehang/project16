@@ -7,6 +7,7 @@
 package proj13DeGrawHang.bantam.lexer;
 
 import java.io.Reader;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Map;
@@ -23,6 +24,7 @@ public class Scanner
     private char prevChar;
     private Map<Character,Token.Kind> singleOperatorMap;
     private Map<String,Token.Kind> doubleOperatorMap;
+    private HashMap<Character,Integer> characterIntegerMap;
 
     /**
      * constructor for the scanner when fed into an errorhandler
@@ -33,6 +35,7 @@ public class Scanner
         currentChar = ' ';
         prevChar = ' ';
         sourceFile = null;
+        characterIntegerMap = new HashMap<>();
         this.createOperatorMaps();
     }
 
@@ -46,6 +49,7 @@ public class Scanner
         currentChar = ' ';
         prevChar = ' ';
         sourceFile = new SourceFile(filename);
+        characterIntegerMap = new HashMap<>();
         this.createOperatorMaps();
     }
 
@@ -59,6 +63,7 @@ public class Scanner
         sourceFile = new SourceFile(reader);
         currentChar = ' ';
         prevChar = ' ';
+        characterIntegerMap = new HashMap<>();
         this.createOperatorMaps();
     }
 
@@ -81,6 +86,7 @@ public class Scanner
         while(Character.isSpaceChar(prevChar)||prevChar == '\n'||prevChar == '\r'|| prevChar == '\t'){
             updateChars();
         }
+        int colPos = characterIntegerMap.get(prevChar);
         int lineNumber = sourceFile.getCurrentLineNumber();
         String lastTwoChars = Character.toString(prevChar)+Character.toString(currentChar);
         //fixes bug where line number gets incremented too early on WindowsOS
@@ -93,10 +99,10 @@ public class Scanner
         }
         else if(doubleOperatorMap.containsKey(lastTwoChars)){
             updateChars();
-            return new Token(doubleOperatorMap.get(lastTwoChars), lastTwoChars, lineNumber);
+            return new Token(doubleOperatorMap.get(lastTwoChars), lastTwoChars, lineNumber,colPos);
         }
         else if(singleOperatorMap.containsKey(prevChar)){
-            return new Token(singleOperatorMap.get(prevChar),Character.toString(prevChar),lineNumber);
+            return new Token(singleOperatorMap.get(prevChar),Character.toString(prevChar),lineNumber,colPos);
         }
         else if(Character.isDigit(prevChar)){
             return readIntConst();
@@ -108,12 +114,12 @@ public class Scanner
             return readIdentifier();
         }
         else if(prevChar == SourceFile.eof){
-            return new Token(Token.Kind.EOF,"",lineNumber);
+            return new Token(Token.Kind.EOF,"",lineNumber,colPos);
         }
         //If not one of the above characters, is not a legal character in Bantam Java, throw error
         errorHandler.register(Error.Kind.LEX_ERROR,sourceFile.getFilename(),
                 lineNumber,"Illegal Character.");
-        return new Token(Token.Kind.ERROR, Character.toString(prevChar),lineNumber);
+        return new Token(Token.Kind.ERROR, Character.toString(prevChar),lineNumber,colPos);
     }
 
     /**
@@ -122,6 +128,7 @@ public class Scanner
      */
     private Token readIdentifier(){
         StringBuilder result = new StringBuilder().append(prevChar);
+        int colPos = characterIntegerMap.get(prevChar);
         int lineNumber = sourceFile.getCurrentLineNumber();
 
         //read while character is valid identifier character
@@ -135,9 +142,9 @@ public class Scanner
             //Identifiers cannot just be the "_" character in Bantam
             errorHandler.register(Error.Kind.LEX_ERROR,sourceFile.getFilename(),
                     lineNumber,"Invalid Identifier Name.");
-            return new Token(Token.Kind.ERROR,resultString,lineNumber);
+            return new Token(Token.Kind.ERROR,resultString,lineNumber,colPos);
         }
-        return new Token(Token.Kind.IDENTIFIER,resultString,lineNumber);
+        return new Token(Token.Kind.IDENTIFIER,resultString,lineNumber,colPos);
     }
 
     /**
@@ -146,6 +153,7 @@ public class Scanner
      */
     private Token readIntConst(){
         StringBuilder result = new StringBuilder().append(prevChar);
+        int colPos = characterIntegerMap.get(prevChar);
         int lineNumber = sourceFile.getCurrentLineNumber();
 
         //read while character is a digit
@@ -159,9 +167,9 @@ public class Scanner
         if(resultString.length()>11||Long.parseLong(resultString) > Integer.MAX_VALUE){
             errorHandler.register(Error.Kind.LEX_ERROR,sourceFile.getFilename(),
                     lineNumber,"Integer Value Too Large");
-            return new Token(Token.Kind.ERROR,resultString,lineNumber);
+            return new Token(Token.Kind.ERROR,resultString,lineNumber,colPos);
         }
-        return new Token(Token.Kind.INTCONST,resultString,lineNumber);
+        return new Token(Token.Kind.INTCONST,resultString,lineNumber,colPos);
     }
 
     /**
@@ -172,6 +180,7 @@ public class Scanner
         List<Character> legalEscapeChars = Arrays.asList('t','n','"','f');
         StringBuilder result = new StringBuilder().append('"');
         int lineNumber = sourceFile.getCurrentLineNumber();
+        int colPos = characterIntegerMap.get(prevChar);
         boolean hasError = false;
         boolean inBackslash = false;
         boolean reachedEOF = true;
@@ -229,10 +238,10 @@ public class Scanner
         }
         //we read all the way through so that we can report all errors in the string to the errorHandler
         if(hasError) {
-            return new Token(Token.Kind.ERROR, result.toString(), lineNumber);
+            return new Token(Token.Kind.ERROR, result.toString(), lineNumber,colPos);
         }
         else{
-            return new Token(Token.Kind.STRCONST,result.toString(),lineNumber);
+            return new Token(Token.Kind.STRCONST,result.toString(),lineNumber,colPos);
         }
     }
 
@@ -244,6 +253,7 @@ public class Scanner
         boolean inLineComment = false;
         StringBuilder result = new StringBuilder().append('/');
         int lineNumber = sourceFile.getCurrentLineNumber();
+        int colPos = characterIntegerMap.get(prevChar);
         //first character always '/', now check second character to know what closing characters should be
         if (currentChar   == '/'){
             inLineComment = true;
@@ -259,27 +269,27 @@ public class Scanner
                 if(currentChar == '\n'){
                     updateChars();
                     String resultString = result.toString().substring(0,result.length()-1);
-                    return new Token(Token.Kind.COMMENT,resultString,lineNumber);
+                    return new Token(Token.Kind.COMMENT,resultString,lineNumber,colPos);
                 }
             }
             else{
                 //closing character */
                 if(currentChar == '/'&&prevChar=='*'){
                     updateChars();
-                    return new Token(Token.Kind.COMMENT, result.toString(),lineNumber);
+                    return new Token(Token.Kind.COMMENT, result.toString(),lineNumber,colPos);
                 }
             }
             updateChars();
         }
         //handles line comment on last line of file, no new line char afterward.
         if(inLineComment){
-            return new Token(Token.Kind.COMMENT,result.toString(),lineNumber);
+            return new Token(Token.Kind.COMMENT,result.toString(),lineNumber,colPos);
         }
 
         //unclosed comment error
         errorHandler.register(Error.Kind.LEX_ERROR,result.toString(),
                 sourceFile.getCurrentLineNumber(),"Unclosed Comment");
-        return new Token(Token.Kind.ERROR, result.toString(),lineNumber);
+        return new Token(Token.Kind.ERROR, result.toString(),lineNumber,colPos);
     }
 
     /**
@@ -287,6 +297,7 @@ public class Scanner
      */
     private void updateChars(){
         prevChar = currentChar;
+        characterIntegerMap.put(prevChar,sourceFile.getCurrentColPos());
         currentChar = sourceFile.getNextChar();
     }
 

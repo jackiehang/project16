@@ -53,8 +53,8 @@ public abstract class UnaryExpr extends Expr {
      * @param lineNum source line number corresponding to this AST node
      * @param expr    expression
      */
-    public UnaryExpr(int lineNum, Expr expr) {
-        super(lineNum);
+    public UnaryExpr(int lineNum,  int colPos, Expr expr) {
+        super(lineNum,colPos);
         this.expr = expr;
     }
 

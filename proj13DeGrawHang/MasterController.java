@@ -59,6 +59,7 @@ public class MasterController {
     @FXML private Button scanButton;
     @FXML private Button scanParseButton;
     @FXML private Button scanParseCheckButton;
+    @FXML private Button navigatorButton;
     @FXML private TreeView<String> directoryTree;
     @FXML private TreeView<String> fileStructureTree;
 
@@ -129,6 +130,7 @@ public class MasterController {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
             this.scanParseCheckButton.setDisable(false);
+            this.navigatorButton.setDisable(false);
         }
         this.updateStructureView();
         setInlineParsing();
@@ -147,6 +149,7 @@ public class MasterController {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
             this.scanParseCheckButton.setDisable(false);
+            this.navigatorButton.setDisable(false);
         }
         this.updateStructureView();
         this.createDirectoryTree();
@@ -446,6 +449,7 @@ public class MasterController {
         this.scanButton.setDisable(true);
         this.scanParseButton.setDisable(true);
         this.scanParseCheckButton.setDisable(true);
+        this.navigatorButton.setDisable(true);
    }
 
     /**

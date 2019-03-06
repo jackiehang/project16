@@ -40,8 +40,8 @@ public class ExprList extends ListNode {
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    public ExprList(int lineNum) {
-        super(lineNum);
+    public ExprList(int lineNum, int colPos ) {
+        super(lineNum,colPos);
     }
 
     /**

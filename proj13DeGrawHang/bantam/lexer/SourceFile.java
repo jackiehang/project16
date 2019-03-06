@@ -34,6 +34,7 @@ class SourceFile
     private int currentLineNumber; // for bantam.error messages
     private int prevChar;          // the previous character read
     private String filename;       // the file currently being scanned.
+    private int curColPos;
 
     /**
      * creates a new SourceFile object for the file with the given name
@@ -49,6 +50,7 @@ class SourceFile
             throw new CompilationException("File " + filename + " not found.");
         }
         currentLineNumber = 1;
+        curColPos = -1;
         prevChar = -1;
         this.filename = filename;
     }
@@ -58,9 +60,10 @@ class SourceFile
         sourceReader = in;
         currentLineNumber = 1;
         prevChar = -1;
+        curColPos = -1;
     }
 
-
+    int getCurrentColPos(){return curColPos;}
     int getCurrentLineNumber() {
         return currentLineNumber;
     }
@@ -79,12 +82,14 @@ class SourceFile
     char getNextChar(){
         try {
             int c = sourceReader.read();
+            curColPos++;
 
             if (c == -1) {
                 c = eof;
             }
             else if (c == cr || (c == eol && prevChar != cr)) {
                 currentLineNumber++;
+                curColPos = -1;
             }
             prevChar = c;
             return (char) c;

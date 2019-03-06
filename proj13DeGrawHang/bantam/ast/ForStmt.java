@@ -69,9 +69,9 @@ public class ForStmt extends Stmt {
      * @param updateExpr the update expression (null for no update expression)
      * @param bodyStmt   the then statement
      */
-    public ForStmt(int lineNum, Expr initExpr, Expr predExpr,
+    public ForStmt(int lineNum,  int colPos, Expr initExpr, Expr predExpr,
                    Expr updateExpr, Stmt bodyStmt) {
-        super(lineNum);
+        super(lineNum,colPos);
         this.initExpr = initExpr;
         this.predExpr = predExpr;
         this.updateExpr = updateExpr;

@@ -60,8 +60,8 @@ public class VarExpr extends Expr {
      *                (must be 'this' or 'super' for non-arrays)
      * @param name    the name of the variable
      */
-    public VarExpr(int lineNum, Expr ref, String name) {
-        super(lineNum);
+    public VarExpr(int lineNum,  int colPos, Expr ref, String name) {
+        super(lineNum,colPos);
         this.ref = ref;
         this.name = name;
     }

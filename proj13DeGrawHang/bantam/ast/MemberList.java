@@ -41,8 +41,8 @@ public class MemberList extends ListNode {
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    public MemberList(int lineNum) {
-        super(lineNum);
+    public MemberList(int lineNum ,int colPos) {
+        super(lineNum,colPos);
     }
 
     /**
