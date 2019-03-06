@@ -14,15 +14,18 @@ import proj13DeGrawHang.bantam.util.ErrorHandler;
 import proj13DeGrawHang.bantam.util.Error;
 import proj13DeGrawHang.bantam.util.CompilationException;
 
+import javax.xml.crypto.dsig.keyinfo.KeyValue;
 
-public class Scanner
-{
+
+public class Scanner {
     private SourceFile sourceFile;
     private ErrorHandler errorHandler;
     private char currentChar;
     private char prevChar;
     private Map<Character,Token.Kind> singleOperatorMap;
     private Map<String,Token.Kind> doubleOperatorMap;
+    private int currentColPos;
+    private int lastRow = 1;
 
     /**
      * constructor for the scanner when fed into an errorhandler
@@ -34,6 +37,7 @@ public class Scanner
         prevChar = ' ';
         sourceFile = null;
         this.createOperatorMaps();
+
     }
 
     /**
@@ -63,6 +67,13 @@ public class Scanner
 
     }
 
+    private void checkIfNewLine(int lineNum){
+        if(lineNum > lastRow){
+            currentColPos = -1;
+            lastRow =lineNum;
+        }
+    }
+
     /**
      * setter for the source file
      */
@@ -81,10 +92,13 @@ public class Scanner
             updateChars();
         }
         int lineNumber = sourceFile.getCurrentLineNumber();
+        checkIfNewLine(lineNumber);
+
         String lastTwoChars = Character.toString(prevChar)+Character.toString(currentChar);
         //fixes bug where line number gets incremented too early on WindowsOS
         if(currentChar == '\r' || currentChar == '\n'){
             lineNumber--;
+            checkIfNewLine(lineNumber);
         }
 
         if(prevChar=='/'&&(currentChar=='/'||currentChar=='*')){
@@ -92,10 +106,10 @@ public class Scanner
         }
         else if(doubleOperatorMap.containsKey(lastTwoChars)){
             updateChars();
-            return new Token(doubleOperatorMap.get(lastTwoChars), lastTwoChars, lineNumber);
+            return new Token(doubleOperatorMap.get(lastTwoChars), lastTwoChars, lineNumber, currentColPos);
         }
         else if(singleOperatorMap.containsKey(prevChar)){
-            return new Token(singleOperatorMap.get(prevChar),Character.toString(prevChar),lineNumber);
+            return new Token(singleOperatorMap.get(prevChar),Character.toString(prevChar),lineNumber, currentColPos);
         }
         else if(Character.isDigit(prevChar)){
             return readIntConst();
@@ -107,12 +121,12 @@ public class Scanner
             return readIdentifier();
         }
         else if(prevChar == SourceFile.eof){
-            return new Token(Token.Kind.EOF,"",lineNumber);
+            return new Token(Token.Kind.EOF,"",lineNumber, currentColPos);
         }
         //If not one of the above characters, is not a legal character in Bantam Java, throw error
         errorHandler.register(Error.Kind.LEX_ERROR,sourceFile.getFilename(),
                 lineNumber,"Illegal Character.");
-        return new Token(Token.Kind.ERROR, Character.toString(prevChar),lineNumber);
+        return new Token(Token.Kind.ERROR, Character.toString(prevChar),lineNumber, currentColPos);
     }
 
     /**
@@ -122,6 +136,8 @@ public class Scanner
     private Token readIdentifier(){
         StringBuilder result = new StringBuilder().append(prevChar);
         int lineNumber = sourceFile.getCurrentLineNumber();
+        checkIfNewLine(lineNumber);
+        int start = currentColPos;
 
         //read while character is valid identifier character
         while(Character.isLetter(currentChar)||currentChar == '_'||Character.isDigit(currentChar)){
@@ -134,9 +150,9 @@ public class Scanner
             //Identifiers cannot just be the "_" character in Bantam
             errorHandler.register(Error.Kind.LEX_ERROR,sourceFile.getFilename(),
                     lineNumber,"Invalid Identifier Name.");
-            return new Token(Token.Kind.ERROR,resultString,lineNumber);
+            return new Token(Token.Kind.ERROR,resultString,lineNumber,start);
         }
-        return new Token(Token.Kind.IDENTIFIER,resultString,lineNumber);
+        return new Token(Token.Kind.IDENTIFIER,resultString,lineNumber,start);
     }
 
     /**
@@ -146,6 +162,8 @@ public class Scanner
     private Token readIntConst(){
         StringBuilder result = new StringBuilder().append(prevChar);
         int lineNumber = sourceFile.getCurrentLineNumber();
+        checkIfNewLine(lineNumber);
+        int start = currentColPos;
 
         //read while character is a digit
         while(Character.isDigit(currentChar)){
@@ -158,9 +176,9 @@ public class Scanner
         if(resultString.length()>11||Long.parseLong(resultString) > Integer.MAX_VALUE){
             errorHandler.register(Error.Kind.LEX_ERROR,sourceFile.getFilename(),
                     lineNumber,"Integer Value Too Large");
-            return new Token(Token.Kind.ERROR,resultString,lineNumber);
+            return new Token(Token.Kind.ERROR,resultString,lineNumber,start);
         }
-        return new Token(Token.Kind.INTCONST,resultString,lineNumber);
+        return new Token(Token.Kind.INTCONST,resultString,lineNumber,start);
     }
 
     /**
@@ -171,6 +189,9 @@ public class Scanner
         List<Character> legalEscapeChars = Arrays.asList('t','n','"','f');
         StringBuilder result = new StringBuilder().append('"');
         int lineNumber = sourceFile.getCurrentLineNumber();
+        checkIfNewLine(lineNumber);
+        int start = currentColPos;
+
         boolean hasError = false;
         boolean inBackslash = false;
         boolean reachedEOF = true;
@@ -228,10 +249,10 @@ public class Scanner
         }
         //we read all the way through so that we can report all errors in the string to the errorHandler
         if(hasError) {
-            return new Token(Token.Kind.ERROR, result.toString(), lineNumber);
+            return new Token(Token.Kind.ERROR, result.toString(), lineNumber,start);
         }
         else{
-            return new Token(Token.Kind.STRCONST,result.toString(),lineNumber);
+            return new Token(Token.Kind.STRCONST,result.toString(),lineNumber,start);
         }
     }
 
@@ -243,6 +264,9 @@ public class Scanner
         boolean inLineComment = false;
         StringBuilder result = new StringBuilder().append('/');
         int lineNumber = sourceFile.getCurrentLineNumber();
+        checkIfNewLine(lineNumber);
+        int start = currentColPos;
+
         //first character always '/', now check second character to know what closing characters should be
         if (currentChar   == '/'){
             inLineComment = true;
@@ -258,33 +282,34 @@ public class Scanner
                 if(currentChar == '\n'){
                     updateChars();
                     String resultString = result.toString().substring(0,result.length()-1);
-                    return new Token(Token.Kind.COMMENT,resultString,lineNumber);
+                    return new Token(Token.Kind.COMMENT,resultString,lineNumber,start);
                 }
             }
             else{
                 //closing character */
                 if(currentChar == '/'&&prevChar=='*'){
                     updateChars();
-                    return new Token(Token.Kind.COMMENT, result.toString(),lineNumber);
+                    return new Token(Token.Kind.COMMENT, result.toString(),lineNumber,start);
                 }
             }
             updateChars();
         }
         //handles line comment on last line of file, no new line char afterward.
         if(inLineComment){
-            return new Token(Token.Kind.COMMENT,result.toString(),lineNumber);
+            return new Token(Token.Kind.COMMENT,result.toString(),lineNumber,start);
         }
 
         //unclosed comment error
         errorHandler.register(Error.Kind.LEX_ERROR,result.toString(),
                 sourceFile.getCurrentLineNumber(),"Unclosed Comment");
-        return new Token(Token.Kind.ERROR, result.toString(),lineNumber);
+        return new Token(Token.Kind.ERROR, result.toString(),lineNumber,start);
     }
 
     /**
      * Increments prevChar and currentChar
      */
     private void updateChars(){
+        currentColPos++;
         prevChar = currentChar;
         currentChar = sourceFile.getNextChar();
     }
@@ -352,5 +377,4 @@ public class Scanner
             System.out.println("There were " + numerrors + " error tokens");
         }
     }
-
 }

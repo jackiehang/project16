@@ -89,7 +89,7 @@ public class Parser
      */
     private Program parseProgram(){
         updateCurrentToken();
-        int position = currentToken.position;
+        int position = currentToken.rowPos;
         ClassList classList = new ClassList(position);
 
         while (currentToken.kind != EOF) {
@@ -107,7 +107,7 @@ public class Parser
      * <MemberList> ::= EMPTY | <Member> <MemberList>
      */
     private Class_ parseClass() {
-        int position = currentToken.position;
+        int position = currentToken.rowPos;
         String parent="";
         MemberList memberList= new MemberList(position);
         this.checkToken(CLASS,"When parsing class, class expected." );
@@ -138,7 +138,7 @@ public class Parser
      * <InitialValue> ::= EMPTY | = <Expression>
      */
      private Member parseMember() {
-         int position= currentToken.position;
+         int position= currentToken.rowPos;
          FormalList formalList;
          StmtList stmtList;
          Expr expr;
@@ -224,7 +224,7 @@ public class Parser
      * <WhileStmt> ::= WHILE ( <Expression> ) <Stmt>
      */
     private Stmt parseWhile() {
-        int position = this.currentToken.position;
+        int position = this.currentToken.rowPos;
         updateCurrentToken();
         this.checkToken(LPAREN,"When parsing while, \"(\" expected.");
         Expr predExpr = this.parseExpression();
@@ -239,7 +239,7 @@ public class Parser
      */
 	private Stmt parseReturn() {
 	    updateCurrentToken();
-	    int position = this.currentToken.position;
+	    int position = this.currentToken.rowPos;
 	    if(this.currentToken.kind == SEMICOLON){
 	        updateCurrentToken();
 	        return new ReturnStmt(position, null);
@@ -256,9 +256,9 @@ public class Parser
      */
 	private Stmt parseBreak() {
 	    updateCurrentToken();
-	    int position = this.currentToken.position;
+	    int position = this.currentToken.rowPos;
 	    this.checkToken(SEMICOLON,"When parsing Break, \";\" expected");
-        return new BreakStmt(this.currentToken.position);
+        return new BreakStmt(this.currentToken.rowPos);
     }
 
 
@@ -267,7 +267,7 @@ public class Parser
      */
 	private ExprStmt parseExpressionStmt() {
 	    Expr expr = this.parseExpression();
-	    int position = this.currentToken.position;
+	    int position = this.currentToken.rowPos;
 	    this.checkToken(SEMICOLON, "When parsing ExpressionStmt\";\" expected");
 	    return new ExprStmt(position,expr);
     }
@@ -279,7 +279,7 @@ public class Parser
      */
 	private Stmt parseDeclStmt() {
 	    updateCurrentToken();
-	    int position = this.currentToken.position;
+	    int position = this.currentToken.rowPos;
 	    String name = this.parseIdentifier();
 
 	    this.checkToken(ASSIGN, "When parsing DeclStmt, \"=\" expected");
@@ -298,7 +298,7 @@ public class Parser
      * <Increment> ::= EMPTY | <Expression>
      */
 	private Stmt parseFor() {
-        int position = this.currentToken.position;
+        int position = this.currentToken.rowPos;
         updateCurrentToken();
 
         this.checkToken(LPAREN, "When parsing For, \"(\" expected");
@@ -320,7 +320,7 @@ public class Parser
      * <Body> ::= EMPTY | <Stmt> <Body>
      */
 	private Stmt parseBlock() {
-        int position = this.currentToken.position;
+        int position = this.currentToken.rowPos;
         StmtList stmtList = new StmtList(position);
         this.checkToken(LCURLY,"When parsing Block\"{\" expected" );
 
@@ -340,7 +340,7 @@ public class Parser
 	 * <IfStmt> ::= IF ( <Expr> ) <Stmt> | IF ( <Expr> ) <Stmt> ELSE <Stmt>
      */
 	private Stmt parseIf() {
-	    int position = this.currentToken.position;
+	    int position = this.currentToken.rowPos;
         Stmt elseStmt;
         updateCurrentToken();
 
@@ -370,7 +370,7 @@ public class Parser
      * <OptionalAssignment> ::= EMPTY | = <Expression>
      */
 	private Expr parseExpression(){
-        int position = this.currentToken.position;
+        int position = this.currentToken.rowPos;
         Expr left = this.parseOrExpr();
 
         if (this.currentToken.kind == ASSIGN){
@@ -412,7 +412,7 @@ public class Parser
      * <LogicalORRest> ::= EMPTY |  || <LogicalAND> <LogicalORRest>
      */
 	private Expr parseOrExpr() {
-        int position = currentToken.position;
+        int position = currentToken.rowPos;
 
         Expr left = parseAndExpr();
         while (this.currentToken.spelling.equals("||")) {
@@ -430,7 +430,7 @@ public class Parser
      * <LogicalANDRest> ::= EMPTY |  && <ComparisonExpr> <LogicalANDRest>
      */
 	private Expr parseAndExpr() {
-	    int position =currentToken.position;
+	    int position =currentToken.rowPos;
 	    Expr left= parseEqualityExpr();
 	    while (this.currentToken.spelling.equals("&&")){
 	        updateCurrentToken();
@@ -448,7 +448,7 @@ public class Parser
      * <equalOrNotEqual> ::=  == | !=
      */
 	private Expr parseEqualityExpr() {
-	    int position= currentToken.position;
+	    int position= currentToken.rowPos;
 	    Expr left = parseRelationalExpr();
 	    String operator = this.parseOperator();
 	    if(operator.equals("==")){
@@ -470,7 +470,7 @@ public class Parser
      * <ComparisonOp> ::=  < | > | <= | >= | INSTANCEOF
      */
 	private Expr parseRelationalExpr() {
-	    int position = this.currentToken.position;
+	    int position = this.currentToken.rowPos;
 	    Expr left = this.parseAddExpr();
 	    String operator = this.parseOperator();
         switch (operator) {
@@ -500,7 +500,7 @@ public class Parser
      * <MoreMultExpr> ::= EMPTY | + <MultExpr> <MoreMultExpr> | - <MultExpr> <MoreMultExpr>
      */
 	private Expr parseAddExpr() {
-        int position = this.currentToken.position;
+        int position = this.currentToken.rowPos;
 
         Expr left = parseMultExpr();
         while (this.currentToken.spelling.equals("+") || this.currentToken.spelling.equals("-")) {
@@ -528,7 +528,7 @@ public class Parser
      *               EMPTY
      */
 	private Expr parseMultExpr() {
-        int position = this.currentToken.position;
+        int position = this.currentToken.rowPos;
 
         Expr left = parseNewCastOrUnary();
         Expr right;
@@ -584,12 +584,12 @@ public class Parser
 	    if(this.currentToken.kind == LPAREN){
             updateCurrentToken();
             this.checkToken(RPAREN,"When parsing New, \")\" expected");
-            return new NewExpr(this.currentToken.position,id);
+            return new NewExpr(this.currentToken.rowPos,id);
         }else if(this.currentToken.kind == LBRACKET){
             updateCurrentToken();
             Expr expr = this.parseExpression();
             this.checkToken(RBRACKET,"When parsing New, \"]\" expected");
-            return new NewArrayExpr(this.currentToken.position,id,expr);
+            return new NewArrayExpr(this.currentToken.rowPos,id,expr);
         }else{
             this.registerError("When parsing New, \"(\" or \"[\" expected",
                     "Unexpected Token");
@@ -608,7 +608,7 @@ public class Parser
         this.checkToken(COMMA,"When parsing Cast, \",\" expected");
         Expr expr = this.parseExpression();
         this.checkToken(RPAREN, "When parsing Cast, \")\" expected");
-        return new CastExpr( this.currentToken.position, type, expr);
+        return new CastExpr( this.currentToken.rowPos, type, expr);
     }
 
 
@@ -621,16 +621,16 @@ public class Parser
 	    switch (operator) {
             case "-":
                 updateCurrentToken();
-                return new UnaryNegExpr(this.currentToken.position, this.parseUnaryPrefix());
+                return new UnaryNegExpr(this.currentToken.rowPos, this.parseUnaryPrefix());
             case "!":
                 updateCurrentToken();
-                return new UnaryNotExpr(this.currentToken.position, this.parseUnaryPrefix());
+                return new UnaryNotExpr(this.currentToken.rowPos, this.parseUnaryPrefix());
             case "++":
                 updateCurrentToken();
-                return new UnaryIncrExpr(this.currentToken.position, this.parseUnaryPrefix(), false);
+                return new UnaryIncrExpr(this.currentToken.rowPos, this.parseUnaryPrefix(), false);
             case "--":
                 updateCurrentToken();
-                return new UnaryDecrExpr(this.currentToken.position, this.parseUnaryPrefix(), false);
+                return new UnaryDecrExpr(this.currentToken.rowPos, this.parseUnaryPrefix(), false);
             default:
                 return this.parseUnaryPostfix();
 	    }
@@ -645,10 +645,10 @@ public class Parser
 	    Expr primary = this.parsePrimary();
 	    if(this.currentToken.spelling.equals("++")){
 	        updateCurrentToken();
-	        return new UnaryIncrExpr(this.currentToken.position,primary,true);
+	        return new UnaryIncrExpr(this.currentToken.rowPos,primary,true);
         }else if(this.currentToken.spelling.equals("--")){
 	        updateCurrentToken();
-	        return new UnaryDecrExpr(this.currentToken.position,primary,true);
+	        return new UnaryDecrExpr(this.currentToken.rowPos,primary,true);
         }
         return primary;
     }
@@ -665,7 +665,7 @@ public class Parser
      * <Suffix>      ::=  <IdSuffix> | <DispSuffix> | <IndexSuffix>
      */
 	private Expr parsePrimary() {
-	    int position = this.currentToken.position;
+	    int position = this.currentToken.rowPos;
 	    Expr tempExpr =null;
         switch (this.currentToken.kind) {
             case LPAREN: // (<Expression>)
@@ -715,13 +715,13 @@ public class Parser
             updateCurrentToken();
             Expr index = parseExpression();
             checkToken(RBRACKET, "When parsing Dispatch, \"]\" expected");
-            tempExpr = new ArrayExpr(this.currentToken.position, tempExpr, identifier, index);
+            tempExpr = new ArrayExpr(this.currentToken.rowPos, tempExpr, identifier, index);
         }
         else if(this.currentToken.kind == LPAREN){
             updateCurrentToken();
             ExprList args = parseArguments();
             updateCurrentToken();
-            tempExpr = new DispatchExpr(this.currentToken.position, tempExpr, identifier, args);
+            tempExpr = new DispatchExpr(this.currentToken.rowPos, tempExpr, identifier, args);
         }
         else {
             tempExpr = new VarExpr(position, tempExpr, identifier);
@@ -734,7 +734,7 @@ public class Parser
      * <MoreArgs>  ::= EMPTY | , <Expression> <MoreArgs>
      */
 	private ExprList parseArguments() {
-        int position = this.currentToken.position;
+        int position = this.currentToken.rowPos;
 	    ExprList exprList = new ExprList(position);
 	    while (this.currentToken.kind != RPAREN) {
 	        exprList.addElement(this.parseExpression());
@@ -756,7 +756,7 @@ public class Parser
      * <MoreFormals> ::= EMPTY | , <Formal> <MoreFormals
      */
 	private FormalList parseParameters() {
-	    int position = this.currentToken.position;
+	    int position = this.currentToken.rowPos;
 	    FormalList formalList = new FormalList(position);
 	    while (this.currentToken.kind != RPAREN) {
 	        formalList.addElement(this.parseFormal());
@@ -780,7 +780,7 @@ public class Parser
 	    String type = this.parseType();
 	    String id = this.parseIdentifier();
 
-        return new Formal(this.currentToken.position, type, id);
+        return new Formal(this.currentToken.rowPos, type, id);
     }
 
 
@@ -817,21 +817,21 @@ public class Parser
 
 
     private ConstStringExpr parseStringConst() {
-	    ConstStringExpr constStringExpr = new ConstStringExpr(this.currentToken.position,this.currentToken.spelling);
+	    ConstStringExpr constStringExpr = new ConstStringExpr(this.currentToken.rowPos,this.currentToken.spelling);
 	    updateCurrentToken();
 	    return constStringExpr;
     }
 
 
     private ConstIntExpr parseIntConst() {
-	    ConstIntExpr constIntExpr = new ConstIntExpr(this.currentToken.position,this.currentToken.spelling);
+	    ConstIntExpr constIntExpr = new ConstIntExpr(this.currentToken.rowPos,this.currentToken.spelling);
 	    updateCurrentToken();
         return constIntExpr;
     }
 
 
     private ConstBooleanExpr parseBoolean() {
-	    ConstBooleanExpr constBooleanExpr = new ConstBooleanExpr(this.currentToken.position,this.currentToken.spelling);
+	    ConstBooleanExpr constBooleanExpr = new ConstBooleanExpr(this.currentToken.rowPos,this.currentToken.spelling);
 	    updateCurrentToken();
         return constBooleanExpr;
     }
@@ -854,7 +854,7 @@ public class Parser
      */
     private void registerError(String errorMessage,String compilationMessage){
         this.errorHandler.register(Error.Kind.PARSE_ERROR,this.filename,
-                this.currentToken.position,errorMessage);
+                this.currentToken.rowPos,errorMessage);
         throw new CompilationException(compilationMessage);
     }
 
