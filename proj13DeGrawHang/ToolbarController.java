@@ -28,7 +28,6 @@ package proj13DeGrawHang;
 import javafx.application.Platform;
 import proj13DeGrawHang.bantam.ast.ASTNode;
 import proj13DeGrawHang.bantam.ast.Program;
-import proj13DeGrawHang.bantam.parser.Parser;
 import proj13DeGrawHang.bantam.semant.*;
 import proj13DeGrawHang.bantam.util.ClassTreeNode;
 import proj13DeGrawHang.bantam.util.CompilationException;
@@ -36,6 +35,7 @@ import proj13DeGrawHang.bantam.util.ErrorHandler;
 import proj13DeGrawHang.bantam.util.Error;
 import proj13DeGrawHang.bantam.lexer.Scanner;
 import proj13DeGrawHang.bantam.lexer.Token;
+import proj13DeGrawHang.bantam.parser.Parser;
 
 import java.util.*;
 import java.util.concurrent.*;

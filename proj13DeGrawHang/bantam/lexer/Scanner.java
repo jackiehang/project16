@@ -60,8 +60,9 @@ public class Scanner
         currentChar = ' ';
         prevChar = ' ';
         this.createOperatorMaps();
-
     }
+
+    public String getFilename() { return this.sourceFile.getFilename(); }
 
     /**
      * setter for the source file

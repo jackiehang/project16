@@ -30,9 +30,9 @@
 package proj13DeGrawHang.bantam.semant;
 
 import proj13DeGrawHang.bantam.ast.*;
-import proj13DeGrawHang.bantam.parser.Parser;
 import proj13DeGrawHang.bantam.util.*;
 import proj13DeGrawHang.bantam.util.Error;
+import proj13DeGrawHang.bantam.parser.Parser;
 
 import java.util.*;
 
