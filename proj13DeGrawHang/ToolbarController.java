@@ -26,7 +26,6 @@
 package proj13DeGrawHang;
 
 import javafx.application.Platform;
-import proj13DeGrawHang.bantam.ast.ASTNode;
 import proj13DeGrawHang.bantam.ast.Program;
 import proj13DeGrawHang.bantam.parser.Parser;
 import proj13DeGrawHang.bantam.semant.*;
@@ -194,19 +193,17 @@ public class ToolbarController {
         }).start();
     }
 
-    /**
-     * Allows User to Navigate through the classes, fields, and methods
-     */
-    public void handleNavigate(){
+
+    public void handleRefactor(){
 
         if(AST == null){
             Platform.runLater(() -> this.console.writeToConsole("You must parse a program first.\n",
                     "Error"));
         }
         else {
-            classFieldMethodVisitor visitor = new classFieldMethodVisitor();
-            HashMap<String, ArrayList<ASTNode>> names = visitor.getClassFieldMethodNodes(this.AST);
-            Navigator navigator = new Navigator(names,codeTabPane.getCodeArea());
+            NameVisitor visitor = new NameVisitor();
+            HashMap<String, ArrayList<String>> names = visitor.getClassFieldMethodNames(this.AST);
+            RefactorHelper refactorHelper = new RefactorHelper(names);
         }
 
     }

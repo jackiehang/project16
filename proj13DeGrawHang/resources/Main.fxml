@@ -91,7 +91,7 @@
         <Button fx:id ="scanButton" onAction="#handleScan" text = "Scan"/>
         <Button fx:id ="scanParseButton" onAction = "#handleScanAndParse" text = "Scan and Parse"/>
         <Button fx:id ="scanParseCheckButton" onAction="#handleScanParseCheck" text="Scan->Parse->Check"/>
-        <Button fx:id ="navigateButton" onAction="#handleNavigate" text="Navigate"/>
+        <Button fx:id ="refactorButton" onAction="#handleRefactor" text="Refactor"/>
     </ToolBar>
     <SplitPane orientation="VERTICAL" focusTraversable = "true"
                dividerPositions="0.7" VBox.vgrow="ALWAYS" >

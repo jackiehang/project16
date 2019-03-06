@@ -482,11 +482,9 @@ public class MasterController {
         handleCompilationPhases("scanParseCheck");
     }
 
-    /**
-     * calls handleNavigate in the toolbar controller
-     */
+
     @FXML
-    private void handleNavigate(){ toolbarController.handleNavigate();}
+    private void handleRefactor(){ toolbarController.handleRefactor();}
 
     /**
      * prompts user to save file before telling the toolbarController to handle the
