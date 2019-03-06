@@ -55,8 +55,8 @@ public class NewArrayExpr extends Expr {
      * @param type    the type of the constructed array
      * @param size    the size of the constructed array
      */
-    public NewArrayExpr(int lineNum, String type, Expr size) {
-        super(lineNum);
+    public NewArrayExpr(int lineNum,  int colPos, String type, Expr size) {
+        super(lineNum,colPos);
         this.type = type;
         this.size = size;
     }

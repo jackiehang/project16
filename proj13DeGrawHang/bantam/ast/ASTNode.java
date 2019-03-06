@@ -256,14 +256,16 @@ public abstract class ASTNode {
      * The source line number corresponding to this AST node
      */
     protected int lineNum;
+    protected int colPos;
 
     /**
      * ASTNode constructor
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    protected ASTNode(int lineNum) {
+    protected ASTNode(int lineNum, int colPos) {
         this.lineNum = lineNum;
+        this.colPos = colPos;
     }
 
     /**
@@ -274,6 +276,8 @@ public abstract class ASTNode {
     public int getLineNum() {
         return lineNum;
     }
+
+    public int getColPos(){return colPos;}
 
     /**
      * Visitor method

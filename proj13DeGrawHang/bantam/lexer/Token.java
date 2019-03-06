@@ -22,7 +22,8 @@
      //instance variables
      public Kind kind;
      public String spelling; // the actual sequence of chars in the token
-     public int position; // the line number where the token was found
+     public int position;// the line number where the token was found
+     public int colPos;
 
      public String getSpelling() {
          return spelling;
@@ -30,9 +31,10 @@
 
 
      //constructor
-     Token(Kind kind, String spelling, int position) {
+     Token(Kind kind, String spelling, int position, int colPos) {
          this.spelling = spelling;
          this.position = position;
+         this.colPos = colPos;
 
          //patch the kind in the case of boolean constants and keywords
          if (kind == Kind.IDENTIFIER && (spelling.equals("true") || spelling.equals("false"))) {
@@ -48,7 +50,7 @@
 
      public String toString() {
          return "Token: Kind=" + kind.name() + ", spelling=" + spelling + ", " +
-                 "position=" + position;
+                 "position=" + position + ", colPos="+colPos ;
      }
 
      public enum Kind

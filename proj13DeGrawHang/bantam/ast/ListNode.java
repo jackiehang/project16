@@ -56,8 +56,8 @@ public abstract class ListNode extends ASTNode
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    protected ListNode(int lineNum) {
-        super(lineNum);
+    protected ListNode(int lineNum, int colPos ) {
+        super(lineNum,colPos);
         listElements = new Vector<ASTNode>();
     }
 

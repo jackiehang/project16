@@ -40,8 +40,8 @@ public class FormalList extends ListNode {
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    public FormalList(int lineNum) {
-        super(lineNum);
+    public FormalList(int lineNum, int colPos) {
+        super(lineNum,colPos);
     }
 
     /**

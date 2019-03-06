@@ -291,11 +291,11 @@ public class SemanticAnalyzer
      */
     private void addBuiltins() {
         // create AST node for object
-        Class_ astNode = new Class_(-1, "<built-in class>", "Object", null,
-                (MemberList) (new MemberList(-1)).addElement(new Method(-1, "Object",
-                        "clone", new FormalList(-1),
-                        (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1,
-                                new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "boolean", "equals", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "Object", "o")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstBooleanExpr(-1, "false"))))).addElement(new Method(-1, "String", "toString", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))));
+        Class_ astNode = new Class_(-1,-1, "<built-in class>", "Object", null,
+                (MemberList) (new MemberList(-1,-1)).addElement(new Method(-1,-1, "Object",
+                        "clone", new FormalList(-1,-1),
+                        (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1,
+                                new VarExpr(-1,-1, null, "null"))))).addElement(new Method(-1, -1,"boolean", "equals", (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1,-1, "Object", "o")), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, new ConstBooleanExpr(-1, -1,"false"))))).addElement(new Method(-1, -1,"String", "toString", new FormalList(-1,-1), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,new VarExpr(-1, -1,null, "null"))))));
         // create a class tree node for object, save in variable root
         root = new ClassTreeNode(astNode, /*built-in?*/true, /*extendable?*/true,
                 classMap);
@@ -307,43 +307,43 @@ public class SemanticAnalyzer
         // accessed by other classes, so they do not have to be included in the AST.
 
         // create AST node for String
-        astNode = new Class_(-1, "<built-in class>", "String", "Object",
-                (MemberList) (new MemberList(-1)).addElement(new Field(-1, "int",
+        astNode = new Class_(-1, -1,"<built-in class>", "String", "Object",
+                (MemberList) (new MemberList(-1,-1)).addElement(new Field(-1, -1,"int",
                         "length", /*0 by default*/null))
                 /* note: str is the character sequence -- no applicable type for a
                character sequence so it is just made an int.  it's OK to
                do this since this field is only accessed (directly) within
-               the runtime system */.addElement(new Method(-1, "int", "length",
-                                new FormalList(-1),
-                                (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstIntExpr(-1, "0"))))).addElement(new Method(-1, "boolean", "equals", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "Object", "str")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstBooleanExpr(-1, "false"))))).addElement(new Method(-1, "String", "toString", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "String", "substring", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "int", "beginIndex")).addElement(new Formal(-1, "int", "endIndex")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "String", "concat", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "String", "str")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))));
+               the runtime system */.addElement(new Method(-1, -1,"int", "length",
+                                new FormalList(-1,-1),
+                                (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, new ConstIntExpr(-1, -1,"0"))))).addElement(new Method(-1, -1,"boolean", "equals", (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1, -1,"Object", "str")), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, new ConstBooleanExpr(-1, -1,"false"))))).addElement(new Method(-1, -1,"String", "toString", new FormalList(-1,-1), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,new VarExpr(-1, -1,null, "null"))))).addElement(new Method(-1, -1,"String", "substring", (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1,-1, "int", "beginIndex")).addElement(new Formal(-1, -1,"int", "endIndex")), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, new VarExpr(-1, -1,null, "null"))))).addElement(new Method(-1, -1,"String", "concat", (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1, -1, "String", "str")), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,new VarExpr(-1, -1,null, "null"))))));
         // create class tree node for String, add it to the mapping
         classMap.put("String", new ClassTreeNode(astNode, /*built-in?*/true,
                 /*extendable?*/false, classMap));
 
         // create AST node for TextIO
-        astNode = new Class_(-1, "<built-in class>", "TextIO", "Object",
-                (MemberList) (new MemberList(-1)).addElement(new Field(-1, "int",
-                        "readFD", /*0 by default*/null)).addElement(new Field(-1, "int"
-                        , "writeFD", new ConstIntExpr(-1, "1"))).addElement(new Method(-1, "void", "readStdin", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, null)))).addElement(new Method(-1, "void", "readFile", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "String", "readFile")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, null)))).addElement(new Method(-1, "void", "writeStdout", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, null)))).addElement(new Method(-1, "void", "writeStderr", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, null)))).addElement(new Method(-1, "void", "writeFile", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "String", "writeFile")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, null)))).addElement(new Method(-1, "String", "getString", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "int", "getInt", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstIntExpr(-1, "0"))))).addElement(new Method(-1, "TextIO", "putString", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "String", "str")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))).addElement(new Method(-1, "TextIO", "putInt", (FormalList) (new FormalList(-1)).addElement(new Formal(-1, "int", "n")), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new VarExpr(-1, null, "null"))))));
+        astNode = new Class_(-1, -1,"<built-in class>", "TextIO", "Object",
+                (MemberList) (new MemberList(-1,-1)).addElement(new Field(-1, -1,"int",
+                        "readFD", /*0 by default*/null)).addElement(new Field(-1, -1,"int"
+                        , "writeFD", new ConstIntExpr(-1, -1,"1"))).addElement(new Method(-1, -1,"void", "readStdin", new FormalList(-1,-1), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, null)))).addElement(new Method(-1, -1,"void", "readFile", (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1, -1,"String", "readFile")), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,null)))).addElement(new Method(-1, -1,"void", "writeStdout", new FormalList(-1,-1), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,null)))).addElement(new Method(-1, -1,"void", "writeStderr", new FormalList(-1,-1), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,null)))).addElement(new Method(-1, -1,"void", "writeFile", (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1, -1,"String", "writeFile")), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, null)))).addElement(new Method(-1, -1,"String", "getString", new FormalList(-1,-1), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, new VarExpr(-1, -1,null, "null"))))).addElement(new Method(-1, -1,"int", "getInt", new FormalList(-1,-1), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, new ConstIntExpr(-1, -1,"0"))))).addElement(new Method(-1, -1,"TextIO", "putString", (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1,-1, "String", "str")), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,new VarExpr(-1,-1, null, "null"))))).addElement(new Method(-1, -1,"TextIO", "putInt", (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1, -1,"int", "n")), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1, new VarExpr(-1,-1, null, "null"))))));
         // create class tree node for TextIO, add it to the mapping
         classMap.put("TextIO", new ClassTreeNode(astNode, /*built-in?*/true,
                 /*extendable?*/false, classMap));
 
         // create AST node for Sys
-        astNode = new Class_(-1, "<built-in class>", "Sys", "Object",
-                (MemberList) (new MemberList(-1)).addElement(new Method(-1, "void",
+        astNode = new Class_(-1, -1,"<built-in class>", "Sys", "Object",
+                (MemberList) (new MemberList(-1,-1)).addElement(new Method(-1, -1,"void",
                         "exit",
-                        (FormalList) (new FormalList(-1)).addElement(new Formal(-1,
+                        (FormalList) (new FormalList(-1,-1)).addElement(new Formal(-1,-1,
                                 "int", "status")),
-                        (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1,
+                        (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1,-1,
                                 null))))
                 /* MC: time() and random() requires modifying SPIM to add a time system
                  call
                (note: random() does not need its own system call although it uses the time
                system call).  We have a version of SPIM with this system call available,
                otherwise, just comment out. (For x86 and jvm there are no issues.)
-               */.addElement(new Method(-1, "int", "time", new FormalList(-1),
-                                (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstIntExpr(-1, "0"))))).addElement(new Method(-1, "int", "random", new FormalList(-1), (StmtList) (new StmtList(-1)).addElement(new ReturnStmt(-1, new ConstIntExpr(-1, "0"))))));
+               */.addElement(new Method(-1, -1,"int", "time", new FormalList(-1,-1),
+                                (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,new ConstIntExpr(-1,-1, "0"))))).addElement(new Method(-1, -1,"int", "random", new FormalList(-1,-1), (StmtList) (new StmtList(-1,-1)).addElement(new ReturnStmt(-1, -1,new ConstIntExpr(-1,-1, "0"))))));
         // create class tree node for Sys, add it to the mapping
         classMap.put("Sys", new ClassTreeNode(astNode, /*built-in?*/true, /*extendable
         ?*/false, classMap));

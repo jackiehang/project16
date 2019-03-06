@@ -41,8 +41,8 @@ public class ClassList extends ListNode {
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    public ClassList(int lineNum) {
-        super(lineNum);
+    public ClassList(int lineNum, int colPos ) {
+        super(lineNum,colPos);
     }
 
     /**

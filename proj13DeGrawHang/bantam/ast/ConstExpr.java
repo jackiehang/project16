@@ -51,8 +51,8 @@ public abstract class ConstExpr extends Expr {
      * @param lineNum  source line number corresponding to this AST node
      * @param constant constant value
      */
-    public ConstExpr(int lineNum, String constant) {
-        super(lineNum);
+    public ConstExpr(int lineNum,  int colPos, String constant) {
+        super(lineNum,colPos);
         this.constant = constant;
     }
 

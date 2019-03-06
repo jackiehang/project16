@@ -70,8 +70,8 @@ public class ArrayAssignExpr extends Expr {
      * @param index   index expression
      * @param expr    righthand expression for assigning to the lefthand variable
      */
-    public ArrayAssignExpr(int lineNum, String refName, String name, Expr index, Expr expr) {
-        super(lineNum);
+    public ArrayAssignExpr(int lineNum, int colPos, String refName, String name, Expr index, Expr expr) {
+        super(lineNum,colPos);
         this.refName = refName;
         this.name = name;
         this.index = index;
