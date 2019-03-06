@@ -1,12 +1,9 @@
 package proj13DeGrawHang;
 
-import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Window;
@@ -51,8 +48,8 @@ public class RefactorHelper {
             this.refactorDialog.close();
         });
         methods.setOnAction( event->{this.createHelperDialog(methods.getText());
-        event.consume();
-        this.refactorDialog.close();
+            event.consume();
+            this.refactorDialog.close();
         });
 
         outer.getChildren().addAll(classes, fields, methods);
@@ -61,7 +58,7 @@ public class RefactorHelper {
         Window window = refactorDialog.getDialogPane().getScene().getWindow();
         window.setOnCloseRequest(event -> window.hide());
 
-        this.refactorDialog.showAndWait();
+        this.refactorDialog.show();
     }
 
     private void createHelperDialog(String type){

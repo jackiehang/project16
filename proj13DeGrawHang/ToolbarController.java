@@ -29,7 +29,6 @@ import javafx.application.Platform;
 import proj13DeGrawHang.bantam.ast.Program;
 import proj13DeGrawHang.bantam.parser.Parser;
 import proj13DeGrawHang.bantam.semant.*;
-import proj13DeGrawHang.bantam.treedrawer.Drawer;
 import proj13DeGrawHang.bantam.util.ClassTreeNode;
 import proj13DeGrawHang.bantam.util.CompilationException;
 import proj13DeGrawHang.bantam.util.ErrorHandler;
@@ -114,6 +113,7 @@ public class ToolbarController {
      */
     public void handleScanAndParse(){
         this.parseIsDone = false;
+
         Thread scanParseThread = new Thread (()->{
             ParseTask parseTask = new ParseTask();
             FutureTask<Program> curFutureTask = new FutureTask<Program>(parseTask);
@@ -208,7 +208,6 @@ public class ToolbarController {
 
     }
 
-
     /**
      * Check if the scan task is still running.
      * @return true if this task is done, and false otherwise
@@ -290,16 +289,24 @@ public class ToolbarController {
          */
         @Override
         public Program call(){
+
+            JavaCodeArea codeArea = (JavaCodeArea)codeTabPane.getCodeArea();
+
             ErrorHandler errorHandler = new ErrorHandler();
             Parser parser = new Parser(errorHandler);
             String filename = ToolbarController.this.codeTabPane.getFileName();
             Program AST = null;
             try{
                 AST = parser.parse(filename);
-                Platform.runLater(()->ToolbarController.this.console.writeToConsole(
-                        "Parsing Successful.\n", "Output"));
+                Platform.runLater(()->
+                {
+                    ToolbarController.this.console.writeToConsole(
+                            "Parsing Successful.\n", "Output");
+                });
+                codeArea.removePreviousSelections();    // remove errors due to success
             }
             catch (CompilationException e){
+
                 Platform.runLater(()-> {
                     ToolbarController.this.console.writeToConsole("Parsing Failed\n","Error");
                     ToolbarController.this.console.writeToConsole("There were: " +
@@ -308,6 +315,10 @@ public class ToolbarController {
 
                     if (errorHandler.errorsFound()) {
                         List<Error> errorList = errorHandler.getErrorList();
+
+                        // tell code area to actively display errors
+                        codeArea.setInlineErrors(errorList);
+
                         Iterator<Error> errorIterator = errorList.iterator();
                         ToolbarController.this.console.writeToConsole("\n", "Error");
                         while (errorIterator.hasNext()) {
@@ -316,6 +327,7 @@ public class ToolbarController {
                         }
                     }
                 });
+
             }
             return AST;
         }
@@ -332,6 +344,7 @@ public class ToolbarController {
          */
         @Override
         public String call(){
+
             ErrorHandler errorHandler = new ErrorHandler();
             Scanner scanner = new Scanner(ToolbarController.this.codeTabPane.getFileName(), errorHandler);
             Token token = scanner.scan();

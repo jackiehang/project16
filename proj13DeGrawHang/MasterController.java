@@ -30,8 +30,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.event.Event;
 import org.fxmisc.richtext.CodeArea;
-
 import java.io.*;
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -112,7 +112,6 @@ public class MasterController {
 
     }
 
-
     /**
      * Handler for the "About" menu item in the "File" menu.
      * Creates an Information alert dialog to display author and information of this program
@@ -132,6 +131,7 @@ public class MasterController {
             this.scanParseCheckButton.setDisable(false);
         }
         this.updateStructureView();
+        setInlineParsing();
     }
 
     /**
@@ -150,6 +150,29 @@ public class MasterController {
         }
         this.updateStructureView();
         this.createDirectoryTree();
+        setInlineParsing();
+    }
+
+    /**
+     * sets up code areas to auto-save on a key release and to parse every 500 ms if
+     * if the code area has been changed
+     */
+    private void setInlineParsing() {
+
+        // get the current code area
+        JavaCodeArea codeArea = (JavaCodeArea)this.codeTabPane.getCodeArea();
+
+        // save the file after each key press
+        codeArea.setOnKeyReleased((e) -> this.handleSave());
+
+        // subscribe
+        codeArea.multiPlainChanges()
+
+                // do not emit an event until 1000 ms have passed since the last emission of previous stream
+                .successionEnds(Duration.ofMillis(500))
+
+                // run the following code block when previous stream emits an event
+                .subscribe(ignore -> this.toolbarController.handleScanAndParse());
     }
 
     /**
