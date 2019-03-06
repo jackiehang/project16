@@ -36,6 +36,7 @@ public class Navigator {
 
     private HashMap<String, ArrayList<ASTNode>> names;
     private HashMap<String, ASTNode> map;
+    private HashMap<String, ASTNode> parentMap;
     private CodeArea curCodeArea;
 
     /**
@@ -59,6 +60,7 @@ public class Navigator {
      */
     private void createNavigatorDialog(){
         javafx.scene.control.Dialog<ButtonType> navigatorDialog = new Dialog<>();
+        navigatorDialog.setTitle("Choose Type");
 
         DialogPane dialogPane = new DialogPane();
         VBox vBox = new VBox();
@@ -108,6 +110,7 @@ public class Navigator {
         helperDialog.setTitle(type);
 
         DialogPane dialogPane = new DialogPane();
+        dialogPane.setHeaderText("Choose " + type);
         VBox outer = new VBox();
         ListView<Text> inner = new ListView<>();
 
@@ -145,8 +148,18 @@ public class Navigator {
             findDeclaration(name);
             dialogPane.getScene().getWindow().hide();
         });
-
         outer.getChildren().addAll(inner,findDecButton);
+
+        if(type.equals("Class")){
+            Button findParentButton = new Button("Find Parent Declaration");
+            findParentButton.setOnAction(event -> {
+                String name = inner.getSelectionModel().getSelectedItem().getText();
+                findParentClassDeclaration(name);
+                dialogPane.getScene().getWindow().hide();
+            });
+            outer.getChildren().addAll(findParentButton);
+        }
+
         outer.setSpacing(20);
         dialogPane.setContent(outer);
         helperDialog.setDialogPane(dialogPane);
@@ -154,7 +167,6 @@ public class Navigator {
         window.setOnCloseRequest(event -> window.hide());
 
         helperDialog.show();
-
     }
 
     /**
@@ -177,4 +189,24 @@ public class Navigator {
         curCodeArea.showParagraphAtTop(node.getLineNum()-2);
     }
 
+
+    private void findParentClassDeclaration(String name) {
+        Class_ node = (Class_)map.get(name);
+        String parentnode = node.getParent();
+
+        if (map.containsKey(parentnode)) {
+            findDeclaration(parentnode);
+        }
+        else {
+            javafx.scene.control.Dialog<ButtonType> noParentDialog = new Dialog<>();
+            noParentDialog.setTitle("Warning");
+            DialogPane noParentDialogPane = new DialogPane();
+            noParentDialogPane.setContentText("Chosen Class has built-in or non-existent parent");
+            noParentDialog.setDialogPane(noParentDialogPane);
+            Window window = noParentDialog.getDialogPane().getScene().getWindow();
+            window.setOnCloseRequest(event -> window.hide());
+
+            noParentDialog.show();
+        }
+    }
 }
