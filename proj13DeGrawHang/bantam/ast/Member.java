@@ -44,8 +44,8 @@ public abstract class Member extends ASTNode {
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    protected Member(int lineNum) {
-        super(lineNum);
+    protected Member(int lineNum,  int colPos) {
+        super(lineNum,colPos);
     }
 
     /**

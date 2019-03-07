@@ -43,8 +43,8 @@ public class BreakStmt extends Stmt {
      *
      * @param lineNum source line number corresponding to this AST node
      */
-    public BreakStmt(int lineNum) {
-        super(lineNum);
+    public BreakStmt(int lineNum, int colPos ) {
+        super(lineNum,colPos);
     }
 
     /**

@@ -47,8 +47,8 @@ public abstract class BinaryLogicExpr extends BinaryExpr {
      * @param leftExpr  lefthand expression for ORing
      * @param rightExpr righthand expression for ORing
      */
-    public BinaryLogicExpr(int lineNum, Expr leftExpr, Expr rightExpr) {
-        super(lineNum, leftExpr, rightExpr);
+    public BinaryLogicExpr(int lineNum, int colPos,  Expr leftExpr, Expr rightExpr) {
+        super(lineNum, colPos,leftExpr, rightExpr);
     }
 
     /**

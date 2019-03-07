@@ -45,8 +45,8 @@ public class UnaryNegExpr extends UnaryExpr {
      * @param lineNum source line number corresponding to this AST node
      * @param expr    expression for complementing
      */
-    public UnaryNegExpr(int lineNum, Expr expr) {
-        super(lineNum, expr);
+    public UnaryNegExpr(int lineNum,  int colPos, Expr expr) {
+        super(lineNum,colPos, expr);
     }
 
     /**

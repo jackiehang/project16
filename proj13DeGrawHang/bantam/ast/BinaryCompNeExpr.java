@@ -46,8 +46,8 @@ public class BinaryCompNeExpr extends BinaryCompExpr {
      * @param leftExpr  left operand expression
      * @param rightExpr right operand expression
      */
-    public BinaryCompNeExpr(int lineNum, Expr leftExpr, Expr rightExpr) {
-        super(lineNum, leftExpr, rightExpr);
+    public BinaryCompNeExpr(int lineNum,  int colPos, Expr leftExpr, Expr rightExpr) {
+        super(lineNum, colPos, leftExpr, rightExpr);
     }
 
     /**

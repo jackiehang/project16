@@ -1,453 +1,311 @@
-/*
- * File: TypeCheckerVisitor.java
- * author: Lucas DeGraw, Jackie Hang, Chris Marcello
- * Project 12
- * Feb 25, 2019
+/**
+ * File: TypeCheckerVisitor
+ * User: djskrien
+ * Date: 1/3/19
  */
 
 package proj13DeGrawHang.bantam.semant;
 
-import proj13DeGrawHang.bantam.util.*;
 import proj13DeGrawHang.bantam.ast.*;
+import proj13DeGrawHang.bantam.util.ClassTreeNode;
+import proj13DeGrawHang.bantam.util.ErrorHandler;
 import proj13DeGrawHang.bantam.util.Error;
-import proj13DeGrawHang.bantam.visitor.*;
+import proj13DeGrawHang.bantam.util.SymbolTable;
+import proj13DeGrawHang.bantam.visitor.Visitor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 
 /**
- * This class extends the visitor class and visits
- * most nodes and performs type checks on their
- * operations
- *
- * Completed by:
- * @author Lucas DeGraw, Jackie Hang, Chris Marcello
- * @version 1.0
- * @since Feb 25, 2019
+ * This visitor find the types of all expression nodes and sets the type field
+ * of the nodes.  It reports an error for any type incompatability.
  */
-
-public class TypeCheckerVisitor extends Visitor {
+public class TypeCheckerVisitor extends Visitor
+{
     private ClassTreeNode currentClass;
-    private SymbolTable currentSymbolTable;
+    private Method currentMethod;
     private ErrorHandler errorHandler;
+    private SymbolTable currentSymbolTable;
+    private int currentClassFieldLevel; //level of class fields in currentSymbolTable
+    private Stack<Stmt> currentLoop;
 
-    // sets the error handler upon initialization
-    public TypeCheckerVisitor(ErrorHandler errHandler) {
-        errorHandler = errHandler;
+    public TypeCheckerVisitor(ErrorHandler errorHandler, ClassTreeNode root) {
+        this.errorHandler = errorHandler;
+        this.currentClass = root; // the Object class
+        this.currentMethod = null;
+        this.currentSymbolTable = null;
+        this.currentLoop = new Stack<>();
     }
 
-    /**
-     * begins traversal of the AST to perform type checking
-     *
-     * @param curClass the top level ClassTreeNode
+    /*
+     * CLASS INVARIANT:  Every visit method sets the type of the Expr node being
+     *                   visited to a valid type.  If the node's calculated type
+     *                   was illegal, an error was reported and the node's type
+     *                   was set to the type it should have been or to
+     *                   a generic type like "Object".
      */
-    public void checkTypes(ClassTreeNode curClass) {
-
-        // save the top level class
-        currentClass = curClass;
-
-        // save top level symbol table
-        currentSymbolTable = currentClass.getVarSymbolTable();
-
-        // get class root
-        Class_ root = currentClass.getASTNode();
-
-        // begin traversal
-        root.accept(this);
-
-    }
 
     /**
-     * Helper method to find if the type is a defined type
+     * returns true if the first type is a subtype of the second type
+     * It assumes t1 and t2 are legal types.
      *
-     * @param type a string representing a data type
-     * @return boolean denoting whether or not the type
+     * @param t1 the String name of the first type
+     * @param t2 the String name of the second type
+     * @return true if t1 is a subtype of t2
      */
-    private boolean isDefinedType(String type) {
-        return currentClass.getClassMap().containsKey(type) || type.equals("boolean")
-                || type.equals("int") || type.equals("String");
-    }
-
-    /**
-     * Helper method to check if nodeType is a subtype of targetType
-     *
-     * @param nodeType type of node
-     * @param targetType type against which nodeType is being checked
-     * @return boolean
-     */
-    private boolean isSubType(String nodeType, String targetType) {
-
-        // if the node types are the exact same type, return true
-        if (nodeType.equals(targetType)) return true;
-
-        // initialize a temp node
-        ClassTreeNode curNode;
-
-        // loop until reaching the top of the tree
-        while (!nodeType.equals("Object")) {
-
-            if (nodeType.equals(targetType)) {  // if nodes are the same return true
+    private boolean isSubtype(String t1, String t2) {
+        if (t1.equals("null") && !isPrimitiveType(t2)) {
+            return true;
+        }
+        if (t1.equals("int") || t2.equals("int")) {
+            return t2.equals(t1);
+        }
+        if (t1.equals("boolean") || t2.equals("boolean")) {
+            return t2.equals(t1);
+        }
+        if (t1.endsWith("[]") || t2.endsWith("[]")) {
+            return t2.endsWith("[]") && t1.endsWith("[]") && isSubtype(t1.substring(0,
+                    t1.length() - 2), t2.substring(0, t2.length() - 2));
+        }
+        ClassTreeNode t1Node = currentClass.lookupClass(t1);
+        ClassTreeNode t2Node = currentClass.lookupClass(t2);
+        while (t1Node != null) {
+            if (t1Node == t2Node) {
                 return true;
             }
-
-
-            // get the type's associated tree node
-            curNode = currentClass.getClassMap().get(nodeType);
-
-            // set the node type to its parent type
-            nodeType = curNode.getParent().getName();
+            t1Node = t1Node.getParent();
         }
         return false;
     }
 
+    private boolean isPrimitiveType(String t2) {
+        return t2.equals("int") || t2.equals("boolean");
+    }
+
+    private boolean typeHasBeenDeclared(String type) {
+        return isPrimitiveType(type) || currentClass.lookupClass(type) != null
+                || type.endsWith("[]") && typeHasBeenDeclared(type.substring(0, type.length() - 2));
+    }
+
+
+    private void registerError(ASTNode node, String message) {
+        errorHandler.register(Error.Kind.SEMANT_ERROR,
+                currentClass.getASTNode().getFilename(), node.getLineNum(), message);
+    }
+
     /**
-     * Visit a array assignment expression node
+     * Visit a class node
      *
-     * @param node the array assignment expression node
-     * @return the result of the visit
+     * @param node the class node
+     * @return result of the visit
      */
-    public Object visit(ArrayAssignExpr node) {
-
-        // visit the child nodes
-        node.getExpr().accept(this);
-        node.getIndex().accept(this);
-
-        // if the index to the array expresssion is not an integer, register an error
-        if (!node.getIndex().getExprType().equals("int")) {
-
-            String errorMsg = "The index of the array assignment is a" +
-                    node.getIndex().getExprType() + " and it should be an integer.";
-
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(), errorMsg);
-        }
-        // set the appropriate array index expression type
-        node.getIndex().setExprType("int");
-
-        // get the type of the array
-        String typeOfArray = (String) currentSymbolTable.lookup(node.getName());
-
-        // removing '[]' from the end
-        typeOfArray = typeOfArray.substring(0, typeOfArray.length()-2); //type of Array
-
-        // get the type of the right side of the assignment expression
-        String assignType = node.getExpr().getExprType();
-
-        // if the type is not a subtype of the array's type, register an error
-        if (!isSubType(assignType, typeOfArray)) {
-
-            String errorMsg = "The type of array is " + typeOfArray +
-                    " and the value you are trying to assign is " + assignType +
-                    ". They are not compatible";
-
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(), errorMsg);
-
-
-            // set the right side of the expression to the array's actual type
-            node.getExpr().setExprType(typeOfArray);
-        }
-        // set the node's expression type to the array's actual type
-        node.setExprType(typeOfArray);
-
+    public Object visit(Class_ node) {
+        // set the currentClass to this class
+        currentClass = currentClass.lookupClass(node.getName());
+        currentSymbolTable = currentClass.getVarSymbolTable();
+        currentClassFieldLevel = currentSymbolTable.getCurrScopeLevel();
+        node.getMemberList().accept(this);
         return null;
     }
 
     /**
-     * Visit an array expression node
+     * Visit a field node
      *
-     * @param node the array expression node
-     * @return null
+     * @param node the field node
+     * @return result of the visit
      */
-    public Object visit(ArrayExpr node) {
-        if (node.getRef() != null) {
-            node.getRef().accept(this);
+    public Object visit(Field node) {
+        //The fields have already been added to the symbol table by the SemanticAnalyzer,
+        // so the only thing to check is the compatibility of the init expr's type with
+        //the field's type.
+        if (!typeHasBeenDeclared(node.getType())) {
+            registerError(node,"The declared type " + node.getType() +
+                    " of the field " + node.getName() + " is undefined.");
         }
-        node.getIndex().accept(this);
+        Expr initExpr = node.getInit();
+        if (initExpr != null) {
+            initExpr.accept(this);
+            if (!isSubtype(initExpr.getExprType(), node.getType())) {
+                registerError(node,"The type of the initializer is " + initExpr.getExprType() + " "
+                                + "which is not compatible with the " + node.getName() + " field's type " + node.getType());
+            }
+        }
+        //Note: if there is no initial value, then leave it to the Code Generator to
+        //      initialize it to the default value
+        return null;
+    }
 
-        if (!node.getIndex().getExprType().equals("int")) {
-
-            String errorMsg = "The index of the array assignment is a" +
-                        node.getIndex().getExprType() + " and it should be an integer.";
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(), errorMsg);
+    /**
+     * Visit a method node
+     *
+     * @param node the method node
+     * @return result of the visit
+     */
+    public Object visit(Method node) {
+        if (!typeHasBeenDeclared(node.getReturnType()) && !node.getReturnType().equals(
+                "void")) {
+            registerError(node,"The return type " + node.getReturnType() +
+                    " of the method " + node.getName() + " is undefined.");
         }
 
-        String typeOfArray = (String) currentSymbolTable.lookup(node.getName());
-        typeOfArray = typeOfArray.substring(0, typeOfArray.length()-2); //type of Array
-        node.setExprType(typeOfArray);
+        //create a new scope for the method
+        currentSymbolTable.enterScope();
+        currentMethod = node;
+        node.getFormalList().accept(this);
+        node.getStmtList().accept(this);
+
+        //check that non-void methods end with a return stmt
+        if(! node.getReturnType().equals("void")) {
+            StmtList sList = node.getStmtList();
+            if( sList.getSize() == 0) {
+                registerError(node, "Methods with non-void return type "
+                        + "must end with a return statement.");
+            }
+            ASTNode stmt = sList.get(sList.getSize()-1);
+            if( ! (stmt instanceof ReturnStmt) ) {
+                registerError(node, "Methods with non-void return type "
+                        + "must end with a return statement.");
+            }
+        }
+        currentMethod = null;
+        currentSymbolTable.exitScope();
         return null;
     }
 
     /**
-     * Visit an assignment expression node
+     * Visit a formal node
      *
-     * @param node the assignment expression node
-     * @return the result of the visit
+     * @param node the formal node
+     * @return result of the visit
      */
-    public Object visit(AssignExpr node) {
-        node.getExpr().accept(this);
-        String errorMsg = "The variable " + node.getName() + " has not been defined yet";
-        if (currentSymbolTable.lookup(node.getName()) == null ) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(), errorMsg);
+    public Object visit(Formal node) {
+        if (!typeHasBeenDeclared(node.getType())) {
+            registerError(node,"The declared type " + node.getType() +
+                    " of the formal parameter " + node.getName() + " is undefined.");
+        }
+        // add it to the current scope
+        currentSymbolTable.add(node.getName(), node.getType());
+        return null;
+    }
+
+    /**
+     * Visit a declaration statement node
+     *
+     * @param node the declaration statement node
+     * @return result of the visit
+     */
+    public Object visit(DeclStmt node) {
+        Expr initExpr = node.getInit();
+        initExpr.accept(this);
+        if (initExpr.getExprType().equals("null")) {
+            registerError(node,"We cannot infer a type for the local variable " +
+                    node.getName() + " because it was initialized to null.");
+            node.setType("Object"); // to allow analysis to continue
+        }
+        else {
+            node.setType(initExpr.getExprType());
         }
 
-
-        String exprType = node.getExpr().getExprType();
-        String variableType = (String) currentSymbolTable.lookup(node.getName());
-
-        if (!isSubType(exprType, variableType)) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The value has a type of " + exprType +
-                            ",different than variable it is being assigned to, of type" +
-                            currentSymbolTable.lookup(node.getName()));
+        //check that there are no vars already declared with this name in the curr method
+        SymbolTable clone = currentSymbolTable.clone();
+        clone.setParent(null);
+        int level = clone.getScopeLevel(node.getName());
+        if (level > 1) //it's not a field
+        {
+            registerError(node,"There is already a local variable with the name " + node.getName());
         }
-        node.setExprType(variableType);
-
-        return null;
-
-    }
-
-    /**
-     * Helper method to visit the BinaryArithExpr nodes
-     *
-     * @param node BinaryArithExpr
-     * @param type String type
-     */
-    private void binaryArithHelper(BinaryArithExpr node, String type){
-        // visit child nodes
-        node.getLeftExpr().accept(this);
-        node.getRightExpr().accept(this);
-
-        // get the operand types
-        String type1 = node.getLeftExpr().getExprType();
-        String type2 = node.getRightExpr().getExprType();
-
-        // if the types are not equal or the first is not an int
-        if (!type2.equals(type1) || !type1.equals("int")) {
-
-            String errorMsg = "The two values being used in the arithmetic "+ type +
-                    " are of types " + type1 + " and " + type2
-                    + ". They should both be of type int.";
-
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),errorMsg);
+        // check that the var name is not a reserved word
+        if (SemanticAnalyzer.reservedIdentifiers.contains(node.getName())) {
+            registerError(node,"The name of the variable is: " + node.getName() + " which is illegal.");
         }
-        node.setExprType("int");
 
-
-    }
-
-    /**
-     * Visit a binary arithmetic divide expression node
-     *
-     * @param node the binary arithmetic divide expression node
-     * @return null
-     */
-    public Object visit(BinaryArithDivideExpr node) {
-        binaryArithHelper(node, "division");
+        currentSymbolTable.add(node.getName(), node.getType());
         return null;
     }
 
     /**
-     * Visit a binary arithmetic minus expression node
+     * Visit an if statement node
      *
-     * @param node the binary arithmetic minus expression node
-     * @return the result of the visit
+     * @param node the if statement node
+     * @return result of the visit
      */
-    public Object visit(BinaryArithMinusExpr node) {
-        binaryArithHelper(node, "subtraction ");
-        return null;
-    }
-
-    /**
-     * Visit a binary arithmetic plus expression node
-     *
-     * @param node the binary arithmetic plus expression node
-     * @return the result of the visit
-     */
-    public Object visit(BinaryArithPlusExpr node) {
-        binaryArithHelper(node, "addition");
-        return null;
-    }
-
-    /**
-     * Visit a binary arithmetic times expression node
-     *
-     * @param node the binary arithmetic times expression node
-     * @return the result of the visit
-     */
-    public Object visit(BinaryArithTimesExpr node) {
-        binaryArithHelper(node, "multiplication");
-        return null;
-    }
-
-    /**
-     * Visit a binary arithmetic modulus expression node
-     *
-     * @param node the binary arithmetic modulus expression node
-     * @return the result of the visit
-     */
-    public Object visit(BinaryArithModulusExpr node) {
-        binaryArithHelper(node, "modulus");
-        return null;
-    }
-
-    /**
-     * Visit a binary comparison equals expression node
-     *
-     * @param node the binary comparison equals expression node
-     * @return null
-     */
-    public Object visit(BinaryCompEqExpr node) {
-        // visit child nodes
-        node.getLeftExpr().accept(this);
-        node.getRightExpr().accept(this);
-
-        //get operand types
-        String type1 = node.getLeftExpr().getExprType();
-        String type2 = node.getRightExpr().getExprType();
-
-        //if neither type1 nor type2 is a subtype of the other
-        if (!isSubType(type1, type2) || !isSubType(type2, type1)) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The two values being compared for equality are not compatible types.");
+    public Object visit(IfStmt node) {
+        node.getPredExpr().accept(this);
+        String predExprType = node.getPredExpr().getExprType();
+        if (!"boolean".equals(predExprType)) {
+            registerError(node,"The type of the predicate is " +
+                    (predExprType != null ? predExprType : "unknown") + ", not boolean.");
         }
-        node.setExprType("boolean");
-        return null;
-    }
-
-    /**
-     * Visit a binary comparison not equals expression node
-     *
-     * @param node the binary comparison not equals expression node
-     * @return null
-     */
-    public Object visit(BinaryCompNeExpr node) {
-        node.getLeftExpr().accept(this);
-        node.getRightExpr().accept(this);
-        String type1 = node.getLeftExpr().getExprType();
-        String type2 = node.getRightExpr().getExprType();
-        //if neither type1 nor type2 is a subtype of the other
-        if (!isSubType(type1, type2) || !isSubType(type2, type1)) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The two values being compared for equality are not compatible types.");
+        currentSymbolTable.enterScope();
+        node.getThenStmt().accept(this);
+        currentSymbolTable.exitScope();
+        if (node.getElseStmt() != null) {
+            currentSymbolTable.enterScope();
+            node.getElseStmt().accept(this);
+            currentSymbolTable.exitScope();
         }
-        node.setExprType("boolean");
         return null;
     }
 
     /**
-     * Helper method to visit the BinaryCompExpr nodes
+     * Visit a while statement node
      *
-     * @param node BinaryArithExpr
-     * @param typeOfComparison String
+     * @param node the while statement node
+     * @return result of the visit
      */
-    private void binaryCompHelper(BinaryCompExpr node, String typeOfComparison){
-        // visit child nodes
-        node.getLeftExpr().accept(this);
-        node.getRightExpr().accept(this);
-
-        //get operand types
-        String type1 = node.getLeftExpr().getExprType();
-        String type2 = node.getRightExpr().getExprType();
-
-        //if they are not both ints
-        if (!type2.equals(type1) || !type1.equals("int")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The two values being compared for " + typeOfComparison+ " are of types " + type1
-                            + " and " + type2 + ". They should both be of type int.");
+    public Object visit(WhileStmt node) {
+        node.getPredExpr().accept(this);
+        if (!isSubtype(node.getPredExpr().getExprType(), "boolean")) {
+            registerError(node,"The type of the predicate is " +
+                    node.getPredExpr().getExprType() + " which is not boolean.");
         }
-        node.setExprType("boolean");
-    }
-
-    /**
-     * Visit a binary comparison greater than expression node
-     *
-     * @param node the binary comparison greater than expression node
-     * @return null
-     */
-    public Object visit(BinaryCompGtExpr node) {
-        binaryCompHelper(node, "greater than");
+        currentSymbolTable.enterScope();
+        currentLoop.push(node);
+        node.getBodyStmt().accept(this);
+        currentLoop.pop();
+        currentSymbolTable.exitScope();
         return null;
     }
 
     /**
-     * Visit a binary comparison less than expression node
+     * Visit a for statement node
      *
-     * @param node the binary comparison less than expression node
-     * @return null
+     * @param node the for statement node
+     * @return result of the visit
      */
-    public Object visit(BinaryCompLtExpr node) {
-        binaryCompHelper(node, "less than");
-        return null;
-    }
-
-    /**
-     * Visit a binary comparison greater to or equal to expression node
-     *
-     * @param node the binary comparison greater to or equal to expression node
-     * @return null
-     */
-    public Object visit(BinaryCompGeqExpr node) {
-       binaryCompHelper(node, "greater than or equal to");
-        return null;
-    }
-
-    /**
-     * Visit a binary comparison less than or equal to expression node
-     *
-     * @param node the binary comparison less than or equal to expression node
-     * @return null
-     */
-    public Object visit(BinaryCompLeqExpr node) {
-        binaryCompHelper(node, "less than or equal to");
-        return null;
-    }
-
-    /**
-     * visit a binary logical AND expression node
-     *
-     * @param node the binary logical AND expression node
-     * @return null
-     */
-    public Object visit(BinaryLogicAndExpr node) {
-        node.getLeftExpr().accept(this);
-        node.getRightExpr().accept(this);
-        String type1 = node.getLeftExpr().getExprType();
-        String type2 = node.getRightExpr().getExprType();
-        if (!type2.equals(type1) || !type1.equals("boolean")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The two values being compared are of types " + type1
-                            + " and " + type2 + ". They should both be of type boolean.");
+    public Object visit(ForStmt node) {
+        if (node.getInitExpr() != null) {
+            node.getInitExpr().accept(this);
         }
-        node.setExprType("boolean");
+        if (node.getPredExpr() != null) {
+            node.getPredExpr().accept(this);
+            if (!isSubtype(node.getPredExpr().getExprType(), "boolean")) {
+                registerError(node,"The type of the predicate is " +
+                        node.getPredExpr().getExprType() + " which is not boolean.");
+            }
+        }
+        if (node.getUpdateExpr() != null) {
+            node.getUpdateExpr().accept(this);
+        }
+        currentSymbolTable.enterScope();
+        currentLoop.push(node);
+        node.getBodyStmt().accept(this);
+        currentLoop.pop();
+        currentSymbolTable.exitScope();
         return null;
     }
 
     /**
-     * Visit a binary logical OR expression node
+     * Visit a break statement node
      *
-     * @param node the binary logical OR expression node
-     * @return null
+     * @param node the break statement node
+     * @return result of the visit
      */
-    public Object visit(BinaryLogicOrExpr node) {
-        node.getLeftExpr().accept(this);
-        node.getRightExpr().accept(this);
-        String type1 = node.getLeftExpr().getExprType();
-        String type2 = node.getRightExpr().getExprType();
-        if (!type2.equals(type1) || !type1.equals("boolean")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The two values being compared are of types " + type1
-                            + " and " + type2 + ". They should both be of type boolean.");
+    public Object visit(BreakStmt node) {
+        if (currentLoop.isEmpty()) {
+            registerError(node,"Break statement is not in the body of any loop.");
         }
-        node.setExprType("boolean");
         return null;
     }
 
@@ -455,7 +313,7 @@ public class TypeCheckerVisitor extends Visitor {
      * Visit a block statement node
      *
      * @param node the block statement node
-     * @return null
+     * @return result of the visit
      */
     public Object visit(BlockStmt node) {
         currentSymbolTable.enterScope();
@@ -465,13 +323,164 @@ public class TypeCheckerVisitor extends Visitor {
     }
 
     /**
-     * visit a break statement node
+     * Visit a return statement node
      *
-     * @param node the break statement node
-     * @return null
+     * @param node the return statement node
+     * @return result of the visit
      */
-    public Object visit(BreakStmt node) {
-        node.accept(this);
+    public Object visit(ReturnStmt node) {
+        if (node.getExpr() != null) {
+            node.getExpr().accept(this);
+            if (!isSubtype(node.getExpr().getExprType(), currentMethod.getReturnType())) {
+                registerError(node,"The type of the return expr is " +
+                        node.getExpr().getExprType() + " which is not compatible with the " +
+                        currentMethod.getName() + " method's return type " + currentMethod.getReturnType());
+            }
+        }
+        else if (!currentMethod.getReturnType().equals("void")) {
+            registerError(node, "The type of the method " + currentMethod.getName() +
+                    " is not void and so return statements in it must return a value.");
+        }
+        return null;
+    }
+
+    /**
+     * Visit a dispatch expression node
+     *
+     * @param node the dispatch expression node
+     * @return the type of the expression
+     */
+    public Object visit(DispatchExpr node) {
+        ClassTreeNode classOfMethod = currentClass; //assume initially that ref is "this"
+        if (node.getRefExpr() != null) {
+            node.getRefExpr().accept(this);
+            String className = node.getRefExpr().getExprType();
+            classOfMethod = currentClass.lookupClass(className);
+            if (classOfMethod == null) {
+                registerError(node,"The method " + node.getMethodName() +
+                        " is supposed to be in class " + className +
+                        ", but there is no such class.");
+                node.setExprType("Object"); // to allow analysis to continue
+                return null;
+            }
+        }
+        //check that the class has a method with this name
+        Method method =
+                (Method) classOfMethod.getMethodSymbolTable().lookup(node.getMethodName());
+        if (method == null) {
+            registerError(node,"The method " + node.getMethodName() +
+                    " does not exist in the class " + classOfMethod.getName());
+        }
+        else { //we found a method in the class with the given name
+            //Check that the actuals have types compatible with the formals
+            List<String> actualTypes = (List<String>) node.getActualList().accept(this);
+            List<String> formalTypes = getFormalTypesList(method);
+            if (actualTypes.size() != formalTypes.size()) {
+                registerError(node,"The method " + node.getMethodName() + " has " +
+                        formalTypes.size() + " parameters, not " + actualTypes.size());
+            }
+            else {
+                for (int i = 0; i < formalTypes.size(); i++) {
+                    String formalType = formalTypes.get(i);
+                    String actualType = actualTypes.get(i);
+                    if (!isSubtype(actualType, formalType)) {
+                        registerError(node,"The method " + node.getMethodName() +
+                                " has type " + formalType + " for its index " + i +
+                                " parameter, but the actual parameter has type " + actualType);
+                    }
+                }
+            }
+        }
+        node.setExprType(method == null ? "Object" : method.getReturnType());
+        return null;
+    }
+
+    /**
+     * returns a list of the types of the formal parameters
+     *
+     * @param method the methods whose formal parameter types are desired
+     * @return a List of Strings (the types of the formal parameters)
+     */
+    private List<String> getFormalTypesList(Method method) {
+        List<String> result = new ArrayList<>();
+        for (ASTNode formal : method.getFormalList())
+            result.add(((Formal) formal).getType());
+        return result;
+    }
+
+    /**
+     * Visit a list node of expressions
+     *
+     * @param node the expression list node
+     * @return result of the visit
+     */
+    public Object visit(ExprList node) {
+        List<String> typesList = new ArrayList<>();
+        for (ASTNode expr : node) {
+            expr.accept(this);
+            typesList.add(((Expr) expr).getExprType());
+        }
+        //return a List<String> of the types of the expressions
+        return typesList;
+    }
+
+    /**
+     * Visit a new expression node
+     *
+     * @param node the new expression node
+     * @return the type of the expression
+     */
+    public Object visit(NewExpr node) {
+        if (currentClass.lookupClass(node.getType()) == null) {
+            registerError(node,"The type " + node.getType() + " does not exist.");
+            node.setExprType("Object"); // to allow analysis to continue
+        }
+        else {
+            node.setExprType(node.getType());
+        }
+        return null;
+    }
+
+    /**
+     * Visit a new array expression node
+     *
+     * @param node the new array expression node
+     * @return the type of the expression
+     */
+    public Object visit(NewArrayExpr node) {
+        node.getSize().accept(this);
+        if (!node.getSize().getExprType().equals("int")) {
+            registerError(node,"The size of the array must be an integer.");
+        }
+        if (!typeHasBeenDeclared(node.getType())) {
+            registerError(node,"The type " + node.getType() + " does not exist.");
+        }
+        node.setExprType(node.getType() + "[]");
+        return null;
+    }
+
+    /**
+     * Visit an instanceof expression node
+     *
+     * @param node the instanceof expression node
+     * @return the type of the expression
+     */
+    public Object visit(InstanceofExpr node) {
+        if (currentClass.lookupClass(node.getType()) == null) {
+            registerError(node,"The reference type " + node.getType() + " does not exist.");
+        }
+        node.getExpr().accept(this);
+        if (isSubtype(node.getExpr().getExprType(), node.getType())) {
+            node.setUpCheck(true);
+        }
+        else if (isSubtype(node.getType(), node.getExpr().getExprType())) {
+            node.setUpCheck(false);
+        }
+        else {
+            registerError(node,"You can't compare type " +
+                    node.getExpr().getExprType() + "to " + "incompatible type " + node.getType() + ".");
+        }
+        node.setExprType("boolean");
         return null;
     }
 
@@ -479,489 +488,455 @@ public class TypeCheckerVisitor extends Visitor {
      * Visit a cast expression node
      *
      * @param node the cast expression node
-     * @return the result of the visit
+     * @return the type of the expression
      */
     public Object visit(CastExpr node) {
-
+        if (currentClass.lookupClass(node.getType()) == null) {
+            registerError(node,"The type " + node.getType() + " does not exist.");
+        }
         node.getExpr().accept(this);
-        String target = node.getType();
-        String exprType = node.getExpr().getExprType();
-
-        // if exprType is a subtype of target
-        if (isSubType(exprType, target)) {  // upcast
+        if (isSubtype(node.getExpr().getExprType(), node.getType())) {
             node.setUpCast(true);
         }
-        else if (!isSubType(target, exprType)){ // if neither are subtypes of each other,
-
-            // throw error
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "Illegal attempt to cast a variable of type \'" + exprType
-                            + "\' to type \'" + target + "\'");
+        else if (isSubtype(node.getType(), node.getExpr().getExprType())) {
+            node.setUpCast(false);
         }
-        // make the expression type valid to continue analyzing
+        else {
+            registerError(node,"You can't cast from type " +
+                    node.getExpr().getExprType() + " to incompatible type " + node.getType() + ".");
+        }
         node.setExprType(node.getType());
-
         return null;
     }
 
     /**
-     * Visit a boolean constant expression node
+     * Visit an assignment expression node
      *
-     * @param node the boolean constant expression node
-     * @return null
+     * @param node the assignment expression node
+     * @return the type of the expression
      */
-    public Object visit(ConstBooleanExpr node) {
+    public Object visit(AssignExpr node) {
+        String varType = null;
+        String varName = node.getName();
+        String refName = node.getRefName();
+        if (refName == null) { //local var or field of "this"
+            varType = (String) currentSymbolTable.lookup(varName);
+        }
+        else if (refName.equals("this")) {
+            varType = (String) currentSymbolTable.lookup(varName, currentClassFieldLevel);
+        }
+        else if (refName.equals("super")) {
+            varType = (String) currentSymbolTable.lookup(varName,
+                    currentClassFieldLevel - 1);
+        }
+        else if (varName.equals("length")) { // <arrayName>.length is final
+            varType = "int"; // to allow analysis to continue
+            String arrayType = (String) currentSymbolTable.lookup(refName);
+            if (arrayType.endsWith("[]")) {
+                registerError(node,"The length field of an array is final.");
+            }
+        }
+        else { // refName is not "this" or "super" or varName is not "length" for an array
+            String refVarTypeName = (String) currentSymbolTable.lookup(refName);
+            if (refVarTypeName == null) {
+                registerError(node,"The identifier " + refName + " was never declared.");
+                refVarTypeName = "Object";
+            }
+            ClassTreeNode refVarType = currentClass.lookupClass(refVarTypeName);
+            if (refVarType == null) {
+                registerError(node,"The identifier " + refVarTypeName + " is not the name of " +
+                                "a declared or built-in type.");
+                refVarType = currentClass.lookupClass("Object");
+            }
+            SymbolTable refTable = refVarType.getVarSymbolTable();
+            varType = (String) refTable.lookup(varName);
+        }
+
+        if (varType == null) { // the type was not found
+            registerError(node,"The identifier " + varName + " was never declared.");
+            varType = "Object"; // to allow analysis to continue
+        }
+
+        // typecheck the expr and check compatability
+        node.getExpr().accept(this);
+        if(node.getExpr().getExprType() == null) {
+            System.out.println("Found a null expr type");
+        }
+        if (!isSubtype(node.getExpr().getExprType(), varType)) {
+            registerError(node,"The type of the expr is " +
+                            node.getExpr().getExprType() + " " +
+                            "which is not compatible with the " + varName +
+                            " variable's declared type " + varType);
+        }
+        node.setExprType(varType);
+        return null;
+    }
+
+    /**
+     * Visit an array assignment expression node
+     *
+     * @param node the array assignment expression node
+     * @return the type of the expression
+     */
+    public Object visit(ArrayAssignExpr node) {
+        //check that the index's type is "int"
+        node.getIndex().accept(this);
+        if (!node.getIndex().getExprType().equals("int")) {
+            registerError(node,"The index into the array must be an integer.");
+        }
+
+        //check that the refName is legit
+        String varType = null;
+        String varName = node.getName();
+        String refName = node.getRefName();
+        if (refName == null) { //local var or field of "this"
+            varType = (String) currentSymbolTable.lookup(varName);
+        }
+        else if (refName.equals("this")) {
+            varType = (String) currentSymbolTable.lookup(varName, currentClassFieldLevel);
+        }
+        else if (refName.equals("super")) {
+            varType = (String) currentSymbolTable.lookup(varName,
+                    currentClassFieldLevel - 1);
+        }
+        else { // if refName is not "this" or "super"
+            String refVarTypeName = (String) currentSymbolTable.lookup(refName);
+            if (refVarTypeName == null) {
+                registerError(node,"The identifier " + refName + " was never declared.");
+                refVarTypeName = "Object"; // to allow us to continue
+            }
+            ClassTreeNode refVarType = currentClass.lookupClass(refVarTypeName);
+            if (refVarType == null) {
+                registerError(node,"The identifier " + refVarTypeName +
+                        " is not the name of a declared or built-in type.");
+                refVarType = currentClass.lookupClass("Object");  // to allow us to continue
+            }
+            SymbolTable refTable = refVarType.getVarSymbolTable();
+            varType = (String) refTable.lookup(varName);
+        }
+
+        if (varType == null) {  // lookup of varName failed
+            registerError(node,"The identifier " + varName + " was never declared.");
+            varType = "Object[]"; //to allow analysis to continue
+        }
+        else if (!varType.endsWith("[]")) {
+            registerError(node,"The identifier " + varName + " is not an array type.");
+        }
+
+        //finally, check that the var's type is comp with the expr field's type.
+        node.getExpr().accept(this);
+        if (!isSubtype(node.getExpr().getExprType(), varType.substring(0,
+                varType.length() - 2))) {
+            registerError(node,"The type of the expr is " + node.getExpr().getExprType() +
+                    " which is not compatible with the " + varName + " variable's base type " + varType);
+        }
+        node.setExprType(varType.substring(0, varType.length() - 2));
+        return null;
+    }
+
+    /**
+     * Visit a variable expression node
+     *
+     * @param node the variable expression node
+     * @return the type of the expression
+     */
+    public Object visit(VarExpr node) {
+        //check that ref.name is legit
+        String varType;
+        String varName = node.getName();
+        if (node.getRef() == null && node.getName().equals("null")) { // expr = "null"
+            varType = "null";  // special case
+        }
+        else if (node.getRef() == null) { //local var or field of "this"
+            varType = (String) currentSymbolTable.lookup(varName);
+        }
+        else if ((node.getRef() instanceof VarExpr) &&
+                ((VarExpr) node.getRef()).getName().equals("this")) {
+            varType = (String) currentSymbolTable.lookup(varName, currentClassFieldLevel-1);
+            if ((((VarExpr) node.getRef()).getRef() != null)) {
+                registerError(node,"The identifier \"this\" cannot follow a dot");
+            }
+        }
+        else if ((node.getRef() instanceof VarExpr) &&
+                ((VarExpr) node.getRef()).getName().equals("super")) {
+            varType = (String) currentSymbolTable.lookup(varName,
+                    currentClassFieldLevel - 1);
+            if ((((VarExpr) node.getRef()).getRef() != null)) {
+                registerError(node, "The identifier \"super\" cannot follow a dot");
+            }
+        }
+        else { // ref is not null, "this", or "super"
+            // check the ref and get its type name
+            node.getRef().accept(this);
+            String refTypeName = node.getRef().getExprType();
+            if( refTypeName.endsWith("[]") && varName.equals("length")) {
+                varType = "int";
+            }
+            else if( refTypeName.endsWith("[]")) {
+                registerError(node,"The only field of an array" +
+                        " is \"length\"");
+                varType = "Object"; //to allow analysis to continue
+
+            }
+            else if( refTypeName.equals("int") || refTypeName.equals("boolean")) {
+                registerError(node, "A primitive type cannot have a field" +
+                        " named " + varName);
+                varType = "Object";
+            }
+            else {
+                ClassTreeNode refType = currentClass.lookupClass(refTypeName);
+                SymbolTable refTable = refType.getVarSymbolTable();
+                int refFieldLevel = getClassFieldLevel(refType);
+                varType = (String) refTable.lookup(varName, refFieldLevel-1); //check if it is a field
+            }
+        }
+
+        if (varType == null) { // lookup of varType failed
+            registerError(node,"The identifier " + varName +
+                    " was not declared before it was used.");
+            varType = "Object"; //to allow analysis to continue
+        }
+        node.setExprType(varType);
+        return null;
+    }
+
+    private int getClassFieldLevel(ClassTreeNode node) {
+        int level = 1;
+        while(node.getParent() != null) {
+            level++;
+            node = node.getParent();
+        }
+        return level;
+    }
+
+    /**
+     * Visit an array expression node
+     *
+     * @param node the array expression node
+     * @return the type of the expression
+     */
+    public Object visit(ArrayExpr node) {
+        //check that the index's type is "int"
+        node.getIndex().accept(this);
+        if (!node.getIndex().getExprType().equals("int")) {
+            registerError(node, "The index into the array must be an integer.");
+        }
+        //check the ref and check whether the ref's type is an array type
+        node.getRef().accept(this);
+        String refType = node.getRef().getExprType();
+        if (! refType.endsWith("[]")) {
+            registerError(node,"The  expression is not an array type.");
+            node.setExprType(refType); // to continue analysis
+        }
+        else {
+            node.setExprType(refType.substring(0, refType.length() - 2));
+        }
+        return null;
+    }
+
+    /**
+     * Visit a binary comparison equals expression node
+     *
+     * @param node the binary comparison equals expression node
+     * @return the type of the expression
+     */
+    public Object visit(BinaryCompEqExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (types[0] == null || types[1] == null) {
+            return null; //error in one expr, so skip further checking
+        }
+        if (!(isSubtype(types[0], types[1]) || isSubtype(types[1], types[0]))) {
+            registerError(node,"The " + "two values being compared for equality are not compatible " + "types.");
+        }
         node.setExprType("boolean");
         return null;
     }
 
     /**
-     * Visit an int constant expression node
+     * Visit a binary comparison not equals expression node
      *
-     * @param node the int constant expression node
-     * @return null
+     * @param node the binary comparison not equals expression node
+     * @return the type of the expression
      */
-    public Object visit(ConstIntExpr node) {
+    public Object visit(BinaryCompNeExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(isSubtype(types[0], types[1]) || isSubtype(types[1], types[0]))) {
+            registerError(node,"The two values being compared for equality are not compatible types.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    /**
+     * Visit a binary comparison less than expression node
+     *
+     * @param node the binary comparison less than expression node
+     * @return the type of the expression
+     */
+    public Object visit(BinaryCompLtExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The two values being compared by \"<\" are not both ints.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    private String[] getLeftAndRightTypes(BinaryExpr node) {
+        node.getLeftExpr().accept(this);
+        node.getRightExpr().accept(this);
+        String type1 = node.getLeftExpr().getExprType();
+        String type2 = node.getRightExpr().getExprType();
+        return new String[]{type1,type2};
+    }
+
+    /**
+     * Visit a binary comparison less than or equal to expression node
+     *
+     * @param node the binary comparison less than or equal to expression node
+     * @return the type of the expression
+     */
+    public Object visit(BinaryCompLeqExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The  two values being compared by \"<=\" are not both ints.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    /**
+     * Visit a binary comparison greater than expression node
+     *
+     * @param node the binary comparison greater than expression node
+     * @return the type of the expression
+     */
+    public Object visit(BinaryCompGtExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The two values being compared by \">\" are not both ints.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    /**
+     * Visit a binary comparison greater than or equal to expression node
+     *
+     * @param node the binary comparison greater to or equal to expression node
+     * @return the type of the expression
+     */
+    public Object visit(BinaryCompGeqExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The  two values being compared by \">=\" are not both ints.");
+        }
+        node.setExprType("boolean");
+        return null;
+    }
+
+    /**
+     * Visit a binary arithmetic plus expression node
+     *
+     * @param node the binary arithmetic plus expression node
+     * @return the type of the expression
+     */
+    public Object visit(BinaryArithPlusExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The two values being added are not both ints.");
+        }
         node.setExprType("int");
         return null;
     }
 
     /**
-     * Visit a string constant expression node
+     * Visit a binary arithmetic minus expression node
      *
-     * @param node the string constant expression node
-     * @return null
+     * @param node the binary arithmetic minus expression node
+     * @return the type of the expression
      */
-    public Object visit(ConstStringExpr node) {
-        node.setExprType("String");
+    public Object visit(BinaryArithMinusExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The two values being subtraced are not both ints.");
+        }
+        node.setExprType("int");
         return null;
     }
 
     /**
-     * Visit a declaration statement node
+     * Visit a binary arithmetic times expression node
      *
-     * @param node the declaration statement node
-     * @return null
+     * @param node the binary arithmetic times expression node
+     * @return the type of the expression
      */
-    public Object visit(DeclStmt node) {
-        node.getInit().accept(this);
-        if (!isSubType(node.getInit().getExprType(), node.getType())) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The variable declaration you are making is invalid. Variable of type " +
-                            node.getType() + " cannot have value of type " + node.getInit().getExprType());
+    public Object visit(BinaryArithTimesExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The two values being multiplied are not both ints.");
         }
-
+        node.setExprType("int");
         return null;
     }
 
     /**
-     * checks that the parameter types of the dispatch expression match the allowed types
-     * and visits the child nodes
+     * Visit a binary arithmetic divide expression node
      *
-     * @param node the dispatch expression node
-     * @return the result of the visit
+     * @param node the binary arithmetic divide expression node
+     * @return the type of the expression
      */
-    public Object visit(DispatchExpr node) {
-
-
-        //visit the ref expr- check to see if the class method symbol table has that method
-        Expr refExpr = node.getRefExpr();
-        refExpr.accept(this);
-
-        Method methodNode =
-                (Method) currentClass.getMethodSymbolTable()
-                        .lookup(node.getMethodName());
-
-        if (methodNode == null) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The method " + node.getMethodName() + "was not found in the method " +
-                            "symbol table.");
-
-            node.setExprType("Object");
-            return null;
+    public Object visit(BinaryArithDivideExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The two values being divided are not both ints.");
         }
-
-        // get the parameters being passed in
-        ExprList actualParams = node.getActualList();
-
-        // get the acceptable parameters
-        FormalList allowedParams = methodNode.getFormalList();
-
-        // compare corresponding parameter types from each list
-        compareParamTypes(node, actualParams, allowedParams);
-
-
-        //set type of dispatch expr to the return type of the ref
-        node.setExprType(refExpr.getExprType());
-
+        node.setExprType("int");
         return null;
     }
 
     /**
-     * compares corresponding parameter list types until one or both lists have
-     * been exhausted, registers appropriate error messages
+     * Visit a binary arithmetic modulus expression node
      *
-     * @param node a DispatchExpr node
-     * @param actualParamTypes list of param types passed into DispatchExpr's method
-     * @param allowedParamTypes list of param types allowed for DispatchExpr's method
+     * @param node the binary arithmetic modulus expression node
+     * @return the type of the expression
      */
-    private void compareParamTypes(DispatchExpr node, ExprList actualParamTypes,
-                                   FormalList allowedParamTypes) {
-
-        // list of types that cannot be subclassed in Bantam Java
-        Set<String> nonObjectTypes = Set.of("int", "boolean", "String");
-
-        // get the length of each parameter list
-        int numActualParams = actualParamTypes.getSize();
-        int numAllowedParams = allowedParamTypes.getSize();
-
-        // this var gets the greater of the two lengths, used as the loop variable
-        int greaterNumParams =
-                (numActualParams > numAllowedParams) ? numActualParams : numAllowedParams;
-
-        // initialize param nodes that will update on each iteration of param comparisons
-        Formal actualArg;
-        Formal allowedArg;
-
-        // loop through the arguments of both lists
-        for (int i = 0; i < greaterNumParams; i++) {
-
-            try {
-                // try to get the two argument objects
-                actualArg = (Formal) actualParamTypes.get(i);
-                allowedArg = (Formal) allowedParamTypes.get(i);
-
-            } catch (IndexOutOfBoundsException e) {
-
-                String errorMsg = "Actual arguments list takes " + numAllowedParams +
-                                  " arguments but " + numActualParams + " were provided";
-
-                // throw an error
-                errorHandler.register(Error.Kind.SEMANT_ERROR,
-                        currentClass.getASTNode().getFilename(),
-                        node.getLineNum(), errorMsg);
-
-                // stop comparing params because at least one list has been exhausted
-                return;
-            }
-
-
-            // get the two argument types
-            String actualType = actualArg.getType();
-            String allowedType = allowedArg.getType();
-
-            // if the types don't match
-            if (!actualType.equals(allowedType)) {
-
-                // if one type is not an object
-                if (nonObjectTypes.contains(actualType)
-                        || nonObjectTypes.contains(allowedType)) {
-
-                    String errorMsg = "Actual type " + "\'" + actualType + "\' of parameter "
-                            + i + " to method " + node.getMethodName() + " "
-                            + "does not match expected type " + "\'" + allowedType + "\'";
-
-                    // throw an error
-                    errorHandler.register(Error.Kind.SEMANT_ERROR,
-                            currentClass.getASTNode().getFilename(),
-                            node.getLineNum(), errorMsg);
-                }
-                // else if actual param is not a subtype of acceptable param
-                else if (!isSubType(actualType, allowedType)) {
-
-                    String errorMsg = "Actual type " + "\'" + actualType +
-                            "\' of parameter " + i + " to method " + node.getMethodName()
-                            + " " + "is not a subtype of " + "\'" + allowedType + "\'";
-
-                    // throw an error
-                    errorHandler.register(Error.Kind.SEMANT_ERROR,
-                            currentClass.getASTNode().getFilename(),
-                            node.getLineNum(), errorMsg);
-                }
-            }
+    public Object visit(BinaryArithModulusExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("int") && types[1].equals("int"))) {
+            registerError(node,"The two values being operated on with % are not both ints.");
         }
-    }
-
-    /**
-     * Visit a field node
-     *
-     * @param node the field node
-     * @return null
-     */
-    public Object visit(Field node) {
-        // The fields should have already been added to the symbol table by the
-        // SemanticAnalyzer so the only thing to check is the compatibility of the init
-        // expr's type with the field's type.
-
-        // if node's type is not a defined type
-        if (!isDefinedType(node.getType())) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The declared type " + node.getType() + " of the field "
-                            + node.getName() + " is undefined.");
-        }
-        Expr initExpr = node.getInit();
-        if (initExpr != null) {
-            initExpr.accept(this);
-            //if the initExpr's type is not a subtype of the node's type
-            if (!isSubType(initExpr.getExprType(), node.getType())) {
-                errorHandler.register(Error.Kind.SEMANT_ERROR,
-                        currentClass.getASTNode().getFilename(), node.getLineNum(),
-                        "The type of the initializer is " + initExpr.getExprType()
-                                + " which is not compatible with the " + node.getName() +
-                                " field's type " + node.getType());
-            }
-        }
-        //Note: if there is no initExpr, then leave it to the Code Generator to
-        //      initialize it to the default value since it is irrelevant to the
-        //      SemanticAnalyzer.
+        node.setExprType("int");
         return null;
     }
 
     /**
-     * Visit a formal parameter node
+     * Visit a binary logical AND expression node
      *
-     * @param node the Formal node
-     * @return null
+     * @param node the binary logical AND expression node
+     * @return the type of the expression
      */
-    public Object visit(Formal node) {
-
-        //the node's type is not a defined type
-        if (!isDefinedType(node.getType())) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The declared type " + node.getType() + " of the formal" +
-                            " parameter " + node.getName() + " is undefined.");
+    public Object visit(BinaryLogicAndExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("boolean") && types[1].equals("boolean"))) {
+            registerError(node,"The two values being operated on with && are not both booleans" + ".");
         }
-        // add it to the current scope
-        currentSymbolTable.add(node.getName(), node.getType());
-        return null;
-    }
-
-    /**
-     * Visit a for statement
-     *
-     * @param node the for statement node
-     * @return the result of the visit
-     */
-    public Object visit(ForStmt node) {
-
-        if (node.getInitExpr() != null) {
-            node.getInitExpr().accept(this);
-            if (!node.getInitExpr().getExprType().equals("int")) {
-                errorHandler.register(Error.Kind.SEMANT_ERROR,
-                        currentClass.getASTNode().getFilename(), node.getLineNum(),
-                        "The type of the init is " + node.getInitExpr().getExprType()
-                                + " which is not int.");
-            }
-            node.getInitExpr().setExprType("int");
-        }
-
-
-        node.getPredExpr().accept(this);
-        //the predExpr's type is not "boolean"
-        if (!node.getPredExpr().getExprType().equals("boolean")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The type of the predicate is " + node.getPredExpr().getExprType()
-                            + " which is not boolean.");
-        }
-        node.getInitExpr().setExprType("boolean");
-
-        if (node.getUpdateExpr() != null) {
-            node.getUpdateExpr().accept(this);
-            if (!node.getInitExpr().getExprType().equals("int")) {
-                errorHandler.register(Error.Kind.SEMANT_ERROR,
-                        currentClass.getASTNode().getFilename(), node.getLineNum(),
-                        "The type of the init is " + node.getInitExpr().getExprType()
-                                + " which is not int.");
-            }
-            node.getInitExpr().setExprType("int");
-
-        }
-
-
-        currentSymbolTable.enterScope();
-        node.getBodyStmt().accept(this);
-        currentSymbolTable.exitScope();
-        return null;
-
-    }
-
-    /**
-     * visit an if statement
-     *
-     * @param node the if statement node
-     * @return the result of the visit
-     */
-    public Object visit(IfStmt node) {
-        node.getPredExpr().accept(this);
-        //the predExpr's type is not "boolean"
-        if (!node.getPredExpr().getExprType().equals("boolean")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The type of the predicate is " + node.getPredExpr().getExprType()
-                            + " which is not boolean.");
-        }
-        node.getPredExpr().setExprType("boolean");
-        currentSymbolTable.enterScope();
-        node.getThenStmt().accept(this);
-        if (node.getElseStmt() != null) {
-            node.getElseStmt().accept(this);
-        }
-        currentSymbolTable.exitScope();
-        return null;
-    }
-
-    /**
-     * Visit a instanceof expression node
-     *
-     * @param node the instanceof expression node
-     * @return null
-     */
-    public Object visit(InstanceofExpr node) {
-        node.getExpr().accept(this);
-
-        String leftExpr = node.getExprType();
-        String rightType = node.getType();
-
-        if (!isSubType(rightType, leftExpr)) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The left expression of type " + leftExpr +
-                            " cannot be cast to the inconvertible right-hand type " + rightType);
-        }
-
-        node.setUpCheck(true);
         node.setExprType("boolean");
         return null;
     }
 
     /**
-     * Visit a method node
+     * Visit a binary logical OR expression node
      *
-     * @param node the Method node to visit
-     * @return null
+     * @param node the binary logical OR expression node
+     * @return the type of the expression
      */
-    public Object visit(Method node) {
-        //if the node's return type is not a defined type and not "void"
-        if (!isDefinedType(node.getReturnType()) && !node.getReturnType().equals("void")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The return type " + node.getReturnType() + " of the method "
-                            + node.getName() + " is undefined.");
+    public Object visit(BinaryLogicOrExpr node) {
+        String[] types = getLeftAndRightTypes(node);
+        if (!(types[0].equals("boolean") && types[1].equals("boolean"))) {
+            registerError(node,"The two values being operated on with || are not both booleans" + ".");
         }
-
-        //create a new scope for the method body
-        currentSymbolTable.enterScope();
-        node.getFormalList().accept(this);
-        node.getStmtList().accept(this);
-        currentSymbolTable.exitScope();
-        return null;
-    }
-
-    /**
-     * Visits a new array expression node
-     *
-     * @param node the new array expression node
-     * @return null
-     */
-    public Object visit(NewArrayExpr node) {
-
-        node.getSize().accept(this);
-
-        if (!node.getSize().getExprType().equals("int")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The size of the array should be an int, but " +
-                            "it has been defined as " + node.getSize().getExprType());
-            node.getSize().setExprType("int"); // to allow analysis to continue
-        }
-
-        if (!isDefinedType(node.getType())) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The type " + node.getType() + " does not exist.");
-            node.setExprType("Object"); // to allow analysis to continue
-        } else {
-            node.setExprType(node.getType());
-        }
-
-        return null;
-    }
-
-    /**
-     * Visit a new expression node
-     *
-     * @param node the new expression node
-     * @return null
-     */
-    public Object visit(NewExpr node) {
-        //the node's type is not a defined class type
-        Map curClassMap = currentClass.getClassMap();//.containsKey(type);
-
-        if (!curClassMap.containsKey(node.getType())) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The type " + node.getType() + " does not exist.");
-            node.setExprType("Object"); // to allow analysis to continue
-        } else {
-            node.setExprType(node.getType());
-        }
-        return null;
-    }
-
-    /**
-     * Visit the return statement node
-     *
-     * @param node the return statement node
-     * @return the result of the visit
-     */
-    public Object visit(ReturnStmt node) {
-        node.getExpr().accept(this);
-        return null;
-    }
-
-    /**
-     * Visit a unary decrement expression node
-     *
-     * @param node the unary decrement expression node
-     * @return null
-     */
-    public Object visit(UnaryDecrExpr node) {
-        node.getExpr().accept(this);
-        String type = node.getExpr().getExprType();
-        if (!type.equals("int")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The -- operator should only be used with int" +
-                            " not " + type + " expressions.");
-        }
-        node.setExprType("int"); //to continue checking
-
-        return null;
-    }
-
-    /**
-     * Visit a unary increment expression node
-     *
-     * @param node the unary increment expression node
-     * @return null
-     */
-    public Object visit(UnaryIncrExpr node) {
-        node.getExpr().accept(this);
-        String type = node.getExpr().getExprType();
-        if (!type.equals("int")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The ++ operator should only be used with int" +
-                            " not " + type + " expressions.");
-        }
-        node.setExprType("int"); //to continue checking
-
+        node.setExprType("boolean");
         return null;
     }
 
@@ -969,21 +944,15 @@ public class TypeCheckerVisitor extends Visitor {
      * Visit a unary negation expression node
      *
      * @param node the unary negation expression node
-     * @return null
+     * @return the type of the expression
      */
     public Object visit(UnaryNegExpr node) {
-
         node.getExpr().accept(this);
         String type = node.getExpr().getExprType();
-
-        if (!type.equals("int")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The - operator should only be used with int" +
-                            " not " + type + " expressions.");
+        if (!(type.equals("int"))) {
+            registerError(node,"The value being negated is of type " + type + ", not int.");
         }
-        node.setExprType("int"); //to continue checking
-
+        node.setExprType("int");
         return null;
     }
 
@@ -991,17 +960,13 @@ public class TypeCheckerVisitor extends Visitor {
      * Visit a unary NOT expression node
      *
      * @param node the unary NOT expression node
-     * @return null
+     * @return the type of the expression
      */
     public Object visit(UnaryNotExpr node) {
-
-        // visit child expression node
         node.getExpr().accept(this);
         String type = node.getExpr().getExprType();
         if (!type.equals("boolean")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The not (!) operator applies only to boolean expressions," +
+            registerError(node,"The not (!) operator applies only to boolean expressions," +
                             " not " + type + " expressions.");
         }
         node.setExprType("boolean");
@@ -1009,44 +974,71 @@ public class TypeCheckerVisitor extends Visitor {
     }
 
     /**
-     * Visit a Variable Expression node
+     * Visit a unary increment expression node
      *
-     * @param node the VarExpr node being visited
-     * @return the result of the visit
+     * @param node the unary increment expression node
+     * @return the type of the expression
      */
-    public Object visit(VarExpr node) {
-
-        if (currentSymbolTable.peek(node.getName()) != null) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The variable name " + node.getName() +
-                            " you are trying to use already exists in this scope.");
+    public Object visit(UnaryIncrExpr node) {
+        if (!(node.getExpr() instanceof VarExpr)) {
+            registerError(node,"The  expression being incremented can only be " +
+                    "a variable name with an optional \"this.\" or \"super.\" prefix.");
         }
-
-        node.setExprType(node.getRef().getExprType());
+        node.getExpr().accept(this);
+        String type = node.getExpr().getExprType();
+        if (!(type.equals("int"))) {
+            registerError(node,"The value being incremented is of type " + type + ", not int.");
+        }
+        node.setExprType("int");
         return null;
-
     }
 
     /**
-     * Visit a while statement node
+     * Visit a unary decrement expression node
      *
-     * @param node the while statement node
-     * @return null
+     * @param node the unary decrement expression node
+     * @return the type of the expression
      */
-    public Object visit(WhileStmt node) {
-
-        node.getPredExpr().accept(this);
-        //the predExpr's type is not "boolean"
-        if (!node.getPredExpr().getExprType().equals("boolean")) {
-            errorHandler.register(Error.Kind.SEMANT_ERROR,
-                    currentClass.getASTNode().getFilename(), node.getLineNum(),
-                    "The type of the predicate is " + node.getPredExpr().getExprType()
-                            + " which is not boolean.");
+    public Object visit(UnaryDecrExpr node) {
+        node.getExpr().accept(this);
+        String type = node.getExpr().getExprType();
+        if (!(type.equals("int"))) {
+            registerError(node,"The value being decremented is of type " + type + ", not int.");
         }
-        currentSymbolTable.enterScope();
-        node.getBodyStmt().accept(this);
-        currentSymbolTable.exitScope();
+        node.setExprType("int");
+        return null;
+    }
+
+    /**
+     * Visit an int constant expression node
+     *
+     * @param node the int constant expression node
+     * @return the type of the expression
+     */
+    public Object visit(ConstIntExpr node) {
+        node.setExprType("int");
+        return null;
+    }
+
+    /**
+     * Visit a boolean constant expression node
+     *
+     * @param node the boolean constant expression node
+     * @return the type of the expression
+     */
+    public Object visit(ConstBooleanExpr node) {
+        node.setExprType("boolean");
+        return null;
+    }
+
+    /**
+     * Visit a string constant expression node
+     *
+     * @param node the string constant expression node
+     * @return the type of the expression
+     */
+    public Object visit(ConstStringExpr node) {
+        node.setExprType("String");
         return null;
     }
 

@@ -1,0 +1,228 @@
+class Main extends B
+{
+    void foob() {
+        //break outside a loop
+        break;
+        var a = 3;
+        //cast expr & instanceof expr with primitive types
+        a = cast( int,a);
+        if (a instanceof int) a = 4;
+        var z = new D();
+        z instanceof Main;
+    }
+    void dale(fff x) {
+        var a = new int[3];
+        // assign value to constant
+        a.length = 4;
+        var b = a.length; // okay
+        // field of a primitive type
+        var c = b.length;
+    }
+
+    boolean a = true;
+    //illigeal type declaration
+    int b = true;
+
+    //use of undeclared type
+    //incompatible type declaration
+    ood c = null;
+
+    //the type D does not exist
+    D[] l = new D[6];
+
+    //variable defined twice as fields
+    boolean b = false;
+
+    B testB = new B();
+
+    void bar(int a) {
+        //improper number of arguments for method call
+        testB.foo(true);
+
+
+        a = a + 1;
+    }
+
+    //declared type of the formal parameter undefined
+    void method1(type a) {
+        //cannot declare a variable as null
+        var h = null;
+        //reserved keyword as a variable
+        var int =3;
+        var y = 3;
+        //array has not been delared in this scope
+        var m = y[1];
+        //cannot use intanceof on a variable of primitive type
+        //Class D does not exist
+        var x = y instanceof D;
+        var p = new B();
+        //Class C is not a super class or subclass of classB
+        cast(C, p);
+        b = true;
+        //Invalid var expression, primitives do not have fields
+        y.foo = 5;
+    }
+
+    // method name duplication
+    void bar(int y, int z) {
+        //use of improper types of data for operations
+        y = y + true;
+        y = y / true;
+        y = y - true;
+        y = y * true;
+        y = y % true;
+        //the neg operator applies only to int expressions
+        y = -true;
+        //the not expression applies only to boolean expressions
+        //y = !1;
+        //the incr operator applies only to int expressions
+        y = true++;
+        //the decr operator applies only to int expressions
+        y = true--;
+        //use of undefined variable
+        stephanie = 1;
+        //cannot assign variable of type int to type Object
+        //z is already declared in this scope
+        var z = this.foo();
+        z = z * y;
+        //size of new array is not of type int
+        var q = (new int[true]);
+        //illigal delaration statement
+        var q = (new int[4]);
+        //missing declaraiton of i
+        for (i = 0; i < 2; i++) {
+            z = z + i;
+            y = z + i;
+        }
+        //x has not be declared
+        //z is not comparable to int
+        while (z < 5 || x > 6) {
+            //use of undefied method in dispatch statement
+            //incorrect number of argumets passed in method bar and foo
+            foo(z).get(x).ban().bar();
+            //increment on undefined variable
+            this.counter++;
+            break;
+        }
+        //type of the predicate is not boolean
+        while (y) {
+            break;
+        }
+        //type of Init is not int
+        //type of predicate is not boolean
+        //type of update is not int
+        for (a = true; a = 3; b) {
+            a = false;
+        }
+        //undeclared x variable
+        if (x == 3) {
+            z = z / 2;
+        }
+        else {
+            y = y / 2;
+        }
+    }
+
+    //method overloading
+    int foo() {
+        //undefined variable d
+        //incorrect number of arguments in function foo
+        //undeclared method fooo
+        foo(d).fooo(x);
+        return 6;
+    }
+
+    int dale() {
+        //wrong type of return statement
+        return true;
+    }
+
+    int skrien() {
+        //last line of the method isn't a return stmt.
+        return 3;
+        var x = 3;
+    }
+}
+
+class B
+{
+    int[] a;
+    int b;
+
+    void B() {
+        a = new int[3];
+        a.length = 4;
+        //Index of array is not of type int
+        a[t] = 0;
+        //illigal declaration of undefined variable c
+        //illigal multiplication between type c and 5
+        c = new int[1 + 5 * c + 6];
+        //undefined method bar
+        (new A()).bar(car(a, cars(c), d, 12), b);
+        //undefined method bar
+        (new A()).bar(car(a, cars(c)), b);
+    }
+
+    int[] foo() {
+        a[3] = 4;
+
+        //array is not declared in the scope
+        var m = k[1];
+        return a;
+    }
+
+    int bruce(boolean boo) {
+        return 3;
+    }
+
+    void main() {
+        //argument types do not match parameter type
+        bruce(3);
+        a[3] = 5;
+        //x has not been declared
+        //cannot assgin int[] to type Object
+        x = a[3];
+        foo();
+        //y has not be declared
+        //x has not been declared
+        //incorrect number of arguments passed in to foo
+        foo(x, y);
+
+        //method b is not defined
+        //variable length has not been declared
+        var y = a.b().length;
+        //type ban does not exist
+        var z = new ban();
+        //method get, bar are not declared
+        //illigal addition between a and b
+        //cannot cast on a variable of primitive type int
+        cast( int,a + b.foo().get().bar(ab));
+        //wrong type of return value
+        return 6;
+    }
+}
+
+//cyclic inheritance
+class A extends C
+{
+    void main() {
+
+    }
+}
+
+class C extends A
+{
+    void main() {
+
+    }
+}
+
+class D extends Main {
+    void foo() {
+
+    }
+
+    void notOverride() {
+
+    }
+}

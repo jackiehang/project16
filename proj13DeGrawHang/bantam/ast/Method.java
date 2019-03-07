@@ -67,9 +67,9 @@ public class Method extends Member {
      * @param formalList a list of formal parameters
      * @param stmtList   a list of statements appearing in the method body
      */
-    public Method(int lineNum, String returnType, String name,
+    public Method(int lineNum, int colPos,  String returnType, String name,
                   FormalList formalList, StmtList stmtList) {
-        super(lineNum);
+        super(lineNum,colPos);
         this.returnType = returnType;
         this.name = name;
         this.formalList = formalList;

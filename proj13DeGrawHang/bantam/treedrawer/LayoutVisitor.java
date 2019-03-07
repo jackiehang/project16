@@ -115,7 +115,7 @@ public class LayoutVisitor extends Visitor
 
     public Object visit(ForStmt node)
     {
-        ListNode list = new ExprList(0);
+        ListNode list = new ExprList(0,0);
         if(node.getInitExpr() != null)
             list.addElement(node.getInitExpr());
         if(node.getPredExpr() != null)

@@ -47,8 +47,8 @@ public class BinaryArithMinusExpr extends BinaryArithExpr {
      * @param leftExpr  left operand expression
      * @param rightExpr right operand expression
      */
-    public BinaryArithMinusExpr(int lineNum, Expr leftExpr, Expr rightExpr) {
-        super(lineNum, leftExpr, rightExpr);
+    public BinaryArithMinusExpr(int lineNum,  int colPos,  Expr leftExpr, Expr rightExpr) {
+        super(lineNum, colPos, leftExpr, rightExpr);
     }
 
     /**

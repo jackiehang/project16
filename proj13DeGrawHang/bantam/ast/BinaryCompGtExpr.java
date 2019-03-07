@@ -46,8 +46,8 @@ public class BinaryCompGtExpr extends BinaryCompExpr {
      * @param leftExpr  left operand expression
      * @param rightExpr right operand expression
      */
-    public BinaryCompGtExpr(int lineNum, Expr leftExpr, Expr rightExpr) {
-        super(lineNum, leftExpr, rightExpr);
+    public BinaryCompGtExpr(int lineNum, int colPos,  Expr leftExpr, Expr rightExpr) {
+        super(lineNum, colPos, leftExpr, rightExpr);
     }
 
     /**

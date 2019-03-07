@@ -20,15 +20,18 @@
  * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
  * Project 12
  * Date: February 25, 2019
+ * _____________________________
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Date: March 7, 2019
  *
  */
 
 package proj13DeGrawHang;
 
 import javafx.application.Platform;
-import proj13DeGrawHang.bantam.ast.ASTNode;
+import proj13DeGrawHang.bantam.ast.Class_;
 import proj13DeGrawHang.bantam.ast.Program;
-import proj13DeGrawHang.bantam.parser.Parser;
 import proj13DeGrawHang.bantam.semant.*;
 import proj13DeGrawHang.bantam.treedrawer.Drawer;
 import proj13DeGrawHang.bantam.util.ClassTreeNode;
@@ -37,6 +40,7 @@ import proj13DeGrawHang.bantam.util.ErrorHandler;
 import proj13DeGrawHang.bantam.util.Error;
 import proj13DeGrawHang.bantam.lexer.Scanner;
 import proj13DeGrawHang.bantam.lexer.Token;
+import proj13DeGrawHang.bantam.parser.Parser;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -57,9 +61,11 @@ public class ToolbarController {
 
     private boolean scanIsDone;
     private boolean parseIsDone;
+    private boolean checkIsDone;
     private Console console;
     private CodeTabPane codeTabPane;
     private Program AST;
+    private SemanticAnalyzer checker;
 
     /**
      * This is the constructor of ToolbarController.
@@ -71,6 +77,7 @@ public class ToolbarController {
         this.codeTabPane = codeTabPane;
         this.scanIsDone = true;
         this.parseIsDone = true;
+        this.checkIsDone = false;
     }
 
     /**
@@ -147,6 +154,7 @@ public class ToolbarController {
                 }
 
                 this.parseIsDone = true;
+                this.checkIsDone = false;
             }catch(InterruptedException| ExecutionException e){
                 if (writeToConsole) {
                     Platform.runLater(()->
@@ -202,15 +210,19 @@ public class ToolbarController {
             FutureTask<ClassTreeNode> curFutureTask = new FutureTask<ClassTreeNode>(checkTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
+
             try{
                 // get the root of the class hierarchy tree to be used for code generation
                 ClassTreeNode root = curFutureTask.get();
+                this.checkIsDone = true;
 
             }catch(InterruptedException| ExecutionException e){
                 Platform.runLater(()->
                         this.console.writeToConsole("Semantic Analysis failed \n", "Error"));
             }
         }).start();
+
+
     }
 
     /**
@@ -219,14 +231,14 @@ public class ToolbarController {
      */
     public void handleNavigate(){
 
-        if(AST == null){
-            Platform.runLater(() -> this.console.writeToConsole("You must parse a program first.\n",
+        if(!this.checkIsDone){
+            Platform.runLater(() -> this.console.writeToConsole("You must parse and check a program first.\n",
                     "Error"));
         }
         else {
-            classFieldMethodVisitor visitor = new classFieldMethodVisitor();
-            HashMap<String, ArrayList<ASTNode>> names = visitor.getClassFieldMethodNodes(this.AST);
-            Navigator navigator= new Navigator(names,codeTabPane.getCodeArea());
+            ClassVisitor visitor = new ClassVisitor();
+           ArrayList<Class_> classes = visitor.getClassNodes(this.AST);
+            Navigator navigator= new Navigator(classes,codeTabPane.getCodeArea(),this.checker);
         }
 
     }
@@ -247,6 +259,13 @@ public class ToolbarController {
         return this.parseIsDone;
     }
 
+    /**
+     * sets that the semantic check has not been done
+     */
+    public void setCheckNotDone(){
+        this.checkIsDone = false;
+    }
+
 
     /**
      * An inner class used to perform semantic analysis in a separate thread
@@ -260,7 +279,7 @@ public class ToolbarController {
             ErrorHandler errorHandler = new ErrorHandler();
 
             // create a checker that uses the new error handler
-            SemanticAnalyzer checker = new SemanticAnalyzer(errorHandler);
+            checker = new SemanticAnalyzer(errorHandler);
 
             // initialize the root of the class hierarchy tree to be used for code generation
             ClassTreeNode root = null;

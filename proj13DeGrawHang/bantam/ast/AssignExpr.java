@@ -63,8 +63,8 @@ public class AssignExpr extends Expr {
      * @param name    the name of the lefthand variable
      * @param expr    righthand expression for assigning to the lefthand variable
      */
-    public AssignExpr(int lineNum, String refName, String name, Expr expr) {
-        super(lineNum);
+    public AssignExpr(int lineNum, int colPos,  String refName, String name, Expr expr) {
+        super(lineNum,colPos);
         this.refName = refName;
         this.name = name;
         this.expr = expr;

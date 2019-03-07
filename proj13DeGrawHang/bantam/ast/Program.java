@@ -48,8 +48,8 @@ public class Program extends ASTNode {
      * @param lineNum   source line number corresponding to this AST node
      * @param classList list of class declarations
      */
-    public Program(int lineNum, ClassList classList) {
-        super(lineNum);
+    public Program(int lineNum,  int colPos, ClassList classList) {
+        super(lineNum,colPos);
         this.classList = classList;
     }
 

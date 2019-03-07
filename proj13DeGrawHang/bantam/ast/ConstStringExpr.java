@@ -45,8 +45,8 @@ public class ConstStringExpr extends ConstExpr {
      * @param lineNum  source line number corresponding to this AST node
      * @param constant constant value (as a String)
      */
-    public ConstStringExpr(int lineNum, String constant) {
-        super(lineNum, constant);
+    public ConstStringExpr(int lineNum,  int colPos, String constant) {
+        super(lineNum,colPos, constant);
     }
 
     /**

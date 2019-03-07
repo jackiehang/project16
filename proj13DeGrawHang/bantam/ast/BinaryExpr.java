@@ -60,8 +60,8 @@ public abstract class BinaryExpr extends Expr {
      * @param leftExpr  left operand expression
      * @param rightExpr right operand expression
      */
-    public BinaryExpr(int lineNum, Expr leftExpr, Expr rightExpr) {
-        super(lineNum);
+    public BinaryExpr(int lineNum,  int colPos, Expr leftExpr, Expr rightExpr) {
+        super(lineNum,colPos);
         this.leftExpr = leftExpr;
         this.rightExpr = rightExpr;
     }

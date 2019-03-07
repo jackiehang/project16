@@ -16,6 +16,10 @@
  * Edited By: Lucas DeGraw, Iris Lian
  * Project 11
  * Date: October 12, 2018
+ * ---------------------------
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 13
+ * Date: March 7, 2019
  */
 
 package proj13DeGrawHang;
@@ -59,6 +63,7 @@ public class MasterController {
     @FXML private Button scanButton;
     @FXML private Button scanParseButton;
     @FXML private Button scanParseCheckButton;
+    @FXML private Button navigatorButton;
     @FXML private TreeView<String> directoryTree;
     @FXML private TreeView<String> fileStructureTree;
 
@@ -129,6 +134,7 @@ public class MasterController {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
             this.scanParseCheckButton.setDisable(false);
+            this.navigatorButton.setDisable(false);
         }
         this.updateStructureView();
         setInlineParsing();
@@ -147,6 +153,7 @@ public class MasterController {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
             this.scanParseCheckButton.setDisable(false);
+            this.navigatorButton.setDisable(false);
         }
         this.updateStructureView();
         this.createDirectoryTree();
@@ -186,6 +193,7 @@ public class MasterController {
         if (this.codeTabPane.getTabs().isEmpty()&&toolbarController.scanIsDone()){
             disableToolbar();
         }
+        toolbarController.setCheckNotDone();
     }
 
     /**
@@ -446,6 +454,7 @@ public class MasterController {
         this.scanButton.setDisable(true);
         this.scanParseButton.setDisable(true);
         this.scanParseCheckButton.setDisable(true);
+        this.navigatorButton.setDisable(true);
    }
 
     /**
@@ -487,6 +496,7 @@ public class MasterController {
      */
     @FXML
     private void handleNavigate(){ toolbarController.handleNavigate();}
+
 
     /**
      * prompts user to save file before telling the toolbarController to handle the
