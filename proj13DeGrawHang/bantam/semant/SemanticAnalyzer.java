@@ -127,8 +127,8 @@ public class SemanticAnalyzer
         buildFieldAndMethodTables();
 
         //Dump Symbol Tables
-        //this.root.getVarSymbolTable().dump();
-        //this.root.getMethodSymbolTable().dump();
+        this.root.getVarSymbolTable().dump();
+        this.root.getMethodSymbolTable().dump();
 
         //step 4: check whether there is a Main class with a main method.
         checkForMainClassWithMainMethod();
@@ -349,6 +349,21 @@ public class SemanticAnalyzer
         ?*/false, classMap));
     }
 
+    public Object getOverridenMethod(String className, String methodName) {
+        ClassTreeNode currentClass = classMap.get(className);
+        if (currentClass.getParent().isBuiltIn()) {
+            return 1;
+        }
+        SymbolTable methodSymbolTable = currentClass.getMethodSymbolTable();
+        methodSymbolTable.enterScope();
+        if(methodSymbolTable.peek(methodName) != null) {
+            return methodSymbolTable.lookup(methodName);
+        }
+        methodSymbolTable.exitScope();
+
+        return 0;
+    }
+
 
     public static void main(String[] args) {
         ErrorHandler errorHandler = new ErrorHandler();
@@ -370,7 +385,6 @@ public class SemanticAnalyzer
                 }
             }
         }
-
     }
 
 }

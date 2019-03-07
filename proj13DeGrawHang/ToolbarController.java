@@ -59,6 +59,7 @@ public class ToolbarController {
     private Console console;
     private CodeTabPane codeTabPane;
     private Program AST;
+    private SemanticAnalyzer checker;
 
     /**
      * This is the constructor of ToolbarController.
@@ -207,7 +208,7 @@ public class ToolbarController {
         else {
             classFieldMethodVisitor visitor = new classFieldMethodVisitor();
             HashMap<String, ArrayList<ASTNode>> names = visitor.getClassFieldMethodNodes(this.AST);
-            Navigator navigator= new Navigator(names,codeTabPane.getCodeArea());
+            Navigator navigator= new Navigator(names,codeTabPane.getCodeArea(),this.checker, this.AST);
         }
 
     }
@@ -241,7 +242,7 @@ public class ToolbarController {
             ErrorHandler errorHandler = new ErrorHandler();
 
             // create a checker that uses the new error handler
-            SemanticAnalyzer checker = new SemanticAnalyzer(errorHandler);
+            checker = new SemanticAnalyzer(errorHandler);
 
             // initialize the root of the class hierarchy tree to be used for code generation
             ClassTreeNode root = null;
