@@ -33,8 +33,8 @@ class Dessert extends Food{
 class Cake extends Dessert{
     boolean hasFrosting;
 
-    void addFrosting(){
-        hasFrosting = true;
+    void addFrosting(boolean addFrosting){
+        hasFrosting = addFrosting;
     }
 
     boolean isSweet(){
