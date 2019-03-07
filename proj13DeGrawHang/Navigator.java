@@ -41,11 +41,11 @@ public class Navigator {
     private CodeArea curCodeArea;
 
     /**
-     * Constructor of the navigator
+     * Constructor of the Navigator
      *
-     * @param names    a hashmap with "Class", "Field", "Method" as keys and the
-     *                 corresponding nodes in an arraylist as values
-     * @param codeArea current codearea
+     * @param classes arraylist of Class_ nodes
+     * @param codeArea current CodeArea
+     * @param checker SemanticAnalyzer
      */
     public Navigator(ArrayList<Class_> classes, CodeArea codeArea, SemanticAnalyzer checker) {
         this.classes = classes;
@@ -56,8 +56,8 @@ public class Navigator {
 
     /**
      * Creates the main Navigator dialog
-     * User can choose to navigate to
-     * a "Class", "Field", or "Method
+     * User can choose a class to navigate to
+     *the declaration of, declaration of its parent, its fields or its methods
      */
     private void createNavigatorDialog() {
         javafx.scene.control.Dialog<ButtonType> helperDialog = new Dialog<>();
@@ -126,7 +126,8 @@ public class Navigator {
      * given type. Allows user to select one and
      * find where it was declared
      *
-     * @param type "Class", "Field", or "Method
+     * @param className class name
+     * @param type "Field", or "Method
      */
     private void createHelperDialog(String className, String type) {
         javafx.scene.control.Dialog<ButtonType> helperDialog = new Dialog<>();
@@ -166,8 +167,8 @@ public class Navigator {
             findDeclaration(className, name);
             dialogPane.getScene().getWindow().hide();
         });
-        outer.getChildren().addAll(inner, findDecButton);
 
+        outer.getChildren().addAll(inner, findDecButton);
         outer.setSpacing(20);
         dialogPane.setContent(outer);
         helperDialog.setDialogPane(dialogPane);
@@ -178,13 +179,12 @@ public class Navigator {
     }
 
     /**
-     * Highlights where the chosen class, field,
+     * Highlights where the chosen field
      * or method was declared in the file
      *
      * @param className chosen class, field, or method
      */
     private void findDeclaration(String className, String name) {
-
         ASTNode node = null;
         for (ASTNode n : classFieldsAndMethods.get(className)) {
             if (n instanceof Field) {

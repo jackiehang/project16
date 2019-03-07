@@ -6,6 +6,7 @@
  */
 
 class Food{
+	boolean hi;
     boolean sweet = false; //testing field
     boolean tasty = true;
     int calories=0;
@@ -77,12 +78,13 @@ class Dessert extends Food{
     }
 
     boolean isNotYum(boolean yum){
-        return yum != u;  //error: BinaryCompNEqExpr
+        return yum != u; //error: BinaryCompNEqExpr
     }
-
+ 
 }
 
 class Utensil{
+int f;
 int x =2; 
     String type = "hi";
 

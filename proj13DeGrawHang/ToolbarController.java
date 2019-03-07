@@ -135,6 +135,7 @@ public class ToolbarController {
                 */
 
                 this.parseIsDone = true;
+                this.checkIsDone = false;
             }catch(InterruptedException| ExecutionException e){
                 Platform.runLater(()->
                         this.console.writeToConsole("Parsing failed \n", "Error"));
@@ -236,8 +237,9 @@ public class ToolbarController {
     }
 
     public void setCheckNotDone(){
-        checkIsDone = false;
+        this.checkIsDone = false;
     }
+
 
 
     /**

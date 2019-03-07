@@ -1,0 +1,55 @@
+class Food{
+    boolean edible;
+    int numCals = 0;
+    int temp;
+    boolean yummy = true;
+
+    void addCals(){
+        numCals ++;
+    }
+
+    int getTemp(){
+        return temp;
+    }
+
+    boolean isYummy(){
+        return yummy;
+    }
+}
+
+class Dessert extends Food{
+    boolean edible = false;
+    boolean sweet = true;
+
+    boolean isSweet(){
+        return sweet;
+    }
+
+    void makeEdible(){
+        edible = true;
+    }
+}
+
+class Cake extends Dessert{
+    boolean hasFrosting;
+
+    void addFrosting(){
+        hasFrosting = true;
+    }
+
+    boolean isSweet(){
+        super.sweet = false;
+        return super.sweet;
+    }
+}
+
+
+class Main{
+    String test = "hi";
+    boolean cool = true;
+    int numHoursSleep = 3;
+    void main(){
+        var number = 2;
+        number = number + 1;
+    }
+}

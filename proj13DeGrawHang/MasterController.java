@@ -167,7 +167,6 @@ public class MasterController {
 
         // save the file after each key press
         codeArea.setOnKeyReleased((e) -> this.handleSave());
-        toolbarController.setCheckNotDone();
 
         // subscribe
         codeArea.multiPlainChanges()
@@ -190,6 +189,7 @@ public class MasterController {
         if (this.codeTabPane.getTabs().isEmpty()&&toolbarController.scanIsDone()){
             disableToolbar();
         }
+        toolbarController.setCheckNotDone();
     }
 
     /**
