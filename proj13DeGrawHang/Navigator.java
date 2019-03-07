@@ -35,8 +35,10 @@ import java.util.HashMap;
  */
 
 public class Navigator {
-
+    // all the Class nodes of the Program
     private ArrayList<Class_> classes;
+    // keys are the name of the class and values are an arraylist
+    // class' fields and methods
     private HashMap<String, ArrayList<ASTNode>> classFieldsAndMethods;
     private CodeArea curCodeArea;
 
@@ -64,19 +66,19 @@ public class Navigator {
         helperDialog.setTitle("Navigate");
 
         DialogPane dialogPane = new DialogPane();
-        VBox outer = new VBox();
-        ListView<Text> inner = new ListView<>();
+        VBox vBox = new VBox();
+        ListView<Text> listView = new ListView<>();
 
         for (String s : this.classFieldsAndMethods.keySet()) {
-            inner.getItems().add(new Text(s));
+            listView.getItems().add(new Text(s));
         }
 
-        inner.setMaxHeight(80);
+        listView.setMaxHeight(80);
 
         Button findDecButton = new Button("Find Declaration");
         findDecButton.setMinWidth(200);
         findDecButton.setOnAction(event -> {
-            String name = inner.getSelectionModel().getSelectedItem().getText();
+            String name = listView.getSelectionModel().getSelectedItem().getText();
             findClassDeclaration(name);
             dialogPane.getScene().getWindow().hide();
         });
@@ -86,7 +88,7 @@ public class Navigator {
         findParentButton.setMinWidth(200);
 
         findParentButton.setOnAction(event -> {
-            String name = inner.getSelectionModel().getSelectedItem().getText();
+            String name = listView.getSelectionModel().getSelectedItem().getText();
             findParentClassDeclaration(name);
             dialogPane.getScene().getWindow().hide();
         });
@@ -95,7 +97,7 @@ public class Navigator {
         Button fieldsButton = new Button("Get Fields");
         fieldsButton.setMinWidth(200);
         fieldsButton.setOnAction(event -> {
-            String name = inner.getSelectionModel().getSelectedItem().getText();
+            String name = listView.getSelectionModel().getSelectedItem().getText();
             this.createHelperDialog(name, "Field");
             dialogPane.getScene().getWindow().hide();
         });
@@ -103,16 +105,16 @@ public class Navigator {
         Button methodsButton = new Button("Get Methods");
         methodsButton.setMinWidth(200);
         methodsButton.setOnAction(event -> {
-            String name = inner.getSelectionModel().getSelectedItem().getText();
+            String name = listView.getSelectionModel().getSelectedItem().getText();
             this.createHelperDialog(name, "Method");
             dialogPane.getScene().getWindow().hide();
         });
-        outer.getChildren().addAll(inner, findDecButton, findParentButton, fieldsButton, methodsButton);
+        vBox.getChildren().addAll(listView, findDecButton, findParentButton, fieldsButton, methodsButton);
 
 
-        outer.setSpacing(10);
-        outer.setAlignment(Pos.CENTER);
-        dialogPane.setContent(outer);
+        vBox.setSpacing(10);
+        vBox.setAlignment(Pos.CENTER);
+        dialogPane.setContent(vBox);
         helperDialog.setDialogPane(dialogPane);
         Window window = helperDialog.getDialogPane().getScene().getWindow();
         window.setOnCloseRequest(event -> window.hide());
@@ -135,8 +137,8 @@ public class Navigator {
 
         DialogPane dialogPane = new DialogPane();
         dialogPane.setHeaderText("Choose " + type);
-        VBox outer = new VBox();
-        ListView<Text> inner = new ListView<>();
+        VBox vBox = new VBox();
+        ListView<Text> listView = new ListView<>();
 
         //putting the proper node names in the listview
         switch (type) {
@@ -144,7 +146,7 @@ public class Navigator {
                 for (ASTNode node : this.classFieldsAndMethods.get(className)) {
                     if (node instanceof Field) {
                         Field fieldnode = (Field) node;
-                        inner.getItems().add(new Text(fieldnode.getName()));
+                        listView.getItems().add(new Text(fieldnode.getName()));
                     }
                 }
                 break;
@@ -152,25 +154,25 @@ public class Navigator {
                 for (ASTNode node : this.classFieldsAndMethods.get(className)) {
                     if (node instanceof Method) {
                         Method methodnode = (Method) node;
-                        inner.getItems().add(new Text(methodnode.getName()));
+                        listView.getItems().add(new Text(methodnode.getName()));
                     }
                 }
                 break;
             default:
                 break;
         }
-        inner.setMaxHeight(80);
+        listView.setMaxHeight(80);
 
         Button findDecButton = new Button("Find Declaration");
         findDecButton.setOnAction(event -> {
-            String name = inner.getSelectionModel().getSelectedItem().getText();
+            String name = listView.getSelectionModel().getSelectedItem().getText();
             findDeclaration(className, name);
             dialogPane.getScene().getWindow().hide();
         });
 
-        outer.getChildren().addAll(inner, findDecButton);
-        outer.setSpacing(20);
-        dialogPane.setContent(outer);
+        vBox.getChildren().addAll(listView, findDecButton);
+        vBox.setSpacing(20);
+        dialogPane.setContent(vBox);
         helperDialog.setDialogPane(dialogPane);
         Window window = helperDialog.getDialogPane().getScene().getWindow();
         window.setOnCloseRequest(event -> window.hide());
@@ -182,7 +184,8 @@ public class Navigator {
      * Highlights where the chosen field
      * or method was declared in the file
      *
-     * @param className chosen class, field, or method
+     * @param className class name
+     * @param name chosen field, or method
      */
     private void findDeclaration(String className, String name) {
         ASTNode node = null;
@@ -233,6 +236,12 @@ public class Navigator {
 
     }
 
+    /**
+     * helper method to get the class ASTNode
+     *
+     * @param name class name
+     * @return class node
+     */
     private Class_ findClassASTNode(String name){
         for(Class_ node: classes){
             if(node.getName().equals(name)){
