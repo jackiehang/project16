@@ -9,7 +9,6 @@
 package proj13DeGrawHang;
 
 
-import com.sun.source.tree.ClassTree;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -18,10 +17,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Window;
 import org.fxmisc.richtext.CodeArea;
-import proj13DeGrawHang.bantam.ast.*;
-import proj13DeGrawHang.bantam.semant.MethodClassFinderVisitor;
+import proj13DeGrawHang.bantam.ast.ASTNode;
+import proj13DeGrawHang.bantam.ast.Class_;
+import proj13DeGrawHang.bantam.ast.Field;
+import proj13DeGrawHang.bantam.ast.Method;
 import proj13DeGrawHang.bantam.semant.SemanticAnalyzer;
-import proj13DeGrawHang.bantam.util.ClassTreeNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,8 +30,8 @@ import java.util.HashMap;
  * This class allows the user to navigate to where fields,
  * classes, and methods are declared in the file
  *
- * @author Lucas DeGraw, Jackie Hang, ChrisMarcello
- * @since 3-5-2019
+ * @author  Lucas DeGraw, Jackie Hang, ChrisMarcello
+ * @since   3-5-2019
  */
 
 public class Navigator {
