@@ -177,7 +177,7 @@ public class Navigator {
         findDecButton.setOnAction(event -> {
             if(inner.getSelectionModel().getSelectedItem()!=null){
                 String name = inner.getSelectionModel().getSelectedItem().getText();
-                findDeclaration(className, name);
+                findFieldOrMethodDeclaration(className, name);
                 dialogPane.getScene().getWindow().hide();
             }
         });
@@ -192,7 +192,7 @@ public class Navigator {
                 findParentButton.setOnAction(event -> {
                     if(inner.getSelectionModel().getSelectedItem()!=null){
                         String name = inner.getSelectionModel().getSelectedItem().getText();
-                        findOverridenMethodDeclaration(parentNode, name);
+                        findOverriddenMethodDeclaration(parentNode, name);
                         dialogPane.getScene().getWindow().hide();
                     }
                 });
@@ -216,7 +216,7 @@ public class Navigator {
      *
      * @param className chosen class, field, or method
      */
-    private void findDeclaration(String className, String name) {
+    private void findFieldOrMethodDeclaration(String className, String name) {
         ASTNode node = null;
         for (ASTNode n : classFieldsAndMethods.get(className)) {
             if (n instanceof Field) {
@@ -266,19 +266,17 @@ public class Navigator {
      */
     private void findClassDeclaration(String name) {
         Class_ cNode = findClassASTNode(name);
-
-        int index;
-        int rowNum = cNode.getLineNum() - 1;
-        int colPos = cNode.getColPos();
-
-        curCodeArea.moveTo(rowNum, colPos);
-        index = curCodeArea.getCaretPosition();
-
-        curCodeArea.selectRange(index, index + name.length());
-        curCodeArea.showParagraphAtTop(cNode.getLineNum() - 2);
+        if(cNode != null) {
+            highlightText(cNode,name);
+        }
 
     }
 
+    /**
+     * Returns the class node
+     * @param name class name
+     * @return class node
+     */
     private Class_ findClassASTNode(String name){
         for(Class_ node: classes){
             if(node.getName().equals(name)){
@@ -291,7 +289,7 @@ public class Navigator {
     /**
      * Finds the declaration of the Parent of the Class
      *
-     * @param name
+     * @param name class name
      */
     private void findParentClassDeclaration(String name) {
 
@@ -301,15 +299,7 @@ public class Navigator {
         if (classFieldsAndMethods.containsKey(parentnode)) {
             findClassDeclaration(parentnode);
         } else {
-            javafx.scene.control.Dialog<ButtonType> noParentDialog = new Dialog<>();
-            noParentDialog.setTitle("Warning");
-            DialogPane noParentDialogPane = new DialogPane();
-            noParentDialogPane.setContentText("Chosen Class has built-in or non-existent parent");
-            noParentDialog.setDialogPane(noParentDialogPane);
-            Window window = noParentDialog.getDialogPane().getScene().getWindow();
-            window.setOnCloseRequest(event -> window.hide());
-
-            noParentDialog.show();
+            displayWarningDialog("Chosen class has built-in or non-existent parent");
         }
     }
 
@@ -318,7 +308,7 @@ public class Navigator {
      * @param parentClassName class name
      * @param methodName method name
      */
-    private void findOverridenMethodDeclaration(String parentClassName, String methodName) {
+    private void findOverriddenMethodDeclaration(String parentClassName, String methodName) {
         ASTNode node = null;
         for(ASTNode n : classFieldsAndMethods.get(parentClassName)){
             if(n instanceof Method){
@@ -332,7 +322,7 @@ public class Navigator {
 
         //if the method does not exist in the parent class
         if(node == null){
-            displayWarningDialog("Parent Class " + parentClassName + " does not contain method " + methodName);
+            displayWarningDialog("Parent class: " + parentClassName + " does not contain method: " + methodName);
         }
     }
 
@@ -342,14 +332,14 @@ public class Navigator {
      * @param message warning message
      */
     private void displayWarningDialog(String message){
-        javafx.scene.control.Dialog<ButtonType> noParentDialog = new Dialog<>();
-        noParentDialog.setTitle("Warning");
+        javafx.scene.control.Dialog<ButtonType> warningDialog = new Dialog<>();
+        warningDialog.setTitle("Warning");
         DialogPane noParentDialogPane = new DialogPane();
         noParentDialogPane.setContentText(message);
-        noParentDialog.setDialogPane(noParentDialogPane);
-        Window window = noParentDialog.getDialogPane().getScene().getWindow();
+        warningDialog.setDialogPane(noParentDialogPane);
+        Window window = warningDialog.getDialogPane().getScene().getWindow();
         window.setOnCloseRequest(event -> window.hide());
-        noParentDialog.show();
+        warningDialog.show();
 
     }
 
