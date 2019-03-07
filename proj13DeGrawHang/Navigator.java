@@ -10,6 +10,7 @@ package proj13DeGrawHang;
 
 
 import com.sun.source.tree.ClassTree;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
@@ -59,44 +60,6 @@ public class Navigator {
      * a "Class", "Field", or "Method
      */
     private void createNavigatorDialog() {
-//        javafx.scene.control.Dialog<ButtonType> navigatorDialog = new Dialog<>();
-//        navigatorDialog.setTitle("Choose Type");
-//
-//        DialogPane dialogPane = new DialogPane();
-//        VBox vBox = new VBox();
-//
-//        Button classes = new Button("Class");
-//        Button fields = new Button("Field");
-//        Button methods = new Button("Method");
-//        methods.setMinWidth(100);
-//        fields.setMinWidth(100);
-//        classes.setMinWidth(100);
-//
-//        //setting on click actions
-//        classes.setOnAction(event -> {
-//            this.createHelperDialog(classes.getText());
-//            event.consume();
-//            dialogPane.getScene().getWindow().hide();
-//        });
-//        fields.setOnAction(event -> {
-//            this.createHelperDialog(fields.getText());
-//            event.consume();
-//            dialogPane.getScene().getWindow().hide();
-//        });
-//        methods.setOnAction(event -> {
-//            this.createHelperDialog(methods.getText());
-//            event.consume();
-//            dialogPane.getScene().getWindow().hide();
-//        });
-//
-//        vBox.getChildren().addAll(classes, fields, methods);
-//        dialogPane.setContent(vBox);
-//        navigatorDialog.setDialogPane(dialogPane);
-//        Window window = navigatorDialog.getDialogPane().getScene().getWindow();
-//        window.setOnCloseRequest(event -> window.hide());
-//
-//        navigatorDialog.show();
-
         javafx.scene.control.Dialog<ButtonType> helperDialog = new Dialog<>();
         helperDialog.setTitle("Navigate");
 
@@ -111,6 +74,7 @@ public class Navigator {
         inner.setMaxHeight(80);
 
         Button findDecButton = new Button("Find Declaration");
+        findDecButton.setMinWidth(200);
         findDecButton.setOnAction(event -> {
             String name = inner.getSelectionModel().getSelectedItem().getText();
             findClassDeclaration(name);
@@ -119,6 +83,8 @@ public class Navigator {
 
 
         Button findParentButton = new Button("Find Parent Declaration");
+        findParentButton.setMinWidth(200);
+
         findParentButton.setOnAction(event -> {
             String name = inner.getSelectionModel().getSelectedItem().getText();
             findParentClassDeclaration(name);
@@ -127,6 +93,7 @@ public class Navigator {
 
 
         Button fieldsButton = new Button("Get Fields");
+        fieldsButton.setMinWidth(200);
         fieldsButton.setOnAction(event -> {
             String name = inner.getSelectionModel().getSelectedItem().getText();
             this.createHelperDialog(name, "Field");
@@ -134,6 +101,7 @@ public class Navigator {
         });
 
         Button methodsButton = new Button("Get Methods");
+        methodsButton.setMinWidth(200);
         methodsButton.setOnAction(event -> {
             String name = inner.getSelectionModel().getSelectedItem().getText();
             this.createHelperDialog(name, "Method");
@@ -142,7 +110,8 @@ public class Navigator {
         outer.getChildren().addAll(inner, findDecButton, findParentButton, fieldsButton, methodsButton);
 
 
-        outer.setSpacing(20);
+        outer.setSpacing(10);
+        outer.setAlignment(Pos.CENTER);
         dialogPane.setContent(outer);
         helperDialog.setDialogPane(dialogPane);
         Window window = helperDialog.getDialogPane().getScene().getWindow();

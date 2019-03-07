@@ -63,6 +63,10 @@ class Food{
 class Dessert extends Food{
     Utensil u;
     boolean yummy = true;
+    void addCals(){
+        calories = calories +2;
+    }
+
 
     void setUtensil(Utensil utensil){
         u = utensil;

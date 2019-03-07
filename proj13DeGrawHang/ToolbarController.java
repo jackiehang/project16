@@ -26,7 +26,6 @@
 package proj13DeGrawHang;
 
 import javafx.application.Platform;
-import proj13DeGrawHang.bantam.ast.ASTNode;
 import proj13DeGrawHang.bantam.ast.Class_;
 import proj13DeGrawHang.bantam.ast.Program;
 import proj13DeGrawHang.bantam.semant.*;
@@ -213,8 +212,8 @@ public class ToolbarController {
                     "Error"));
         }
         else {
-            classFieldMethodVisitor visitor = new classFieldMethodVisitor();
-           ArrayList<Class_> classes = visitor.getClassFieldMethodNodes(this.AST);
+            ClassVisitor visitor = new ClassVisitor();
+           ArrayList<Class_> classes = visitor.getClassNodes(this.AST);
             Navigator navigator= new Navigator(classes,codeTabPane.getCodeArea(),this.checker);
         }
 
@@ -234,6 +233,10 @@ public class ToolbarController {
      */
     public boolean parseIsDone(){
         return this.parseIsDone;
+    }
+
+    public void setCheckNotDone(){
+        checkIsDone = false;
     }
 
 

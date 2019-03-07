@@ -167,6 +167,7 @@ public class MasterController {
 
         // save the file after each key press
         codeArea.setOnKeyReleased((e) -> this.handleSave());
+        toolbarController.setCheckNotDone();
 
         // subscribe
         codeArea.multiPlainChanges()
@@ -491,6 +492,7 @@ public class MasterController {
      */
     @FXML
     private void handleNavigate(){ toolbarController.handleNavigate();}
+
 
     /**
      * prompts user to save file before telling the toolbarController to handle the
