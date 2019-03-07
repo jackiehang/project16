@@ -79,6 +79,7 @@ class Dessert extends Food{
 }
 
 class Utensil{
+int x =2; 
     String type = "hi";
 
     void setType(String typeOfUtensil){

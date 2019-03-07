@@ -9,6 +9,7 @@
 package proj13DeGrawHang;
 
 
+import com.sun.source.tree.ClassTree;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
@@ -19,6 +20,7 @@ import org.fxmisc.richtext.CodeArea;
 import proj13DeGrawHang.bantam.ast.*;
 import proj13DeGrawHang.bantam.semant.MethodClassFinderVisitor;
 import proj13DeGrawHang.bantam.semant.SemanticAnalyzer;
+import proj13DeGrawHang.bantam.util.ClassTreeNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,16 +29,14 @@ import java.util.HashMap;
  * This class allows the user to navigate to where fields,
  * classes, and methods are declared in the file
  *
- * @author  Lucas DeGraw, Jackie Hang, ChrisMarcello
- * @since   3-5-2019
+ * @author Lucas DeGraw, Jackie Hang, ChrisMarcello
+ * @since 3-5-2019
  */
 
 public class Navigator {
 
-    private HashMap<String, ArrayList<ASTNode>> names;
-    private HashMap<String, ASTNode> map;
-    private SemanticAnalyzer semanticAnalyzer;
-    private Program ast;
+    private ArrayList<Class_> classes;
+    private HashMap<String, ArrayList<ASTNode>> classFieldsAndMethods;
     private CodeArea curCodeArea;
 
     /**
@@ -46,11 +46,10 @@ public class Navigator {
      *                 corresponding nodes in an arraylist as values
      * @param codeArea current codearea
      */
-    public Navigator(HashMap<String, ArrayList<ASTNode>> names, CodeArea codeArea, SemanticAnalyzer checker, Program ast) {
-        this.names = names;
-        curCodeArea = codeArea;
-        map = new HashMap<>();
-        this.semanticAnalyzer = checker;
+    public Navigator(ArrayList<Class_> classes, CodeArea codeArea, SemanticAnalyzer checker) {
+        this.classes = classes;
+        this.curCodeArea = codeArea;
+        classFieldsAndMethods = checker.getClassFieldsAndMethods();
         createNavigatorDialog();
     }
 
@@ -60,43 +59,97 @@ public class Navigator {
      * a "Class", "Field", or "Method
      */
     private void createNavigatorDialog() {
-        javafx.scene.control.Dialog<ButtonType> navigatorDialog = new Dialog<>();
-        navigatorDialog.setTitle("Choose Type");
+//        javafx.scene.control.Dialog<ButtonType> navigatorDialog = new Dialog<>();
+//        navigatorDialog.setTitle("Choose Type");
+//
+//        DialogPane dialogPane = new DialogPane();
+//        VBox vBox = new VBox();
+//
+//        Button classes = new Button("Class");
+//        Button fields = new Button("Field");
+//        Button methods = new Button("Method");
+//        methods.setMinWidth(100);
+//        fields.setMinWidth(100);
+//        classes.setMinWidth(100);
+//
+//        //setting on click actions
+//        classes.setOnAction(event -> {
+//            this.createHelperDialog(classes.getText());
+//            event.consume();
+//            dialogPane.getScene().getWindow().hide();
+//        });
+//        fields.setOnAction(event -> {
+//            this.createHelperDialog(fields.getText());
+//            event.consume();
+//            dialogPane.getScene().getWindow().hide();
+//        });
+//        methods.setOnAction(event -> {
+//            this.createHelperDialog(methods.getText());
+//            event.consume();
+//            dialogPane.getScene().getWindow().hide();
+//        });
+//
+//        vBox.getChildren().addAll(classes, fields, methods);
+//        dialogPane.setContent(vBox);
+//        navigatorDialog.setDialogPane(dialogPane);
+//        Window window = navigatorDialog.getDialogPane().getScene().getWindow();
+//        window.setOnCloseRequest(event -> window.hide());
+//
+//        navigatorDialog.show();
+
+        javafx.scene.control.Dialog<ButtonType> helperDialog = new Dialog<>();
+        helperDialog.setTitle("Navigate");
 
         DialogPane dialogPane = new DialogPane();
-        VBox vBox = new VBox();
+        VBox outer = new VBox();
+        ListView<Text> inner = new ListView<>();
 
-        Button classes = new Button("Class");
-        Button fields = new Button("Field");
-        Button methods = new Button("Method");
-        methods.setMinWidth(100);
-        fields.setMinWidth(100);
-        classes.setMinWidth(100);
+        for (String s : this.classFieldsAndMethods.keySet()) {
+            inner.getItems().add(new Text(s));
+        }
 
-        //setting on click actions
-        classes.setOnAction(event -> {
-            this.createHelperDialog(classes.getText());
-            event.consume();
-            dialogPane.getScene().getWindow().hide();
-        });
-        fields.setOnAction(event -> {
-            this.createHelperDialog(fields.getText());
-            event.consume();
-            dialogPane.getScene().getWindow().hide();
-        });
-        methods.setOnAction(event -> {
-            this.createHelperDialog(methods.getText());
-            event.consume();
+        inner.setMaxHeight(80);
+
+        Button findDecButton = new Button("Find Declaration");
+        findDecButton.setOnAction(event -> {
+            String name = inner.getSelectionModel().getSelectedItem().getText();
+            findClassDeclaration(name);
             dialogPane.getScene().getWindow().hide();
         });
 
-        vBox.getChildren().addAll(classes, fields, methods);
-        dialogPane.setContent(vBox);
-        navigatorDialog.setDialogPane(dialogPane);
-        Window window = navigatorDialog.getDialogPane().getScene().getWindow();
+
+        Button findParentButton = new Button("Find Parent Declaration");
+        findParentButton.setOnAction(event -> {
+            String name = inner.getSelectionModel().getSelectedItem().getText();
+            findParentClassDeclaration(name);
+            dialogPane.getScene().getWindow().hide();
+        });
+
+
+        Button fieldsButton = new Button("Get Fields");
+        fieldsButton.setOnAction(event -> {
+            String name = inner.getSelectionModel().getSelectedItem().getText();
+            this.createHelperDialog(name, "Field");
+            dialogPane.getScene().getWindow().hide();
+        });
+
+        Button methodsButton = new Button("Get Methods");
+        methodsButton.setOnAction(event -> {
+            String name = inner.getSelectionModel().getSelectedItem().getText();
+            this.createHelperDialog(name, "Method");
+            dialogPane.getScene().getWindow().hide();
+        });
+        outer.getChildren().addAll(inner, findDecButton, findParentButton, fieldsButton, methodsButton);
+
+
+        outer.setSpacing(20);
+        dialogPane.setContent(outer);
+        helperDialog.setDialogPane(dialogPane);
+        Window window = helperDialog.getDialogPane().getScene().getWindow();
         window.setOnCloseRequest(event -> window.hide());
 
-        navigatorDialog.show();
+        helperDialog.show();
+
     }
 
     /**
@@ -106,7 +159,7 @@ public class Navigator {
      *
      * @param type "Class", "Field", or "Method
      */
-    private void createHelperDialog(String type) {
+    private void createHelperDialog(String className, String type) {
         javafx.scene.control.Dialog<ButtonType> helperDialog = new Dialog<>();
         helperDialog.setTitle(type);
 
@@ -117,25 +170,20 @@ public class Navigator {
 
         //putting the proper node names in the listview
         switch (type) {
-            case "Class":
-                for (ASTNode node : names.get("Class")) {
-                    Class_ classnode = (Class_) node;
-                    inner.getItems().add(new Text(classnode.getName()));
-                    map.put(classnode.getName(), classnode);
-                }
-                break;
             case "Field":
-                for (ASTNode node : names.get("Field")) {
-                    Field fieldnode = (Field) node;
-                    inner.getItems().add(new Text(fieldnode.getName()));
-                    map.put(fieldnode.getName(), fieldnode);
+                for (ASTNode node : this.classFieldsAndMethods.get(className)) {
+                    if (node instanceof Field) {
+                        Field fieldnode = (Field) node;
+                        inner.getItems().add(new Text(fieldnode.getName()));
+                    }
                 }
                 break;
             case "Method":
-                for (ASTNode node : names.get("Method")) {
-                    Method methodnode = (Method) node;
-                    inner.getItems().add(new Text(methodnode.getName()));
-                    map.put(methodnode.getName(), methodnode);
+                for (ASTNode node : this.classFieldsAndMethods.get(className)) {
+                    if (node instanceof Method) {
+                        Method methodnode = (Method) node;
+                        inner.getItems().add(new Text(methodnode.getName()));
+                    }
                 }
                 break;
             default:
@@ -146,28 +194,10 @@ public class Navigator {
         Button findDecButton = new Button("Find Declaration");
         findDecButton.setOnAction(event -> {
             String name = inner.getSelectionModel().getSelectedItem().getText();
-            findDeclaration(name);
+            findDeclaration(className, name);
             dialogPane.getScene().getWindow().hide();
         });
         outer.getChildren().addAll(inner, findDecButton);
-
-        if (type.equals("Class")) {
-            Button findParentButton = new Button("Find Parent Declaration");
-            findParentButton.setOnAction(event -> {
-                String name = inner.getSelectionModel().getSelectedItem().getText();
-                findParentClassDeclaration(name);
-                dialogPane.getScene().getWindow().hide();
-            });
-            outer.getChildren().addAll(findParentButton);
-        }
-
-        if (type.equals("Method")) {
-            Button findOverridenButton = new Button("Find Overriden Method Declaration");
-            findOverridenButton.setOnAction(event -> {
-                String name = inner.getSelectionModel().getSelectedItem().getText();
-                findParentClassDeclaration(name);
-            });
-        }
 
         outer.setSpacing(20);
         dialogPane.setContent(outer);
@@ -182,13 +212,27 @@ public class Navigator {
      * Highlights where the chosen class, field,
      * or method was declared in the file
      *
-     * @param name chosen class, field, or method
+     * @param className chosen class, field, or method
      */
-    private void findDeclaration(String name) {
-        ASTNode node = map.get(name);
+    private void findDeclaration(String className, String name) {
+
+        ASTNode node = null;
+        for (ASTNode n : classFieldsAndMethods.get(className)) {
+            if (n instanceof Field) {
+                if (name.equals(((Field) n).getName())) {
+                    node = n;
+                    break;
+                }
+            } else {
+                if (name.equals(((Method) n).getName())) {
+                    node = n;
+                    break;
+                }
+            }
+        }
 
         int index;
-        int rowNum = node.getLineNum()-1;
+        int rowNum = node.getLineNum() - 1;
         int colPos = node.getColPos();
 
         curCodeArea.moveTo(rowNum, colPos);
@@ -196,15 +240,51 @@ public class Navigator {
 
         curCodeArea.selectRange(index, index + name.length());
         curCodeArea.showParagraphAtTop(node.getLineNum() - 2);
+
     }
 
+    /**
+     * Highlights where the chosen class, field,
+     * or method was declared in the file
+     *
+     * @param name chosen class, field, or method
+     */
+    private void findClassDeclaration(String name) {
+        Class_ cNode = findClassASTNode(name);
 
+        int index;
+        int rowNum = cNode.getLineNum() - 1;
+        int colPos = cNode.getColPos();
+
+        curCodeArea.moveTo(rowNum, colPos);
+        index = curCodeArea.getCaretPosition();
+
+        curCodeArea.selectRange(index, index + name.length());
+        curCodeArea.showParagraphAtTop(cNode.getLineNum() - 2);
+
+    }
+
+    private Class_ findClassASTNode(String name){
+        for(Class_ node: classes){
+            if(node.getName().equals(name)){
+                return node;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds the declaration of the Parent of the Class
+     *
+     * @param name
+     */
     private void findParentClassDeclaration(String name) {
-        Class_ node = (Class_) map.get(name);
+
+        Class_ node = findClassASTNode(name);
         String parentnode = node.getParent();
 
-        if (map.containsKey(parentnode)) {
-            findDeclaration(parentnode);
+        if (classFieldsAndMethods.containsKey(parentnode)) {
+            findClassDeclaration(parentnode);
         } else {
             javafx.scene.control.Dialog<ButtonType> noParentDialog = new Dialog<>();
             noParentDialog.setTitle("Warning");
@@ -218,11 +298,11 @@ public class Navigator {
         }
     }
 
-    //TODO - figure out if this works
-    private void findOverridenMethodDeclaration(String methodName) {
-        Method node = (Method) map.get(methodName);
-        MethodClassFinderVisitor visitor = new MethodClassFinderVisitor();
-        String className = visitor.getMethodClassName(this.ast, methodName);
-        this.semanticAnalyzer.getOverridenMethod(className, methodName);
-    }
+//    //TODO - figure out if this works
+//    private void findOverridenMethodDeclaration(String methodName) {
+//        Method node = (Method) map.get(methodName);
+//        MethodClassFinderVisitor visitor = new MethodClassFinderVisitor();
+//        String className = visitor.getMethodClassName(this.ast, methodName);
+//        this.semanticAnalyzer.getOverridenMethod(className, methodName);
+//    }
 }

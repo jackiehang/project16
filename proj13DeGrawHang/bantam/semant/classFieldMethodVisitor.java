@@ -23,7 +23,7 @@ import java.util.HashMap;
  * @since   3-5-2019
  */
 public class classFieldMethodVisitor extends Visitor {
-    private HashMap<String, ArrayList<ASTNode>> names;
+    private ArrayList<Class_> classes;
 
     /**
      * Initializes a HashMap with "Field", "Class",
@@ -33,33 +33,26 @@ public class classFieldMethodVisitor extends Visitor {
      * @param ast
      * @return HashMap<String, ArrayList<ASTNode>>
      */
-    public HashMap<String, ArrayList<ASTNode>> getClassFieldMethodNodes(Program ast) {
-        names = new HashMap<>();
-
-        ArrayList<ASTNode> f = new ArrayList<>();
-        names.put("Field", f);
-        ArrayList<ASTNode> c = new ArrayList<>();
-        names.put("Class", c);
-        ArrayList<ASTNode> m = new ArrayList<>();
-        names.put("Method", m);
+    public ArrayList<Class_> getClassFieldMethodNodes(Program ast) {
+        classes = new ArrayList<>();
 
         // traverse the abstract syntax tree
         ast.accept(this);
 
-        return names;
+        return classes;
     }
 
-    /**
-     * Visits a field node and adds the node as a value
-     * to a hashmap, with "Field" as a key
-     *
-     * @param node the field node
-     * @return null;
-     */
-    public Object visit(Field node){
-        names.get("Field").add(node);
-        return null;
-    }
+//    /**
+//     * Visits a field node and adds the node as a value
+//     * to a hashmap, with "Field" as a key
+//     *
+//     * @param node the field node
+//     * @return null;
+//     */
+//    public Object visit(Field node){
+//        names.get("Field").add(node);
+//        return null;
+//    }
 
     /**
      * Visits a class nose and adds the node as a value
@@ -68,20 +61,20 @@ public class classFieldMethodVisitor extends Visitor {
      * @return null
      */
     public Object visit(Class_ node){
-        names.get("Class").add(node);
+        classes.add(node);
         super.visit(node);
         return null;
     }
-
-    /**
-     * Visits a method node and adds the node as a value
-     * to a hashmap, with "Method" as a key
-     * @param node the method node
-     * @return null
-     */
-    public Object visit(Method node){
-        names.get("Method").add(node);
-        return null;
-    }
+//
+//    /**
+//     * Visits a method node and adds the node as a value
+//     * to a hashmap, with "Method" as a key
+//     * @param node the method node
+//     * @return null
+//     */
+//    public Object visit(Method node){
+//        names.get("Method").add(node);
+//        return null;
+//    }
 
 }

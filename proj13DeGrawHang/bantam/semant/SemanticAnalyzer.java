@@ -34,6 +34,7 @@ import proj13DeGrawHang.bantam.util.*;
 import proj13DeGrawHang.bantam.util.Error;
 import proj13DeGrawHang.bantam.parser.Parser;
 
+import java.sql.Array;
 import java.util.*;
 
 /**
@@ -73,6 +74,8 @@ public class SemanticAnalyzer
     private Hashtable<String, ClassTreeNode> classMap = new Hashtable<String,
             ClassTreeNode>();
 
+    private HashMap<String, ArrayList<ASTNode>> classFieldsAndMethods = new HashMap<>();
+
     /**
      * Object for error handling
      */
@@ -93,8 +96,8 @@ public class SemanticAnalyzer
         this.errorHandler = errorHandler;
     }
 
-    public Hashtable<String, ClassTreeNode> getClassMap(){
-        return classMap;
+    public HashMap<String, ArrayList<ASTNode>>  getClassFieldsAndMethods(){
+        return classFieldsAndMethods;
     }
 
     /**
@@ -181,7 +184,9 @@ public class SemanticAnalyzer
         /* NOTE:  This should have been implemented as a visitor,
                   such as part of the ClassMapBuilderVisitor
         */
+
         for (ClassTreeNode treeNode : classMap.values()) {
+            ArrayList<ASTNode> listOfClassesAndMethods = new ArrayList<>();
             SymbolTable fields = treeNode.getVarSymbolTable();
             SymbolTable methods = treeNode.getMethodSymbolTable();
             fields.enterScope();
@@ -208,6 +213,7 @@ public class SemanticAnalyzer
                     }
                     else {
                         fields.add(((Field) member).getName(), ((Field) member).getType());
+                        listOfClassesAndMethods.add((Field) member);
                     }
                 }
                 else { // if(member instanceof Method)
@@ -227,8 +233,12 @@ public class SemanticAnalyzer
                     }
                     else {
                         methods.add(((Method) member).getName(), member);
+                        listOfClassesAndMethods.add((Method) member);
                     }
                 }
+            }
+            if(treeNode.getASTNode().getLineNum()!=-1) {
+                classFieldsAndMethods.put(treeNode.getName(), listOfClassesAndMethods);
             }
         }
     }

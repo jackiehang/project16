@@ -27,6 +27,7 @@ package proj13DeGrawHang;
 
 import javafx.application.Platform;
 import proj13DeGrawHang.bantam.ast.ASTNode;
+import proj13DeGrawHang.bantam.ast.Class_;
 import proj13DeGrawHang.bantam.ast.Program;
 import proj13DeGrawHang.bantam.semant.*;
 import proj13DeGrawHang.bantam.util.ClassTreeNode;
@@ -56,6 +57,7 @@ public class ToolbarController {
 
     private boolean scanIsDone;
     private boolean parseIsDone;
+    private boolean checkIsDone;
     private Console console;
     private CodeTabPane codeTabPane;
     private Program AST;
@@ -71,6 +73,7 @@ public class ToolbarController {
         this.codeTabPane = codeTabPane;
         this.scanIsDone = true;
         this.parseIsDone = true;
+        this.checkIsDone = false;
     }
 
     /**
@@ -184,15 +187,19 @@ public class ToolbarController {
             FutureTask<ClassTreeNode> curFutureTask = new FutureTask<ClassTreeNode>(checkTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
+
             try{
                 // get the root of the class hierarchy tree to be used for code generation
                 ClassTreeNode root = curFutureTask.get();
+                this.checkIsDone = true;
 
             }catch(InterruptedException| ExecutionException e){
                 Platform.runLater(()->
                         this.console.writeToConsole("Semantic Analysis failed \n", "Error"));
             }
         }).start();
+
+
     }
 
     /**
@@ -201,14 +208,14 @@ public class ToolbarController {
      */
     public void handleNavigate(){
 
-        if(AST == null){
-            Platform.runLater(() -> this.console.writeToConsole("You must parse a program first.\n",
+        if(!this.checkIsDone){
+            Platform.runLater(() -> this.console.writeToConsole("You must parse and check a program first.\n",
                     "Error"));
         }
         else {
             classFieldMethodVisitor visitor = new classFieldMethodVisitor();
-            HashMap<String, ArrayList<ASTNode>> names = visitor.getClassFieldMethodNodes(this.AST);
-            Navigator navigator= new Navigator(names,codeTabPane.getCodeArea(),this.checker, this.AST);
+           ArrayList<Class_> classes = visitor.getClassFieldMethodNodes(this.AST);
+            Navigator navigator= new Navigator(classes,codeTabPane.getCodeArea(),this.checker);
         }
 
     }
