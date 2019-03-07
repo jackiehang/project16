@@ -50,12 +50,11 @@ import java.util.concurrent.*;
  * This class is the controller for all of the toolbar functionality.
  * Specifically, the compile, compile and run, and stop buttons
  *
- * @author  Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
- * @author  Kevin Ahn, Jackie Hang, Matt Jones, Kevin Zhou
- * @author  Zena Abulhab, Paige Hanssen, Kyle Slager Kevin Zhou
+ * @author Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
+ * @author Kevin Ahn, Jackie Hang, Matt Jones, Kevin Zhou
+ * @author Zena Abulhab, Paige Hanssen, Kyle Slager Kevin Zhou
  * @version 2.0
- * @since   10-3-2018
- *
+ * @since 10-3-2018
  */
 public class ToolbarController {
 
@@ -69,10 +68,11 @@ public class ToolbarController {
 
     /**
      * This is the constructor of ToolbarController.
-     * @param console the console
+     *
+     * @param console     the console
      * @param codeTabPane the tab pane
      */
-    public ToolbarController(Console console, CodeTabPane codeTabPane){
+    public ToolbarController(Console console, CodeTabPane codeTabPane) {
         this.console = console;
         this.codeTabPane = codeTabPane;
         this.scanIsDone = true;
@@ -83,11 +83,12 @@ public class ToolbarController {
     /**
      * Handles actions for scan, scanParse and scanParseCheck buttons in IDE
      * will only be called after the current file contents have been saved
+     *
      * @param method the string indicating which compilation phases to execute
      */
-    public void handleCompilationPhases(String method){
+    public void handleCompilationPhases(String method) {
 
-        switch(method) {
+        switch (method) {
             case "scan":
                 this.handleScan();
                 break;
@@ -105,10 +106,10 @@ public class ToolbarController {
     /**
      * Handles scanning the current CodeArea, prints results to a new code Area.
      */
-    public void handleScan(){
+    public void handleScan() {
         this.scanIsDone = false;
         //declare a new thread and assign it with the work of scanning the current tab
-        new Thread(()-> {
+        new Thread(() -> {
             ScanTask scanTask = new ScanTask();
             FutureTask<String> curFutureTask = new FutureTask<>(scanTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
@@ -120,44 +121,44 @@ public class ToolbarController {
      * handles scanning and parsing in the code area.
      * Draw the AST to a Java Swing window
      */
-    public void handleScanAndParse(boolean drawParseTree, boolean writeToConsole){
+    public void handleScanAndParse(boolean drawParseTree, boolean writeToConsole) {
         this.console.clear();
 
         this.parseIsDone = false;
 
-        Thread scanParseThread = new Thread (()->{
+        Thread scanParseThread = new Thread(() -> {
             ParseTask parseTask = new ParseTask();
             parseTask.setWriteToConsole(writeToConsole);
             FutureTask<Program> curFutureTask = new FutureTask<Program>(parseTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
-            try{
+            try {
                 AST = curFutureTask.get();
 
                 if (drawParseTree) {
 
                     Platform.runLater(() -> {
-                        if(AST != null){
+                        if (AST != null) {
 
                             Drawer drawer = new Drawer();
 
                             JavaCodeArea curCodeArea =
-                                    (JavaCodeArea)this.codeTabPane.getCodeArea();
+                                    (JavaCodeArea) this.codeTabPane.getCodeArea();
 
                             // set the drawer's associated code area
                             drawer.setCorrespondingCodeArea(curCodeArea);
 
                             // draw the tree
-                            drawer.draw(this.codeTabPane.getFileName(),AST);
+                            drawer.draw(this.codeTabPane.getFileName(), AST);
                         }
                     });
                 }
 
                 this.parseIsDone = true;
                 this.checkIsDone = false;
-            }catch(InterruptedException| ExecutionException e){
+            } catch (InterruptedException | ExecutionException e) {
                 if (writeToConsole) {
-                    Platform.runLater(()->
+                    Platform.runLater(() ->
                             this.console.writeToConsole(
                                     "Parsing failed \n", "Error"));
                 }
@@ -203,7 +204,7 @@ public class ToolbarController {
 
 
         // begin the semantic analysis phase in a new thread
-        new Thread (()->{
+        new Thread(() -> {
 
             // create and begin semantic analysis task
             CheckTask checkTask = new CheckTask();
@@ -211,13 +212,13 @@ public class ToolbarController {
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
 
-            try{
+            try {
                 // get the root of the class hierarchy tree to be used for code generation
                 ClassTreeNode root = curFutureTask.get();
                 this.checkIsDone = true;
 
-            }catch(InterruptedException| ExecutionException e){
-                Platform.runLater(()->
+            } catch (InterruptedException | ExecutionException e) {
+                Platform.runLater(() ->
                         this.console.writeToConsole("Semantic Analysis failed \n", "Error"));
             }
         }).start();
@@ -229,40 +230,41 @@ public class ToolbarController {
      * allows user to navigate through the file to find declarations of
      * classes, fields, and methods
      */
-    public void handleNavigate(){
+    public void handleNavigate() {
 
-        if(!this.checkIsDone){
+        if (!this.checkIsDone) {
             Platform.runLater(() -> this.console.writeToConsole("You must parse and check a program first.\n",
                     "Error"));
-        }
-        else {
+        } else {
             ClassVisitor visitor = new ClassVisitor();
-           ArrayList<Class_> classes = visitor.getClassNodes(this.AST);
-            Navigator navigator= new Navigator(classes,codeTabPane.getCodeArea(),this.checker);
+            ArrayList<Class_> classes = visitor.getClassNodes(this.AST);
+            Navigator navigator = new Navigator(classes, codeTabPane.getCodeArea(), this.checker);
         }
 
     }
 
     /**
      * Check if the scan task is still running.
+     *
      * @return true if this task is done, and false otherwise
      */
-    public boolean scanIsDone(){
+    public boolean scanIsDone() {
         return this.scanIsDone;
     }
 
     /**
      * Check if the parse task is still running.
+     *
      * @return true if this task is done, and false otherwise
      */
-    public boolean parseIsDone(){
+    public boolean parseIsDone() {
         return this.parseIsDone;
     }
 
     /**
      * sets that the semantic check has not been done
      */
-    public void setCheckNotDone(){
+    public void setCheckNotDone() {
         this.checkIsDone = false;
     }
 
@@ -288,15 +290,14 @@ public class ToolbarController {
                 root = checker.analyze(AST);
 
                 // if checking phase generated no errors, display a success message
-                Platform.runLater(()->ToolbarController.this.console.writeToConsole(
+                Platform.runLater(() -> ToolbarController.this.console.writeToConsole(
                         "Semantic Analysis Successful.\n", "Output"));
-            }
-            catch (RuntimeException e) {
+            } catch (RuntimeException e) {
                 // if any exceptions were thrown during semantic analysis,
-                Platform.runLater(()-> {
+                Platform.runLater(() -> {
 
                     // display error message in the console
-                    ToolbarController.this.console.writeToConsole("Semantic Analysis Failed\n","Error");
+                    ToolbarController.this.console.writeToConsole("Semantic Analysis Failed\n", "Error");
 
                     // display num errors in the console
                     ToolbarController.this.console.writeToConsole("There were: " +
@@ -323,40 +324,41 @@ public class ToolbarController {
      * An inner class used to parse a file in a separate thread.
      * Prints error info to the console
      */
-    private class ParseTask implements Callable{
+    private class ParseTask implements Callable {
 
         private boolean writeToConsole = true;
 
         public void setWriteToConsole(boolean write) {
             this.writeToConsole = write;
         }
+
         /**
          * Create a Parser and use it to create an AST
+         *
          * @return AST tree created by a parser
          */
         @Override
-        public Program call(){
+        public Program call() {
 
-            JavaCodeArea codeArea = (JavaCodeArea)codeTabPane.getCodeArea();
+            JavaCodeArea codeArea = (JavaCodeArea) codeTabPane.getCodeArea();
 
             ErrorHandler errorHandler = new ErrorHandler();
             Parser parser = new Parser(errorHandler);
             String filename = ToolbarController.this.codeTabPane.getFileName();
             Program AST = null;
-            try{
+            try {
                 AST = parser.parse(filename);
                 codeArea.removePreviousSelections();    // remove errors due to success
                 if (this.writeToConsole) {
-                    Platform.runLater(()->
+                    Platform.runLater(() ->
                     {
                         ToolbarController.this.console.writeToConsole(
                                 "Parsing Successful.\n", "Output");
                     });
                 }
-            }
-            catch (CompilationException e){
+            } catch (CompilationException e) {
 
-                Platform.runLater(()-> {
+                Platform.runLater(() -> {
 
                     if (errorHandler.errorsFound()) {
 
@@ -367,7 +369,7 @@ public class ToolbarController {
 
                         if (this.writeToConsole) {
 
-                            ToolbarController.this.console.writeToConsole("Parsing Failed\n","Error");
+                            ToolbarController.this.console.writeToConsole("Parsing Failed\n", "Error");
                             ToolbarController.this.console.writeToConsole("There were: " +
                                     errorHandler.getErrorList().size() + " errors in " +
                                     ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
@@ -394,33 +396,34 @@ public class ToolbarController {
     private class ScanTask implements Callable {
         /**
          * Start the process by creating a scanner and use it to scan the file
+         *
          * @return a result string containing information about all the tokens
          */
         @Override
-        public String call(){
+        public String call() {
 
             ErrorHandler errorHandler = new ErrorHandler();
             Scanner scanner = new Scanner(ToolbarController.this.codeTabPane.getFileName(), errorHandler);
             Token token = scanner.scan();
             StringBuilder tokenString = new StringBuilder();
 
-            while(token.kind != Token.Kind.EOF){
+            while (token.kind != Token.Kind.EOF) {
                 tokenString.append(token.toString() + "\n");
                 token = scanner.scan();
             }
             String resultString = tokenString.toString();
-            Platform.runLater(()-> {
+            Platform.runLater(() -> {
                 ToolbarController.this.console.writeToConsole("There were: " +
                         errorHandler.getErrorList().size() + " errors in " +
-                        ToolbarController.this.codeTabPane.getFileName() + "\n","Output");
-                if(errorHandler.errorsFound()){
-                    List<Error> errorList= errorHandler.getErrorList();
+                        ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
+                if (errorHandler.errorsFound()) {
+                    List<Error> errorList = errorHandler.getErrorList();
                     Iterator<Error> errorIterator = errorList.iterator();
-                    ToolbarController.this.console.writeToConsole("\n","Error");
+                    ToolbarController.this.console.writeToConsole("\n", "Error");
 
-                    while(errorIterator.hasNext()){
+                    while (errorIterator.hasNext()) {
                         ToolbarController.this.console.writeToConsole(
-                                errorIterator.next().toString() + "\n","Error");
+                                errorIterator.next().toString() + "\n", "Error");
                     }
                 }
                 ToolbarController.this.codeTabPane.createTabWithContent(resultString);
@@ -431,49 +434,49 @@ public class ToolbarController {
     }
 
     /**
-     *  print the output of the hasMain method in the console pane in a readable format.
+     * print the output of the hasMain method in the console pane in a readable format.
      */
-    private void handleCheckMain(){
+    private void handleCheckMain() {
         MainMainVisitor mainMainVisitor = new MainMainVisitor();
         boolean hasMain = mainMainVisitor.hasMain(AST);
         String msg = "a Main class with a main method in it that has void return type and has no parameters.\n";
-        if(hasMain) {
+        if (hasMain) {
             Platform.runLater(() -> this.console.writeToConsole("\nThe program contains " + msg,
                     "Output"));
-        }else{
+        } else {
             Platform.runLater(() -> this.console.writeToConsole("\nThe program does not contain " + msg,
                     "Output"));
         }
     }
 
     /**
-     *  print the output of the getStringConstants method in the console pane in a readable format.
+     * print the output of the getStringConstants method in the console pane in a readable format.
      */
-    private void handleCheckString(){
+    private void handleCheckString() {
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
-        Map<String,String> stringMap = stringConstantsVisitor.getStringConstants(AST);
+        Map<String, String> stringMap = stringConstantsVisitor.getStringConstants(AST);
         Platform.runLater(() -> this.console.writeToConsole("\nString Constants:\n",
                 "Output"));
         // loop through key, value pairs of map for current
-        stringMap.forEach( (id, string) -> {
+        stringMap.forEach((id, string) -> {
             String pair = id + " : " + string;
-            Platform.runLater(() -> this.console.writeToConsole(pair+"\n",
+            Platform.runLater(() -> this.console.writeToConsole(pair + "\n",
                     "Output"));
         });
     }
 
     /**
-     *  print the output of the getNumLocalVars method in the console pane in a readable format.
+     * print the output of the getNumLocalVars method in the console pane in a readable format.
      */
-    private void handleCheckNumLocal(){
+    private void handleCheckNumLocal() {
         NumLocalVarsVisitor numLocalVarsVisitor = new NumLocalVarsVisitor();
-        Map<String,Integer> numVarsMap = numLocalVarsVisitor.getNumLocalVars(AST);
+        Map<String, Integer> numVarsMap = numLocalVarsVisitor.getNumLocalVars(AST);
         Platform.runLater(() -> this.console.writeToConsole("\nNumber of Local Variables:\n",
                 "Output"));
         // loop through key, value pairs of map for current
-        numVarsMap.forEach( (classMethod, numLocalVars) -> {
+        numVarsMap.forEach((classMethod, numLocalVars) -> {
             String pair = classMethod + " : " + numLocalVars;
-            Platform.runLater(() -> this.console.writeToConsole(pair+"\n",
+            Platform.runLater(() -> this.console.writeToConsole(pair + "\n",
                     "Output"));
         });
 
@@ -482,31 +485,36 @@ public class ToolbarController {
     /**
      * scan and parse the selected CodeArea, pass the AST generated by the parser to
      * one of the three public methods in the three new visitor classes
+     *
      * @param method indicating which method to call
      */
-    public void handleChecks(String method){
+    public void handleChecks(String method) {
         this.parseIsDone = false;
-        new Thread (()->{
+        new Thread(() -> {
             ParseTask parseTask = new ParseTask();
             FutureTask<Program> curFutureTask = new FutureTask<Program>(parseTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
-            try{
+            try {
                 AST = curFutureTask.get();
-                if(AST != null){
-                    switch (method){
-                        case "checkMain": handleCheckMain();
+                if (AST != null) {
+                    switch (method) {
+                        case "checkMain":
+                            handleCheckMain();
                             break;
-                        case "checkString": handleCheckString();
+                        case "checkString":
+                            handleCheckString();
                             break;
-                        case "checkNumLoc": handleCheckNumLocal();
+                        case "checkNumLoc":
+                            handleCheckNumLocal();
                             break;
-                        default: break;
+                        default:
+                            break;
                     }
                 }
                 this.parseIsDone = true;
-            }catch(InterruptedException| ExecutionException e){
-                Platform.runLater(()-> this.console.writeToConsole("Parsing failed \n", "Error"));
+            } catch (InterruptedException | ExecutionException e) {
+                Platform.runLater(() -> this.console.writeToConsole("Parsing failed \n", "Error"));
             }
         }).start();
     }
