@@ -217,4 +217,12 @@ class C extends A
     }
 }
 
-class D {}
+class D extends Main {
+    void foo() {
+
+    }
+
+    void notOverride() {
+
+    }
+}

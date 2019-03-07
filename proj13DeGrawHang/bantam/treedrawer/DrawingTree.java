@@ -14,6 +14,7 @@
 
 package proj13DeGrawHang.bantam.treedrawer;
 
+import proj13DeGrawHang.bantam.ast.ASTNode;
 import java.awt.*;
 
 public class DrawingTree
@@ -25,9 +26,27 @@ public class DrawingTree
     Polygon contour;
     DrawingTree parent;
     DrawingTree[] children;
+    private ASTNode node;
 
-    public DrawingTree(String caption, int width, int height)
+
+    /**
+     *
+     * @return the ASTNode associated with this drawn rect
+     */
+    public ASTNode getNode() {
+        return this.node;
+    }
+
+    private final int FIXED_FONT_HEIGHT = 10;
+    //private final int FIXED_FONT_ASCENT = 3; -- never used
+
+    private Color bkgColor = Color.yellow;
+    private Color textColor = Color.black;
+
+
+    public DrawingTree(ASTNode node, String caption, int width, int height)
     {
+        this.node = node;
         this.caption = caption;
         this.width = width;
         this.height = height;
@@ -38,33 +57,38 @@ public class DrawingTree
         this.contour = new Polygon();
     }
 
+
     public void setChildren(DrawingTree[] children)
     {
         this.children = children;
-        for (int i = 0; i < children.length; i++)
-            children[i].parent = this;
+        for (DrawingTree child : children) child.parent = this;
     }
 
-    private final int FIXED_FONT_HEIGHT = 10;
-    //private final int FIXED_FONT_ASCENT = 3; -- never used
-    private final Color nodeColor = new Color(250, 220, 100);
+    /**
+     * sets the background and text drawing colors for this node
+     *
+     * @param isSelected boolean denoting whether this node was the last node clicked
+     */
+    public void setSelected(boolean isSelected) {
+        this.bkgColor = isSelected ? Color.blue : Color.yellow;
+        this.textColor = isSelected ? Color.white : Color.black;
+    }
 
     public void paint(Graphics graphics)
     {
-        graphics.setColor(nodeColor);
+        graphics.setColor(this.bkgColor);
         graphics.fillRect(pos.x, pos.y, width, height);
-        graphics.setColor(Color.black);
+        graphics.setColor(this.textColor);
         graphics.drawRect(pos.x, pos.y, width - 1, height - 1);
         graphics.drawString(caption, pos.x + 2,
                 pos.y + (height + FIXED_FONT_HEIGHT) / 2);
 
         if (children != null) {
-            for (int i = 0; i < children.length; i++) {
-                children[i].paint(graphics);
-            }
+            for (DrawingTree child : children) child.paint(graphics);
         }
 
         if (parent != null) {
+            graphics.setColor(Color.black);
             graphics.drawLine(pos.x + width / 2, pos.y,
                     parent.pos.x + parent.width / 2,
                     parent.pos.y + parent.height);
@@ -80,12 +104,20 @@ public class DrawingTree
         Point temp = new Point(this.pos.x, this.pos.y);
 
         if (children != null) {
-            for (int i = 0; i < children.length; i++) {
-                children[i].position(temp);
-                temp.x += children[i].offset.x;
+            for (DrawingTree child : children) {
+                child.position(temp);
+                temp.x += child.offset.x;
                 temp.y = this.pos.y + children[0].offset.y;
             }
         }
     }
+
+    /**
+     * @return this DrawingTree's array of DrawingTree children
+     */
+    public DrawingTree[] getChildren() {
+        return this.children;
+    }
+
 
 }

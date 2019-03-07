@@ -58,8 +58,8 @@ public class Navigator {
 
     /**
      * Creates the main Navigator dialog
-     * User can choose a class to navigate to
-     *the declaration of, declaration of its parent, its fields or its methods
+     * User can choose to navigate to
+     * a "Class", "Field", or "Method
      */
     private void createNavigatorDialog() {
         javafx.scene.control.Dialog<ButtonType> helperDialog = new Dialog<>();
@@ -67,20 +67,23 @@ public class Navigator {
 
         DialogPane dialogPane = new DialogPane();
         VBox vBox = new VBox();
-        ListView<Text> listView = new ListView<>();
+        ListView<Text> inner = new ListView<>();
+
         // creates a list view with all available class names
         for (String s : this.classFieldsAndMethods.keySet()) {
-            listView.getItems().add(new Text(s));
+            inner.getItems().add(new Text(s));
         }
 
-        listView.setMaxHeight(80);
+        inner.setMaxHeight(80);
 
         Button findDecButton = new Button("Find Declaration");
         findDecButton.setMinWidth(200);
         findDecButton.setOnAction(event -> {
-            String name = listView.getSelectionModel().getSelectedItem().getText();
-            findClassDeclaration(name);
-            dialogPane.getScene().getWindow().hide();
+            try {
+                String name = inner.getSelectionModel().getSelectedItem().getText();
+                findClassDeclaration(name);
+                dialogPane.getScene().getWindow().hide();
+            } catch(Exception e) {}
         });
 
 
@@ -88,28 +91,34 @@ public class Navigator {
         findParentButton.setMinWidth(200);
 
         findParentButton.setOnAction(event -> {
-            String name = listView.getSelectionModel().getSelectedItem().getText();
-            findParentClassDeclaration(name);
-            dialogPane.getScene().getWindow().hide();
+            try {
+                String name = inner.getSelectionModel().getSelectedItem().getText();
+                findParentClassDeclaration(name);
+                dialogPane.getScene().getWindow().hide();
+            } catch(Exception e) {}
         });
 
 
         Button fieldsButton = new Button("Get Fields");
         fieldsButton.setMinWidth(200);
         fieldsButton.setOnAction(event -> {
-            String name = listView.getSelectionModel().getSelectedItem().getText();
-            this.createHelperDialog(name, "Field");
-            dialogPane.getScene().getWindow().hide();
+            try {
+                String name = inner.getSelectionModel().getSelectedItem().getText();
+                this.createHelperDialog(name, "Field");
+                dialogPane.getScene().getWindow().hide();
+            } catch(Exception e) {}
         });
 
         Button methodsButton = new Button("Get Methods");
         methodsButton.setMinWidth(200);
         methodsButton.setOnAction(event -> {
-            String name = listView.getSelectionModel().getSelectedItem().getText();
-            this.createHelperDialog(name, "Method");
-            dialogPane.getScene().getWindow().hide();
+            try {
+                String name = inner.getSelectionModel().getSelectedItem().getText();
+                this.createHelperDialog(name, "Method");
+                dialogPane.getScene().getWindow().hide();
+            } catch(Exception e) {}
         });
-        vBox.getChildren().addAll(listView, findDecButton, findParentButton, fieldsButton, methodsButton);
+        vBox.getChildren().addAll(inner, findDecButton, findParentButton, fieldsButton, methodsButton);
 
 
         vBox.setSpacing(10);
@@ -128,8 +137,7 @@ public class Navigator {
      * given type. Allows user to select one and
      * find where it was declared
      *
-     * @param className class name
-     * @param type "Field", or "Method
+     * @param type "Class", "Field", or "Method
      */
     private void createHelperDialog(String className, String type) {
         javafx.scene.control.Dialog<ButtonType> helperDialog = new Dialog<>();
@@ -138,7 +146,7 @@ public class Navigator {
         DialogPane dialogPane = new DialogPane();
         dialogPane.setHeaderText("Choose " + type);
         VBox vBox = new VBox();
-        ListView<Text> listView = new ListView<>();
+        ListView<Text> inner = new ListView<>();
 
         //putting the proper node names in the listview
         switch (type) {
@@ -146,7 +154,7 @@ public class Navigator {
                 for (ASTNode node : this.classFieldsAndMethods.get(className)) {
                     if (node instanceof Field) {
                         Field fieldnode = (Field) node;
-                        listView.getItems().add(new Text(fieldnode.getName()));
+                        inner.getItems().add(new Text(fieldnode.getName()));
                     }
                 }
                 break;
@@ -154,23 +162,37 @@ public class Navigator {
                 for (ASTNode node : this.classFieldsAndMethods.get(className)) {
                     if (node instanceof Method) {
                         Method methodnode = (Method) node;
-                        listView.getItems().add(new Text(methodnode.getName()));
+                        inner.getItems().add(new Text(methodnode.getName()));
                     }
                 }
                 break;
             default:
                 break;
         }
-        listView.setMaxHeight(80);
+        inner.setMaxHeight(80);
 
         Button findDecButton = new Button("Find Declaration");
         findDecButton.setOnAction(event -> {
-            String name = listView.getSelectionModel().getSelectedItem().getText();
-            findDeclaration(className, name);
-            dialogPane.getScene().getWindow().hide();
+            try {
+                String name = inner.getSelectionModel().getSelectedItem().getText();
+                findDeclaration(className, name);
+                dialogPane.getScene().getWindow().hide();
+            } catch (Exception e) {}
         });
+        vBox.getChildren().addAll(inner, findDecButton);
 
-        vBox.getChildren().addAll(listView, findDecButton);
+        if(type.equals("Method")) {
+            Button findParentButton = new Button("Find Parent");
+            findParentButton.setOnAction(event -> {
+                try {
+                    String name = inner.getSelectionModel().getSelectedItem().getText();
+                    findOverridenMethodDeclaration(className, name);
+                    dialogPane.getScene().getWindow().hide();
+                } catch(Exception e) {}
+            });
+            vBox.getChildren().addAll(findParentButton);
+        }
+
         vBox.setSpacing(20);
         dialogPane.setContent(vBox);
         helperDialog.setDialogPane(dialogPane);
@@ -181,11 +203,10 @@ public class Navigator {
     }
 
     /**
-     * Highlights where the chosen field
+     * Highlights where the chosen class, field,
      * or method was declared in the file
      *
-     * @param className class name
-     * @param name chosen field, or method
+     * @param className chosen class, field, or method
      */
     private void findDeclaration(String className, String name) {
         ASTNode node = null;
@@ -202,7 +223,18 @@ public class Navigator {
                 }
             }
         }
+        if(node == null) {
+            javafx.scene.control.Dialog<ButtonType> noParentDialog = new Dialog<>();
+            noParentDialog.setTitle("Warning");
+            DialogPane noParentDialogPane = new DialogPane();
+            noParentDialogPane.setContentText("Parent Class " + className + " does not contain method " + name);
+            noParentDialog.setDialogPane(noParentDialogPane);
+            Window window = noParentDialog.getDialogPane().getScene().getWindow();
+            window.setOnCloseRequest(event -> window.hide());
 
+            noParentDialog.show();
+            return;
+        }
         int index;
         int rowNum = node.getLineNum() - 1;
         int colPos = node.getColPos();
@@ -214,7 +246,6 @@ public class Navigator {
         curCodeArea.selectRange(index, index + name.length());
         //adjusts code area to focus to right line
         curCodeArea.showParagraphAtTop(node.getLineNum() - 2);
-
     }
 
     /**
@@ -233,18 +264,11 @@ public class Navigator {
         curCodeArea.moveTo(rowNum, colPos);
         index = curCodeArea.getCaretPosition();
 
-        //highlights the class declaration
         curCodeArea.selectRange(index, index + name.length());
         curCodeArea.showParagraphAtTop(cNode.getLineNum() - 2);
 
     }
 
-    /**
-     * helper method to get the class ASTNode
-     *
-     * @param name class name
-     * @return class node
-     */
     private Class_ findClassASTNode(String name){
         for(Class_ node: classes){
             if(node.getName().equals(name)){
@@ -279,11 +303,22 @@ public class Navigator {
         }
     }
 
-//    //TODO - figure out if this works
-//    private void findOverridenMethodDeclaration(String methodName) {
-//        Method node = (Method) map.get(methodName);
-//        MethodClassFinderVisitor visitor = new MethodClassFinderVisitor();
-//        String className = visitor.getMethodClassName(this.ast, methodName);
-//        this.semanticAnalyzer.getOverridenMethod(className, methodName);
-//    }
+    private void findOverridenMethodDeclaration(String className, String methodName) {
+        Class_ node = findClassASTNode(className);
+        String parentNode = node.getParent();
+
+        if (classFieldsAndMethods.containsKey(parentNode)) {
+            findDeclaration(parentNode, methodName);
+        } else {
+            javafx.scene.control.Dialog<ButtonType> noParentDialog = new Dialog<>();
+            noParentDialog.setTitle("Warning");
+            DialogPane noParentDialogPane = new DialogPane();
+            noParentDialogPane.setContentText("Chosen Class has built-in or non-existent parent");
+            noParentDialog.setDialogPane(noParentDialogPane);
+            Window window = noParentDialog.getDialogPane().getScene().getWindow();
+            window.setOnCloseRequest(event -> window.hide());
+
+            noParentDialog.show();
+        }
+    }
 }

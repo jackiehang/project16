@@ -17,12 +17,14 @@
 
 package proj13DeGrawHang.bantam.treedrawer;
 
+import proj13DeGrawHang.JavaCodeArea;
 import proj13DeGrawHang.bantam.ast.Program;
 
 import java.awt.*;
 
 public class Drawer
 {
+    private JavaCodeArea javaCodeArea;
 
     /**
      * Displays a Swing window with a drawing of the AST
@@ -31,7 +33,13 @@ public class Drawer
      */
     public void draw(String sourceName, Program AST)
     {
-        DrawerPanel panel = new DrawerPanel();
+        DrawerPanel panel;
+
+        panel = new DrawerPanel();
+
+        // give the panel the code area from which the tree is generated
+        if (this.javaCodeArea != null) panel.setCorrespondingCodeArea(this.javaCodeArea);
+
         DrawerFrame frame = new DrawerFrame(sourceName, panel);
 
         Font font = new Font("SansSerif", Font.PLAIN, 12);
@@ -40,11 +48,23 @@ public class Drawer
         FontMetrics fontMetrics = frame.getFontMetrics(font);
 
         proj13DeGrawHang.bantam.treedrawer.LayoutVisitor layout = new LayoutVisitor(fontMetrics);
+
         proj13DeGrawHang.bantam.treedrawer.DrawingTree theDrawing = (DrawingTree) AST.accept(layout);
+
         theDrawing.position(new Point(2048, 10));
+
         panel.setDrawing(theDrawing);
 
         frame.setVisible(true);
+    }
+
+    /**
+     * sets this Drawer's code area
+     *
+     * @param javaCodeArea the code area from which this tree is drawn
+     */
+    public void setCorrespondingCodeArea(JavaCodeArea javaCodeArea) {
+        this.javaCodeArea = javaCodeArea;
     }
 
 }

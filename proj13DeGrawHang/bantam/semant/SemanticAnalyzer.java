@@ -379,6 +379,31 @@ public class SemanticAnalyzer
     }
 
 
+    /**
+     * takes an ErrorHandler as input, prints its errors to the console
+     *
+     * @param errorHandler an ErrorHandler that should have at least 1 registered error
+     */
+    private static void printErrors(ErrorHandler errorHandler) {
+
+        // if any errors were registered
+        if (errorHandler.errorsFound()) {
+            List<Error> errorList = errorHandler.getErrorList();  // get the list of errors
+
+            // loop through the errors
+            for (Error anErrorList : errorList) {
+                // print the error
+                System.out.println("\n" + anErrorList.toString());
+            }
+        }
+    }
+
+    /**
+     * takes an array of file names as input,
+     * loops through files and scan, parses and checks each one,
+     * prints errors to the console
+     * @param args an array of file names
+     */
     public static void main(String[] args) {
         ErrorHandler errorHandler = new ErrorHandler();
         Parser parser = new Parser(errorHandler);
