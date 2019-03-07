@@ -41,43 +41,43 @@ public class LayoutVisitor extends Visitor
 
     public Object visit(Program node)
     {
-        return layoutNary("Program", node.getClassList());
+        return layoutNary(node, "Program", node.getClassList());
     }
 
     public Object visit(Class_ node)
     {
-        return layoutUnary("Class " + node.getName(), node.getMemberList());
+        return layoutUnary(node, "Class " + node.getName(), node.getMemberList());
     }
 
     public Object visit(MemberList node) {
-        return layoutNary("MemberList", node);
+        return layoutNary(node, "MemberList", node);
     }
 
     public Object visit(Field node)
     {
         if(node.getInit() == null)
-            return layoutNullary("Field " + node.getName() + ":" + node.getType());
+            return layoutNullary(node, "Field " + node.getName() + ":" + node.getType());
         else
-            return layoutUnary("Field " + node.getName() + ":" + node.getType(),
+            return layoutUnary(node, "Field " + node.getName() + ":" + node.getType(),
                     node.getInit());
     }
 
     public Object visit(Method node)
     {
-        return layoutBinary("Method " + node.getName() + ":" + node.getReturnType(),
+        return layoutBinary(node, "Method " + node.getName() + ":" + node.getReturnType(),
                 node.getFormalList(), node.getStmtList());
     }
 
     public Object visit(StmtList node) {
-        return layoutNary("StmtList",node);
+        return layoutNary(node, "StmtList",node);
     }
 
     public Object visit(FormalList node) {
-        return layoutNary("FormalList", node);
+        return layoutNary(node, "FormalList", node);
     }
 
     public Object visit(Formal node) {
-        return layoutNullary("Formal " + node.getName()+ ":" + node.getType());
+        return layoutNullary(node, "Formal " + node.getName()+ ":" + node.getType());
     }
 
     // Statements
@@ -85,31 +85,31 @@ public class LayoutVisitor extends Visitor
     public Object visit(ReturnStmt node)
     {
         if(node.getExpr() == null)
-            return layoutNullary("Return");
+            return layoutNullary(node, "Return");
         else
-            return layoutUnary("Return", node.getExpr());
+            return layoutUnary(node, "Return", node.getExpr());
     }
 
     public Object visit(WhileStmt node) {
-        return layoutBinary("While",node.getPredExpr(),node.getBodyStmt());
+        return layoutBinary(node, "While",node.getPredExpr(),node.getBodyStmt());
     }
 
     public Object visit(DeclStmt node)
     {
-            return layoutUnary("Var Decl " + node.getName(),
+            return layoutUnary(node, "Var Decl " + node.getName(),
                     node.getInit());
     }
 
     public Object visit(ExprStmt node) {
-        return layoutUnary("ExprStmt",node.getExpr());
+        return layoutUnary(node, "ExprStmt",node.getExpr());
     }
 
     public Object visit(IfStmt node)
     {
         if(node.getElseStmt() == null)
-            return layoutBinary("If",node.getPredExpr(),node.getThenStmt());
+            return layoutBinary(node, "If",node.getPredExpr(),node.getThenStmt());
         else
-            return layoutTernary("If",node.getPredExpr(),node.getThenStmt(),
+            return layoutTernary(node, "If",node.getPredExpr(),node.getThenStmt(),
                     node.getElseStmt());
     }
 
@@ -123,169 +123,169 @@ public class LayoutVisitor extends Visitor
         if(node.getUpdateExpr() != null)
             list.addElement(node.getUpdateExpr());
         list.addElement(node.getBodyStmt());
-        return layoutNary("For",list);
+        return layoutNary(node, "For",list);
     }
 
     public Object visit(BlockStmt node) {
-        return layoutNary("Block", node.getStmtList());
+        return layoutNary(node, "Block", node.getStmtList());
     }
 
     public Object visit(BreakStmt node) {
-        return layoutNullary("Break");
+        return layoutNullary(node, "Break");
     }
 
     // Expressions
 
     public Object visit(ExprList node) {
-        return layoutNary("ExprList", node);
+        return layoutNary(node, "ExprList", node);
     }
 
     public Object visit(AssignExpr node) {
-        return layoutUnary("Assign " + (node.getRefName() != null ?
+        return layoutUnary(node, "Assign " + (node.getRefName() != null ?
                 node.getRefName() + "." : "") + node.getName(), node.getExpr());
     }
 
     public Object visit(InstanceofExpr node) {
-        return layoutUnary("Instanceof " + node.getType(), node.getExpr());
+        return layoutUnary(node, "Instanceof " + node.getType(), node.getExpr());
     }
 
     public Object visit(NewArrayExpr node) {
-        return layoutUnary("new " + node.getType() + "[]", node.getSize());
+        return layoutUnary(node, "new " + node.getType() + "[]", node.getSize());
     }
 
     public Object visit(NewExpr node) {
-        return layoutNullary("New " + node.getType());
+        return layoutNullary(node, "New " + node.getType());
     }
 
     public Object visit(DispatchExpr node) {
         if(node.getRefExpr() == null)
-            return layoutUnary("Dispatch "+node.getMethodName(),
+            return layoutUnary(node, "Dispatch "+node.getMethodName(),
                     node.getActualList());
         else
-            return layoutBinary("Dispatch " + node.getMethodName(),
+            return layoutBinary(node, "Dispatch " + node.getMethodName(),
                     node.getRefExpr(), node.getActualList());
     }
 
     public Object visit(CastExpr node) {
-        return layoutUnary("cast to " + node.getType(), node.getExpr());
+        return layoutUnary(node, "cast to " + node.getType(), node.getExpr());
     }
 
     public Object visit(ArrayAssignExpr node) {
-        return layoutBinary("Assign " + (node.getRefName() == null ? "" : node.getRefName() + ".")
+        return layoutBinary(node, "Assign " + (node.getRefName() == null ? "" : node.getRefName() + ".")
                 + node.getName(), node.getIndex(), node.getExpr());
     }
 
     // Binary expressions
 
     public Object visit(BinaryArithDivideExpr node) {
-        return layoutBinary("/", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "/", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryArithPlusExpr node) {
-        return layoutBinary("+", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "+", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryArithMinusExpr node) {
-        return layoutBinary("-", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "-", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryArithTimesExpr node) {
-        return layoutBinary("*", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "*", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryArithModulusExpr node) {
-        return layoutBinary("%", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "%", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryCompEqExpr node) {
-        return layoutBinary("==", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "==", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryCompNeExpr node) {
-        return layoutBinary("!=", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "!=", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryCompGeqExpr node) {
-        return layoutBinary(">=", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, ">=", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryCompGtExpr node) {
-        return layoutBinary(">", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, ">", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryCompLeqExpr node) {
-        return layoutBinary("<=", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "<=", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryCompLtExpr node) {
-        return layoutBinary("<", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "<", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryLogicAndExpr node) {
-        return layoutBinary("And", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "And", node.getLeftExpr(), node.getRightExpr());
     }
 
     public Object visit(BinaryLogicOrExpr node) {
-        return layoutBinary("Or", node.getLeftExpr(), node.getRightExpr());
+        return layoutBinary(node, "Or", node.getLeftExpr(), node.getRightExpr());
     }
 
     // Other expressions
 
     public Object visit(UnaryNegExpr node) {
-        return layoutUnary("-", node.getExpr());
+        return layoutUnary(node, "-", node.getExpr());
     }
 
     public Object visit(UnaryNotExpr node) {
-        return layoutUnary("!", node.getExpr());
+        return layoutUnary(node, "!", node.getExpr());
     }
 
     public Object visit(UnaryIncrExpr node) {
-        return layoutUnary((node.isPostfix()?"Post":"Pre")+"++", node.getExpr());
+        return layoutUnary(node, (node.isPostfix()?"Post":"Pre")+"++", node.getExpr());
     }
 
     public Object visit(UnaryDecrExpr node) {
-        return layoutUnary((node.isPostfix()?"Post":"Pre")+"--", node.getExpr());
+        return layoutUnary(node, (node.isPostfix()?"Post":"Pre")+"--", node.getExpr());
     }
 
     public Object visit(ArrayExpr node) {
         if(node.getRef()!=null)
-            return layoutBinary("ArrayExpr " + node.getName(),node.getRef(),node.getIndex());
+            return layoutBinary(node, "ArrayExpr " + node.getName(),node.getRef(),node.getIndex());
         else
-            return layoutUnary("ArrayExpr " + node.getName(),node.getIndex());
+            return layoutUnary(node, "ArrayExpr " + node.getName(),node.getIndex());
     }
 
     public Object visit(ConstIntExpr node) {
-        return layoutNullary("Int:" + node.getConstant());
+        return layoutNullary(node, "Int:" + node.getConstant());
     }
 
     public Object visit(ConstBooleanExpr node) {
-        return layoutNullary("Bool:" + node.getConstant());
+        return layoutNullary(node, "Bool:" + node.getConstant());
     }
 
     public Object visit(ConstStringExpr node) {
-        return layoutNullary("Str:" + node.getConstant());
+        return layoutNullary(node, "Str:" + node.getConstant());
     }
 
     public Object visit(VarExpr node) {
         if(node.getRef() == null)
-            return layoutNullary("VarExpr " + node.getName());
+            return layoutNullary(node, "VarExpr " + node.getName());
         else
-            return layoutUnary("VarExpr " + node.getName(),node.getRef());
+            return layoutUnary(node, "VarExpr " + node.getName(),node.getRef());
     }
 
 
 
     //-------- auxilliary methods ---------
-    private DrawingTree layoutCaption(String name)
+    private DrawingTree layoutCaption(ASTNode node, String name)
     {
         int w = fontMetrics.stringWidth(name) + 14;
         int h = fontMetrics.getHeight() + 4;
-        return new DrawingTree(name, w, h);
+        return new DrawingTree(node, name, w, h);
     }
 
-    private DrawingTree layoutNullary(String name)
+    private DrawingTree layoutNullary(ASTNode node, String name)
     {
-        DrawingTree dt = layoutCaption(name);
+        DrawingTree dt = layoutCaption(node, name);
         dt.contour.upper_tail = new Polyline(0, dt.height + 2 * BORDER, null);
         dt.contour.upper_head = dt.contour.upper_tail;
         dt.contour.lower_tail = new Polyline(-dt.width - 2 * BORDER, 0, null);
@@ -293,18 +293,18 @@ public class LayoutVisitor extends Visitor
         return dt;
     }
 
-    private DrawingTree layoutUnary(String name, ASTNode child1)
+    private DrawingTree layoutUnary(ASTNode node, String name, ASTNode child1)
     {
-        DrawingTree dt = layoutCaption(name);
+        DrawingTree dt = layoutCaption(node, name);
         DrawingTree d1 = (DrawingTree) child1.accept(this);
         dt.setChildren(new DrawingTree[]{d1});
         attachParent(dt, join(dt));
         return dt;
     }
 
-    private DrawingTree layoutBinary(String name, ASTNode child1, ASTNode child2)
+    private DrawingTree layoutBinary(ASTNode node, String name, ASTNode child1, ASTNode child2)
     {
-        DrawingTree dt = layoutCaption(name);
+        DrawingTree dt = layoutCaption(node, name);
         DrawingTree d1 = (DrawingTree) child1.accept(this);
         DrawingTree d2 = (DrawingTree) child2.accept(this);
         dt.setChildren(new DrawingTree[]{d1, d2});
@@ -312,10 +312,10 @@ public class LayoutVisitor extends Visitor
         return dt;
     }
 
-    private DrawingTree layoutTernary(String name, ASTNode child1, ASTNode child2,
+    private DrawingTree layoutTernary(ASTNode node, String name, ASTNode child1, ASTNode child2,
                                       ASTNode child3)
     {
-        DrawingTree dt = layoutCaption(name);
+        DrawingTree dt = layoutCaption(node, name);
         DrawingTree d1 = (DrawingTree) child1.accept(this);
         DrawingTree d2 = (DrawingTree) child2.accept(this);
         DrawingTree d3 = (DrawingTree) child3.accept(this);
@@ -324,11 +324,11 @@ public class LayoutVisitor extends Visitor
         return dt;
     }
 
-    private DrawingTree layoutQuaternary(String name, ASTNode child1, ASTNode child2,
+    private DrawingTree layoutQuaternary(ASTNode node, String name, ASTNode child1, ASTNode child2,
                                          ASTNode child3, ASTNode child4)
     {
-        DrawingTree dt = layoutCaption(name);
-        DrawingTree d1 = (DrawingTree) child1.accept(this);
+        DrawingTree dt = layoutCaption(node, name);
+        DrawingTree d1 = (DrawingTree) child1.accept(this); // returns a layoutNullary, for example
         DrawingTree d2 = (DrawingTree) child2.accept(this);
         DrawingTree d3 = (DrawingTree) child3.accept(this);
         DrawingTree d4 = (DrawingTree) child4.accept(this);
@@ -337,10 +337,10 @@ public class LayoutVisitor extends Visitor
         return dt;
     }
 
-    private DrawingTree layoutQuintenary(String name, ASTNode child1, ASTNode child2,
+    private DrawingTree layoutQuintenary(ASTNode node, String name, ASTNode child1, ASTNode child2,
                                          ASTNode child3, ASTNode child4, ASTNode child5)
     {
-        DrawingTree dt = layoutCaption(name);
+        DrawingTree dt = layoutCaption(node, name);
         DrawingTree d1 = (DrawingTree) child1.accept(this);
         DrawingTree d2 = (DrawingTree) child2.accept(this);
         DrawingTree d3 = (DrawingTree) child3.accept(this);
@@ -351,11 +351,11 @@ public class LayoutVisitor extends Visitor
         return dt;
     }
 
-    private DrawingTree layoutNary(String name, ListNode childNodes)
+    private DrawingTree layoutNary(ASTNode node, String name, ListNode childNodes)
     {
         if(childNodes.getSize() == 0)
-            return layoutNullary("Empty" + name);
-        DrawingTree dt = layoutCaption(name);
+            return layoutNullary(node, "Empty" + name);
+        DrawingTree dt = layoutCaption(node, name);
         DrawingTree[] childTrees = new DrawingTree[childNodes.getSize()];
         int i = 0;
         for(ASTNode childNode : childNodes) {

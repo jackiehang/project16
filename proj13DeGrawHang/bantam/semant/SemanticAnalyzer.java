@@ -163,11 +163,17 @@ public class SemanticAnalyzer
 
         //step 5: Type Checking
         if(verbose) { System.out.print("Beginning Type Checking... "); }
+
         for(String key: classMap.keySet()) {
+
             if(!key.equals("Object") && !key.equals("String") && !key.equals("TextIO") && !key.equals("Sys")) {
+
                 ErrorHandler checkerErrorHandler = new ErrorHandler();
+
                 TypeCheckerVisitor typeCheckerVisitor = new TypeCheckerVisitor(checkerErrorHandler);
+
                 typeCheckerVisitor.checkTypes(classMap.get(key));
+
                 printErrors(checkerErrorHandler);
             }
         }
@@ -270,6 +276,7 @@ public class SemanticAnalyzer
      * creates the inheritance links for all classTreeNodes
      */
     private void buildInheritance() {
+
         //adds inheritance to built-in classes
         for(String key: classMap.keySet()) {
             if (!key.equals("Object")) {
@@ -355,8 +362,6 @@ public class SemanticAnalyzer
                 classTreeNode.setParent(classMap.get("Object"));
             }
 
-
-
             return null;
         }
     }
@@ -392,11 +397,7 @@ public class SemanticAnalyzer
             //get the current class's tree node
             currentClass = classMap.get(node.getName());
 
-            //adds parent's Vars and Methods to currentClass symbol table.
-            currentClass.getVarSymbolTable().setParent(
-                    currentClass.getParent().getVarSymbolTable());
-            currentClass.getVarSymbolTable().setParent(
-                    currentClass.getParent().getMethodSymbolTable());
+
 
             //enter current node's Symbol Table's scope
             currentClass.getVarSymbolTable().enterScope();
@@ -405,9 +406,6 @@ public class SemanticAnalyzer
             //traverse
             node.getMemberList().accept(this);
 
-            //exit the current class's Symbol table's scopes.
-            currentClass.getVarSymbolTable().exitScope();
-            currentClass.getMethodSymbolTable().exitScope();
 
             return null;
         }
@@ -575,7 +573,6 @@ public class SemanticAnalyzer
             currentClass.getVarSymbolTable().exitScope();
             return null;
         }
-
     }
 
     /**

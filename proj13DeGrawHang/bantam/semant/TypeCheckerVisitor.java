@@ -24,6 +24,7 @@ import java.util.*;
  * @version 1.0
  * @since Feb 25, 2019
  */
+
 public class TypeCheckerVisitor extends Visitor {
     private ClassTreeNode currentClass;
     private SymbolTable currentSymbolTable;
@@ -87,6 +88,7 @@ public class TypeCheckerVisitor extends Visitor {
             if (nodeType.equals(targetType)) {  // if nodes are the same return true
                 return true;
             }
+
 
             // get the type's associated tree node
             curNode = currentClass.getClassMap().get(nodeType);
@@ -1013,7 +1015,7 @@ public class TypeCheckerVisitor extends Visitor {
      * @return the result of the visit
      */
     public Object visit(VarExpr node) {
-        node.getRef().accept(this);
+
         if (currentSymbolTable.peek(node.getName()) != null) {
             errorHandler.register(Error.Kind.SEMANT_ERROR,
                     currentClass.getASTNode().getFilename(), node.getLineNum(),

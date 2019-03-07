@@ -14,6 +14,7 @@
 
 package proj13DeGrawHang.bantam.treedrawer;
 
+import proj13DeGrawHang.bantam.ast.ASTNode;
 import java.awt.*;
 
 public class DrawingTree
@@ -25,9 +26,21 @@ public class DrawingTree
     Polygon contour;
     DrawingTree parent;
     DrawingTree[] children;
+    private ASTNode node;
 
-    public DrawingTree(String caption, int width, int height)
+
+    /**
+     *
+     * @return the ASTNode associated with this drawn rect
+     */
+    public ASTNode getNode() {
+        return this.node;
+    }
+
+
+    public DrawingTree(ASTNode node, String caption, int width, int height)
     {
+        this.node = node;
         this.caption = caption;
         this.width = width;
         this.height = height;
@@ -38,12 +51,14 @@ public class DrawingTree
         this.contour = new Polygon();
     }
 
+
     public void setChildren(DrawingTree[] children)
     {
         this.children = children;
         for (int i = 0; i < children.length; i++)
             children[i].parent = this;
     }
+
 
     private final int FIXED_FONT_HEIGHT = 10;
     //private final int FIXED_FONT_ASCENT = 3; -- never used
@@ -57,6 +72,7 @@ public class DrawingTree
         graphics.drawRect(pos.x, pos.y, width - 1, height - 1);
         graphics.drawString(caption, pos.x + 2,
                 pos.y + (height + FIXED_FONT_HEIGHT) / 2);
+
 
         if (children != null) {
             for (int i = 0; i < children.length; i++) {
@@ -87,5 +103,14 @@ public class DrawingTree
             }
         }
     }
+
+    /**
+     *
+     * @return this DrawingTree's array of DrawingTree children
+     */
+    public DrawingTree[] getChildren() {
+        return this.children;
+    }
+
 
 }

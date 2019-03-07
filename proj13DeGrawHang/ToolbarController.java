@@ -30,6 +30,7 @@ import proj13DeGrawHang.bantam.ast.ASTNode;
 import proj13DeGrawHang.bantam.ast.Program;
 import proj13DeGrawHang.bantam.parser.Parser;
 import proj13DeGrawHang.bantam.semant.*;
+import proj13DeGrawHang.bantam.treedrawer.Drawer;
 import proj13DeGrawHang.bantam.util.ClassTreeNode;
 import proj13DeGrawHang.bantam.util.CompilationException;
 import proj13DeGrawHang.bantam.util.ErrorHandler;
@@ -84,7 +85,7 @@ public class ToolbarController {
                 this.handleScan();
                 break;
             case "scanParse":
-                this.handleScanAndParse();
+                this.handleScanAndParse(true, true);
                 break;
             case "scanParseCheck":
                 this.handleScanParseCheck();
@@ -112,29 +113,47 @@ public class ToolbarController {
      * handles scanning and parsing in the code area.
      * Draw the AST to a Java Swing window
      */
-    public void handleScanAndParse(){
+    public void handleScanAndParse(boolean drawParseTree, boolean writeToConsole){
+        this.console.clear();
+
         this.parseIsDone = false;
 
         Thread scanParseThread = new Thread (()->{
             ParseTask parseTask = new ParseTask();
+            parseTask.setWriteToConsole(writeToConsole);
             FutureTask<Program> curFutureTask = new FutureTask<Program>(parseTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
             try{
                 AST = curFutureTask.get();
-                //don't need to draw at the moment
 
-                /*
-                if(AST != null){
-                    Drawer drawer = new Drawer();
-                    drawer.draw(this.codeTabPane.getFileName(),AST); //gets stuck here
+                if (drawParseTree) {
+
+                    Platform.runLater(() -> {
+                        if(AST != null){
+
+                            Drawer drawer = new Drawer();
+
+                            JavaCodeArea curCodeArea =
+                                    (JavaCodeArea)this.codeTabPane.getCodeArea();
+
+                            // set the drawer's associated code area
+                            drawer.setCorrespondingCodeArea(curCodeArea);
+
+                            // draw the tree
+                            drawer.draw(this.codeTabPane.getFileName(),AST);
+                        }
+                    });
                 }
-                */
 
                 this.parseIsDone = true;
             }catch(InterruptedException| ExecutionException e){
-                Platform.runLater(()->
-                        this.console.writeToConsole("Parsing failed \n", "Error"));
+                if (writeToConsole) {
+                    Platform.runLater(()->
+                            this.console.writeToConsole(
+                                    "Parsing failed \n", "Error"));
+                }
+
             }
         });
 
@@ -156,7 +175,7 @@ public class ToolbarController {
     public void handleScanParseCheck() {
 
         // scan and parse the program
-        handleScanAndParse();
+        handleScanAndParse(true, true);
 
         // verify that parsing is finished
         if (!this.parseIsDone() || AST == null) {
@@ -287,6 +306,11 @@ public class ToolbarController {
      */
     private class ParseTask implements Callable{
 
+        private boolean writeToConsole = true;
+
+        public void setWriteToConsole(boolean write) {
+            this.writeToConsole = write;
+        }
         /**
          * Create a Parser and use it to create an AST
          * @return AST tree created by a parser
@@ -302,32 +326,39 @@ public class ToolbarController {
             Program AST = null;
             try{
                 AST = parser.parse(filename);
-                Platform.runLater(()->
-                {
-                    ToolbarController.this.console.writeToConsole(
-                            "Parsing Successful.\n", "Output");
-                });
                 codeArea.removePreviousSelections();    // remove errors due to success
+                if (this.writeToConsole) {
+                    Platform.runLater(()->
+                    {
+                        ToolbarController.this.console.writeToConsole(
+                                "Parsing Successful.\n", "Output");
+                    });
+                }
             }
             catch (CompilationException e){
 
                 Platform.runLater(()-> {
-                    ToolbarController.this.console.writeToConsole("Parsing Failed\n","Error");
-                    ToolbarController.this.console.writeToConsole("There were: " +
-                            errorHandler.getErrorList().size() + " errors in " +
-                            ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
 
                     if (errorHandler.errorsFound()) {
+
                         List<Error> errorList = errorHandler.getErrorList();
 
                         // tell code area to actively display errors
                         codeArea.setInlineErrors(errorList);
 
-                        Iterator<Error> errorIterator = errorList.iterator();
-                        ToolbarController.this.console.writeToConsole("\n", "Error");
-                        while (errorIterator.hasNext()) {
-                            ToolbarController.this.console.writeToConsole(errorIterator.next().toString() +
-                                    "\n", "Error");
+                        if (this.writeToConsole) {
+
+                            ToolbarController.this.console.writeToConsole("Parsing Failed\n","Error");
+                            ToolbarController.this.console.writeToConsole("There were: " +
+                                    errorHandler.getErrorList().size() + " errors in " +
+                                    ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
+
+                            Iterator<Error> errorIterator = errorList.iterator();
+                            ToolbarController.this.console.writeToConsole("\n", "Error");
+                            while (errorIterator.hasNext()) {
+                                ToolbarController.this.console.writeToConsole(errorIterator.next().toString() +
+                                        "\n", "Error");
+                            }
                         }
                     }
                 });
