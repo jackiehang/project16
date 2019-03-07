@@ -93,6 +93,10 @@ public class SemanticAnalyzer
         this.errorHandler = errorHandler;
     }
 
+    public Hashtable<String, ClassTreeNode> getClassMap(){
+        return classMap;
+    }
+
     /**
      * Analyze the AST checking for semantic errors and annotating the tree
      * Also builds an auxiliary class hierarchy tree

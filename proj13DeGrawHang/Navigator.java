@@ -187,8 +187,8 @@ public class Navigator {
     private void findDeclaration(String name) {
         ASTNode node = map.get(name);
 
-        int index = 0;
-        int rowNum = node.getLineNum() - 1;
+        int index;
+        int rowNum = node.getLineNum()-1;
         int colPos = node.getColPos();
 
         curCodeArea.moveTo(rowNum, colPos);
