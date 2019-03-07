@@ -14,6 +14,8 @@
 
 package proj13DeGrawHang.bantam.treedrawer;
 
+import javafx.application.Platform;
+import org.fxmisc.richtext.model.Paragraph;
 import proj13DeGrawHang.JavaCodeArea;
 import proj13DeGrawHang.bantam.ast.ASTNode;
 
@@ -26,6 +28,7 @@ class DrawerPanel extends JPanel implements MouseListener
 {
     private DrawingTree drawingTree;
     private JavaCodeArea javaCodeArea;
+    private DrawingTree curNodeClicked;
 
     public void setCorrespondingCodeArea(JavaCodeArea javaCodeArea) {
         this.javaCodeArea = javaCodeArea;
@@ -37,7 +40,6 @@ class DrawerPanel extends JPanel implements MouseListener
         this.addMouseListener(this);
         setPreferredSize(new Dimension(4096, 4096));
     }
-
 
     public void setDrawing(DrawingTree drawingTree)
     {
@@ -56,14 +58,9 @@ class DrawerPanel extends JPanel implements MouseListener
         }
     }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {}
-
-    @Override
-    public void mousePressed(MouseEvent e) {}
-
     /**
-     *
+     * checks for click on a DrawingTree node click, changes its color,
+     * moves to node's line in the corresponding CodeArea
      *
      * @param e the mouse click event
      */
@@ -71,17 +68,71 @@ class DrawerPanel extends JPanel implements MouseListener
     public void mouseReleased(MouseEvent e) {
 
         // save result of searching for a rect clicked in this DrawerPanel
-        ASTNode nodeClicked = findClickedNode(drawingTree, e.getX(), e.getY());
+        DrawingTree nodeRectClicked = findClickedNode(drawingTree, e.getX(), e.getY());
 
         // exit if no node was clicked
-        if (nodeClicked == null) return;
+        if (nodeRectClicked == null) return;
+
+        // set the clicked node the first time one is clicked
+        if (this.curNodeClicked == null) this.curNodeClicked = nodeRectClicked;
+        else {
+            // reset the previous node clicked
+            this.curNodeClicked.setSelected(false);
+            this.curNodeClicked = nodeRectClicked;
+        }
+
+        // the node has been clicked
+        this.curNodeClicked.setSelected(true);
+
+        // repaint the tree
+        this.repaint();
+
+        // get the ASTNode corresponding to the clicked DrawingTree node
+        ASTNode nodeClicked = this.curNodeClicked.getNode();
 
         // get line # in file corresponding to clicked node
-        int lineNum = nodeClicked.getLineNum();
+        int lineNum = nodeClicked.getLineNum()-1;
+
+        // highlight the line in the code area
+        highlightLine(lineNum);
+
+    }
+
+    /**
+     * moves to and highlights a line in a CodeArea
+     *
+     * @param lineNum line index of a line in a CodeArea
+     */
+    private void highlightLine(int lineNum) {
 
         // move to the line
         if (this.javaCodeArea != null) {
-            this.javaCodeArea.showParagraphAtTop(lineNum-1);
+
+            // must run on GUI thread
+            Platform.runLater( () -> {
+
+                // focus on the code area
+                this.javaCodeArea.requestFocus();
+
+                // go to the line containing the clicked node
+                this.javaCodeArea.showParagraphAtTop(lineNum);
+
+                // get current line
+                Paragraph curLine = this.javaCodeArea.getParagraph(lineNum);
+
+
+                // place caret at start of line
+                this.javaCodeArea.moveTo(lineNum, 0);
+
+                // get caret position (offset from first character in file)
+                int caretPos = this.javaCodeArea.getCaretPosition();
+
+                // get line length
+                int lineLength = curLine.length();
+
+                // highlight the line
+                this.javaCodeArea.selectRange(caretPos, caretPos+lineLength);
+            });
         }
     }
 
@@ -94,11 +145,11 @@ class DrawerPanel extends JPanel implements MouseListener
      * @return the ASTNode associated with the DrawingTree rect that was clicked,
      *         null if no node clicked
      */
-    private ASTNode findClickedNode(DrawingTree nodeRect, int mouseX, int mouseY) {
+    private DrawingTree findClickedNode(DrawingTree nodeRect, int mouseX, int mouseY) {
 
         // base case
         if (nodeWasClicked(nodeRect, mouseX, mouseY)) {
-            return nodeRect.getNode();
+            return nodeRect;
         }
 
         // get the children
@@ -106,16 +157,17 @@ class DrawerPanel extends JPanel implements MouseListener
 
         // initialize vars reset within loop
         DrawingTree curChild;
-        ASTNode clickedNode;
+        DrawingTree clickedNode;
 
         // if the children exist, loop through them and see if any were clicked
         if (children != null) {
 
             // loop through children
-            for (int i = 0; i < children.length; i++) {
+            for (int i = 0, childrenLength = children.length; i < childrenLength; i++) {
+                DrawingTree aChildren = children[i];
 
                 // get current child
-                curChild = children[i];
+                curChild = aChildren;
 
                 // check this child and its children for a clicked node
                 clickedNode = findClickedNode(curChild, mouseX, mouseY);
@@ -125,10 +177,8 @@ class DrawerPanel extends JPanel implements MouseListener
 
             }
         }
-
         return null;
     }
-
 
     /**
      * compares mouse click location to nodeRect location to determine whether or not
@@ -141,22 +191,27 @@ class DrawerPanel extends JPanel implements MouseListener
      */
     private boolean nodeWasClicked(DrawingTree nodeRect, int mouseX, int mouseY) {
 
-        // get node left and right bounds
+        // get node drawing left and right bounds
         int nodeRectLeft = nodeRect.pos.x;
         int nodeRectRight = nodeRectLeft + nodeRect.width;
 
-        // get node top and bottom bounds
+        // get node drawing top and bottom bounds
         int nodeRectTop = nodeRect.pos.y;
         int nodeRectBottom = nodeRectTop + nodeRect.height;
 
-        // if within AST rect bounds
-        if (nodeRectLeft <= mouseX && mouseX <= nodeRectRight &&
-                nodeRectTop < mouseY && mouseY < nodeRectBottom) {
+        boolean clickedBetweenWidth = (nodeRectLeft <= mouseX) && (mouseX <= nodeRectRight);
+        boolean clickedBetweenHeight = (nodeRectTop < mouseY) && (mouseY < nodeRectBottom);
 
-            return true;
-        }
-        return false;
+        return clickedBetweenWidth && clickedBetweenHeight;
     }
+
+
+
+    @Override
+    public void mouseClicked(MouseEvent e) {}
+
+    @Override
+    public void mousePressed(MouseEvent e) {}
 
     @Override
     public void mouseEntered(MouseEvent e) {}
