@@ -68,7 +68,7 @@ public class Navigator {
         DialogPane dialogPane = new DialogPane();
         VBox vBox = new VBox();
         ListView<Text> listView = new ListView<>();
-
+        // creates a list view with all available class names
         for (String s : this.classFieldsAndMethods.keySet()) {
             listView.getItems().add(new Text(s));
         }
@@ -210,7 +210,9 @@ public class Navigator {
         curCodeArea.moveTo(rowNum, colPos);
         index = curCodeArea.getCaretPosition();
 
+        //highlights the field or method
         curCodeArea.selectRange(index, index + name.length());
+        //adjusts code area to focus to right line
         curCodeArea.showParagraphAtTop(node.getLineNum() - 2);
 
     }
@@ -231,6 +233,7 @@ public class Navigator {
         curCodeArea.moveTo(rowNum, colPos);
         index = curCodeArea.getCaretPosition();
 
+        //highlights the class declaration
         curCodeArea.selectRange(index, index + name.length());
         curCodeArea.showParagraphAtTop(cNode.getLineNum() - 2);
 
