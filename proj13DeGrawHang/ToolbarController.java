@@ -184,7 +184,7 @@ public class ToolbarController {
     public void handleScanParseCheck() {
 
         // scan and parse the program
-        handleScanAndParse(true, true);
+        handleScanAndParse(false, true);
 
         // verify that parsing is finished
         if (!this.parseIsDone() || AST == null) {
