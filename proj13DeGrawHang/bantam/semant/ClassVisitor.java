@@ -12,7 +12,7 @@ import proj13DeGrawHang.bantam.ast.*;
 import proj13DeGrawHang.bantam.visitor.Visitor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+
 
 /**
  * This class allows the user to traverse through the

@@ -11,6 +11,10 @@
   * of the authors.
   *
   * Modified by Dale Skrien, Fall 2018
+  *
+  * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+  * Project 13
+  * Date: March 7, 2019
   */
 
  package proj13DeGrawHang.bantam.lexer;

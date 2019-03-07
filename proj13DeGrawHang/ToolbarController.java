@@ -20,6 +20,10 @@
  * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
  * Project 12
  * Date: February 25, 2019
+ * _____________________________
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 12
+ * Date: March 7, 2019
  *
  */
 
@@ -236,10 +240,12 @@ public class ToolbarController {
         return this.parseIsDone;
     }
 
+    /**
+     * sets that the semantic check has not been done
+     */
     public void setCheckNotDone(){
         this.checkIsDone = false;
     }
-
 
 
     /**

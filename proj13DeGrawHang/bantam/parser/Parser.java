@@ -28,6 +28,11 @@
  * EMPTY indicates a rule with an empty right hand side.
  * All other symbols in the rules are terminals.
  */
+/*
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 13
+ * Date: March 7, 2019
+ */
 
 package proj13DeGrawHang.bantam.parser;
 

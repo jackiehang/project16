@@ -3,6 +3,10 @@
  * Edited By: Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
  * Project 9
  * Date: November 20, 2018
+ * ------------------------------------
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 13
+ * Date: March 7, 2019
  */
 package proj13DeGrawHang.bantam.lexer;
 
