@@ -28,7 +28,8 @@ import java.util.HashMap;
 
 /**
  * This class allows the user to navigate to where fields,
- * classes, and methods are declared in the file
+ * classes, and methods are declared in the file.
+ * Handles all actions contained within the "Navigate" button.s
  *
  * @author  Lucas DeGraw, Jackie Hang, ChrisMarcello
  * @since   3-5-2019
@@ -295,10 +296,15 @@ public class Navigator {
         Class_ node = findClassASTNode(name);
         String parentnode = node.getParent();
 
-        if (classFieldsAndMethods.containsKey(parentnode)) {
+        //checks if the parent is not a built-in method/parent exists.
+        if(parentnode.equals("Object")) {
+            displayWarningDialog("Parent Class 'Object' is built-in and cannot be navigated to.");
+        }
+        else if (classFieldsAndMethods.containsKey(parentnode)) {
             findClassDeclaration(parentnode);
         } else {
-            displayWarningDialog("Chosen class has built-in or non-existent parent");
+            //should never reach this if semantic analysis is done correctly.
+            displayWarningDialog("Chosen class '" + name + "' has declared parent '" + parentnode + "', which is non-existent.");
         }
     }
 
@@ -310,18 +316,16 @@ public class Navigator {
     private void findOverriddenMethodDeclaration(String parentClassName, String methodName) {
         ASTNode node = null;
         for(ASTNode n : classFieldsAndMethods.get(parentClassName)){
-            if(n instanceof Method){
-               if(((Method) n).getName().equals(methodName)){
-                    highlightText(n,methodName);
-                    node = n;
-                    break;
-               }
+            if(((Method) n).getName().equals(methodName)){
+                highlightText(n,methodName);
+                node = n;
+                break;
             }
         }
 
         //if the method does not exist in the parent class
         if(node == null){
-            displayWarningDialog("Parent class: " + parentClassName + " does not contain method: " + methodName);
+            displayWarningDialog("Parent class '" + parentClassName + "' does not contain method of name '" + methodName + "'");
         }
     }
 
