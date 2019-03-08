@@ -36,7 +36,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+
 
 class DrawerPanel extends MouseAdapter {
 
@@ -82,6 +82,11 @@ class DrawerPanel extends MouseAdapter {
         this.drawingTree = drawingTree;
     }
 
+    /**
+     * sets this DrawerPanel's associated JavaCodeArea
+     *
+     * @param javaCodeArea the code area associated with this tree drawing
+     */
     public void setCorrespondingCodeArea(JavaCodeArea javaCodeArea) {
         this.javaCodeArea = javaCodeArea;
     }
