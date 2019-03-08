@@ -236,9 +236,7 @@ public class ToolbarController {
             Platform.runLater(() -> this.console.writeToConsole("You must parse and check a program first.\n",
                     "Error"));
         } else {
-            ClassVisitor visitor = new ClassVisitor();
-            ArrayList<Class_> classes = visitor.getClassNodes(this.AST);
-            Navigator navigator = new Navigator(classes, codeTabPane.getCodeArea(), this.checker);
+            Navigator navigator = new Navigator(codeTabPane.getCodeArea(), this.checker);
         }
 
     }

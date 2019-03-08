@@ -76,6 +76,8 @@ public class SemanticAnalyzer
 
     private HashMap<String, ArrayList<ASTNode>> classFieldsAndMethods = new HashMap<>();
 
+    private ArrayList<Class_> classes = new ArrayList<>();
+
     /**
      * Object for error handling
      */
@@ -98,6 +100,10 @@ public class SemanticAnalyzer
 
     public HashMap<String, ArrayList<ASTNode>>  getClassFieldsAndMethods(){
         return classFieldsAndMethods;
+    }
+
+    public ArrayList<Class_> getClasses(){
+        return this.classes;
     }
 
     /**
@@ -186,7 +192,7 @@ public class SemanticAnalyzer
         */
 
         for (ClassTreeNode treeNode : classMap.values()) {
-            ArrayList<ASTNode> listOfClassesAndMethods = new ArrayList<>();
+            ArrayList<ASTNode> listOfFieldsAndMethods = new ArrayList<>();
             SymbolTable fields = treeNode.getVarSymbolTable();
             SymbolTable methods = treeNode.getMethodSymbolTable();
             fields.enterScope();
@@ -213,7 +219,7 @@ public class SemanticAnalyzer
                     }
                     else {
                         fields.add(((Field) member).getName(), ((Field) member).getType());
-                        listOfClassesAndMethods.add((Field) member);
+                        listOfFieldsAndMethods.add((Field) member);
                     }
                 }
                 else { // if(member instanceof Method)
@@ -233,12 +239,13 @@ public class SemanticAnalyzer
                     }
                     else {
                         methods.add(((Method) member).getName(), member);
-                        listOfClassesAndMethods.add((Method) member);
+                        listOfFieldsAndMethods.add((Method) member);
                     }
                 }
             }
             if(treeNode.getASTNode().getLineNum()!=-1) {
-                classFieldsAndMethods.put(treeNode.getName(), listOfClassesAndMethods);
+                classFieldsAndMethods.put(treeNode.getName(), listOfFieldsAndMethods);
+                classes.add((Class_)treeNode.getASTNode());
             }
         }
     }

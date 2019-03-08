@@ -45,12 +45,11 @@ public class Navigator {
     /**
      * Constructor of the Navigator
      *
-     * @param classes arraylist of Class_ nodes
      * @param codeArea current CodeArea
      * @param checker SemanticAnalyzer
      */
-    public Navigator(ArrayList<Class_> classes, CodeArea codeArea, SemanticAnalyzer checker) {
-        this.classes = classes;
+    public Navigator(CodeArea codeArea, SemanticAnalyzer checker) {
+        this.classes = checker.getClasses();
         this.curCodeArea = codeArea;
         classFieldsAndMethods = checker.getClassFieldsAndMethods();
         createNavigatorDialog();
