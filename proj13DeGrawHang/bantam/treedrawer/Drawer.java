@@ -13,6 +13,12 @@
  *
  * Modified by Dale Skrien to work with Bantam Java
  * January, 2014
+ *
+ * Modified by Lucas Degraw to allow for navigation of the code file using the drawn AST.
+ * March, 2019
+ * -- Added JavaCodeArea field
+ * -- Added setCorrespondingCodeArea() method
+
  */
 
 package proj13DeGrawHang.bantam.treedrawer;

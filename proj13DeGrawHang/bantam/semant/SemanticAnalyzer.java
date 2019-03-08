@@ -155,8 +155,8 @@ public class SemanticAnalyzer
         buildFieldAndMethodTables();
 
         //Dump Symbol Tables
-        this.root.getVarSymbolTable().dump();
-        this.root.getMethodSymbolTable().dump();
+        //this.root.getVarSymbolTable().dump();
+        //this.root.getMethodSymbolTable().dump();
 
         //step 4: check whether there is a Main class with a main method.
         checkForMainClassWithMainMethod();
@@ -179,11 +179,17 @@ public class SemanticAnalyzer
 
     public ErrorHandler getErrorHandler() { return errorHandler; }
 
+    /**
+     * Instantiates the typechecker visitor and begins visitation
+     */
     private void doTypeChecking() {
         TypeCheckerVisitor visitor = new TypeCheckerVisitor(errorHandler, root);
         visitor.visit(program);
     }
 
+    /**
+     * Checks for a Main class (or child class of Main) with a void main() method with no parameters.
+     */
     private void checkForMainClassWithMainMethod() {
         ClassTreeNode mainNode = classMap.get("Main");
         if (mainNode == null) {
@@ -201,6 +207,11 @@ public class SemanticAnalyzer
         }
     }
 
+    /**
+     * Builds the Field and Method Tables of the semantic analyzer for use with type-checking
+     * Inelegant implementation, but functional and I'm scared to touch it.
+     * Should be a visitor
+     */
     private void buildFieldAndMethodTables() {
         /* NOTE:  This should have been implemented as a visitor,
                   such as part of the ClassMapBuilderVisitor
@@ -266,6 +277,10 @@ public class SemanticAnalyzer
         }
     }
 
+    /**
+     * Builds inheritance tree for use in type-checking and further semantic analysis
+     * Additionally, checks for inheritance cycles within the file.
+     */
     private void buildInheritanceTree() {
         //step 1: add all user-defined classes to classMap
         ClassMapBuilderVisitor visitor = new ClassMapBuilderVisitor(classMap,
@@ -324,7 +339,9 @@ public class SemanticAnalyzer
     }
 
     /**
-     * Add built in classes to the class tree
+     * Add built-in classes to the class tree
+     * Fills out the classes with the appropriate fields and methods as well.
+     * Only adds Object to the AST, as the rest are unextendable and unaccessible.
      */
     private void addBuiltins() {
         // create AST node for object
@@ -385,22 +402,6 @@ public class SemanticAnalyzer
         classMap.put("Sys", new ClassTreeNode(astNode, /*built-in?*/true, /*extendable
         ?*/false, classMap));
     }
-
-    public Object getOverridenMethod(String className, String methodName) {
-        ClassTreeNode currentClass = classMap.get(className);
-        if (currentClass.getParent().isBuiltIn()) {
-            return 1;
-        }
-        SymbolTable methodSymbolTable = currentClass.getMethodSymbolTable();
-        methodSymbolTable.enterScope();
-        if(methodSymbolTable.peek(methodName) != null) {
-            return methodSymbolTable.lookup(methodName);
-        }
-        methodSymbolTable.exitScope();
-
-        return 0;
-    }
-
 
     /**
      * takes an ErrorHandler as input, prints its errors to the console
