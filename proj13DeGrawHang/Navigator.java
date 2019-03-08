@@ -104,7 +104,7 @@ public class Navigator {
         fieldsButton.setOnAction(event -> {
             if(inner.getSelectionModel().getSelectedItem()!=null){
                 String name = inner.getSelectionModel().getSelectedItem().getText();
-                this.createHelperDialog(name, "Field");
+                createHelperDialog(name, "Field");
                 dialogPane.getScene().getWindow().hide();
             }
         });
@@ -114,7 +114,7 @@ public class Navigator {
         methodsButton.setOnAction(event -> {
             if(inner.getSelectionModel().getSelectedItem()!=null){
                 String name = inner.getSelectionModel().getSelectedItem().getText();
-                this.createHelperDialog(name, "Method");
+                createHelperDialog(name, "Method");
                 dialogPane.getScene().getWindow().hide();
             }
         });
@@ -218,6 +218,8 @@ public class Navigator {
      */
     private void findFieldOrMethodDeclaration(String className, String name) {
         ASTNode node = null;
+
+        //run through the fields and methods, find the matching name in the Class
         for (ASTNode n : classFieldsAndMethods.get(className)) {
             if (n instanceof Field) {
                 if (name.equals(((Field) n).getName())) {
@@ -294,7 +296,7 @@ public class Navigator {
     private void findParentClassDeclaration(String name) {
 
         Class_ node = findClassASTNode(name);
-        String parentnode = node.getParent();
+        String parentnode = node.getParent(); //only null if called on Object, which you can't
 
         //checks if the parent is not a built-in method/parent exists.
         if(parentnode.equals("Object")) {
@@ -304,7 +306,8 @@ public class Navigator {
             findClassDeclaration(parentnode);
         } else {
             //should never reach this if semantic analysis is done correctly.
-            displayWarningDialog("Chosen class '" + name + "' has declared parent '" + parentnode + "', which is non-existent.");
+            displayWarningDialog("Chosen class '" + name + "' has declared parent '"
+                    + parentnode + "', which is non-existent.");
         }
     }
 
