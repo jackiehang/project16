@@ -1,18 +1,23 @@
-class Food{
-    boolean edible;
+class Food{  
+
+    //Check c = new Check();
+    boolean edible; 
     int numCals = 0;
-    int temp;
+    int temp; 
     boolean yummy = true;
 
-    void addCals(){
+    // uncomment below line to view inline checker error (if all parse errors have been resolved)
+    //int test = temp + yummy;
+
+    void addCals() {
         numCals ++;
     }
 
     int getTemp(){
-        return temp;
+        return temp; 
     }
 
-    boolean isYummy(){
+    boolean isYummy() {
         return yummy;
     }
 }

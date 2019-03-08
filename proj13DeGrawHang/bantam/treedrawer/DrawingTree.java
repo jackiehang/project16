@@ -28,15 +28,6 @@ public class DrawingTree
     DrawingTree[] children;
     private ASTNode node;
 
-
-    /**
-     *
-     * @return the ASTNode associated with this drawn rect
-     */
-    public ASTNode getNode() {
-        return this.node;
-    }
-
     private final int FIXED_FONT_HEIGHT = 10;
     //private final int FIXED_FONT_ASCENT = 3; -- never used
 
@@ -63,6 +54,15 @@ public class DrawingTree
         this.children = children;
         for (DrawingTree child : children) child.parent = this;
     }
+
+    /**
+     *
+     * @return the ASTNode associated with this drawn rect
+     */
+    public ASTNode getNode() {
+        return this.node;
+    }
+
 
     /**
      * sets the background and text drawing colors for this node

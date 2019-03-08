@@ -179,7 +179,7 @@ public class MasterController {
                 .successionEnds(Duration.ofMillis(500))
 
                 // run the following code block when previous stream emits an event
-                .subscribe(ignore -> this.toolbarController.handleScanAndParse(false, false));
+                .subscribe((ignore)-> this.toolbarController.handleScanParseCheck(false, false));
     }
 
     /**

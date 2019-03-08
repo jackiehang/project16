@@ -40,16 +40,18 @@ public class Drawer
         // give the panel the code area from which the tree is generated
         if (this.javaCodeArea != null) panel.setCorrespondingCodeArea(this.javaCodeArea);
 
-        DrawerFrame frame = new DrawerFrame(sourceName, panel);
+        DrawerFrame frame = new DrawerFrame(sourceName, panel.getPanel());
 
         Font font = new Font("SansSerif", Font.PLAIN, 12);
         frame.setFont(font);
 
         FontMetrics fontMetrics = frame.getFontMetrics(font);
 
-        proj13DeGrawHang.bantam.treedrawer.LayoutVisitor layout = new LayoutVisitor(fontMetrics);
+        proj13DeGrawHang.bantam.treedrawer.LayoutVisitor layout =
+                new LayoutVisitor(fontMetrics);
 
-        proj13DeGrawHang.bantam.treedrawer.DrawingTree theDrawing = (DrawingTree) AST.accept(layout);
+        proj13DeGrawHang.bantam.treedrawer.DrawingTree theDrawing =
+                (DrawingTree) AST.accept(layout);
 
         theDrawing.position(new Point(2048, 10));
 

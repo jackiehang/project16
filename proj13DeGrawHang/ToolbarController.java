@@ -96,7 +96,7 @@ public class ToolbarController {
                 this.handleScanAndParse(true, true);
                 break;
             case "scanParseCheck":
-                this.handleScanParseCheck();
+                this.handleScanParseCheck(true, true);
                 break;
             default:
                 System.out.println("ERROR: UNKNOWN COMPILATION PHASES");
@@ -122,13 +122,19 @@ public class ToolbarController {
      * Draw the AST to a Java Swing window
      */
     public void handleScanAndParse(boolean drawParseTree, boolean writeToConsole) {
+
         this.console.clear();
 
         this.parseIsDone = false;
 
         Thread scanParseThread = new Thread(() -> {
+
             ParseTask parseTask = new ParseTask();
+
+            /* denotes whether or not to write scanning/parsing results to console
+             * true when called from IDE button press, false during active compilation */
             parseTask.setWriteToConsole(writeToConsole);
+
             FutureTask<Program> curFutureTask = new FutureTask<Program>(parseTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
@@ -181,10 +187,10 @@ public class ToolbarController {
     /**
      * executes semantic analysis of the input file if it was parsed with no errors
      */
-    public void handleScanParseCheck() {
+    public void handleScanParseCheck(boolean drawParseTree, boolean writeToConsole) {
 
         // scan and parse the program
-        handleScanAndParse(false, true);
+        handleScanAndParse(drawParseTree, writeToConsole);
 
         // verify that parsing is finished
         if (!this.parseIsDone() || AST == null) {
@@ -193,14 +199,14 @@ public class ToolbarController {
         }
 
         // check the program once parsing is finished
-        handleSemanticAnalysis();
+        handleSemanticAnalysis(writeToConsole);
 
     }
 
     /**
      * executes semantic analysis of the program in a new thread
      */
-    public void handleSemanticAnalysis() {
+    public void handleSemanticAnalysis(boolean writeToConsole) {
 
 
         // begin the semantic analysis phase in a new thread
@@ -208,6 +214,10 @@ public class ToolbarController {
 
             // create and begin semantic analysis task
             CheckTask checkTask = new CheckTask();
+
+            // tell it whether or not to write to the console
+            checkTask.setWriteToConsole(writeToConsole);
+
             FutureTask<ClassTreeNode> curFutureTask = new FutureTask<ClassTreeNode>(checkTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
@@ -268,127 +278,6 @@ public class ToolbarController {
         this.checkIsDone = false;
     }
 
-
-    /**
-     * An inner class used to perform semantic analysis in a separate thread
-     * Prints error info to the console
-     */
-    private class CheckTask implements Callable {
-
-        @Override
-        public ClassTreeNode call() {
-            // create an error handler
-            ErrorHandler errorHandler = new ErrorHandler();
-
-            // create a checker that uses the new error handler
-            checker = new SemanticAnalyzer(errorHandler);
-
-            // initialize the root of the class hierarchy tree to be used for code generation
-            ClassTreeNode root = null;
-            try {
-                // attempt to analyze the abstract syntax tree
-                root = checker.analyze(AST);
-
-                // if checking phase generated no errors, display a success message
-                Platform.runLater(() -> ToolbarController.this.console.writeToConsole(
-                        "Semantic Analysis Successful.\n", "Output"));
-            } catch (RuntimeException e) {
-                // if any exceptions were thrown during semantic analysis,
-                Platform.runLater(() -> {
-
-                    // display error message in the console
-                    ToolbarController.this.console.writeToConsole("Semantic Analysis Failed\n", "Error");
-
-                    // display num errors in the console
-                    ToolbarController.this.console.writeToConsole("There were: " +
-                            errorHandler.getErrorList().size() + " errors in " +
-                            ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
-
-                    // display each individual error in the console
-                    if (errorHandler.errorsFound()) {
-                        List<Error> errorList = errorHandler.getErrorList();
-                        Iterator<Error> errorIterator = errorList.iterator();
-                        ToolbarController.this.console.writeToConsole("\n", "Error");
-                        while (errorIterator.hasNext()) {
-                            ToolbarController.this.console.writeToConsole(errorIterator.next().toString() +
-                                    "\n", "Error");
-                        }
-                    }
-                });
-            }
-            return root;
-        }
-    }
-
-    /**
-     * An inner class used to parse a file in a separate thread.
-     * Prints error info to the console
-     */
-    private class ParseTask implements Callable {
-
-        private boolean writeToConsole = true;
-
-        public void setWriteToConsole(boolean write) {
-            this.writeToConsole = write;
-        }
-
-        /**
-         * Create a Parser and use it to create an AST
-         *
-         * @return AST tree created by a parser
-         */
-        @Override
-        public Program call() {
-
-            JavaCodeArea codeArea = (JavaCodeArea) codeTabPane.getCodeArea();
-
-            ErrorHandler errorHandler = new ErrorHandler();
-            Parser parser = new Parser(errorHandler);
-            String filename = ToolbarController.this.codeTabPane.getFileName();
-            Program AST = null;
-            try {
-                AST = parser.parse(filename);
-                codeArea.removePreviousSelections();    // remove errors due to success
-                if (this.writeToConsole) {
-                    Platform.runLater(() ->
-                    {
-                        ToolbarController.this.console.writeToConsole(
-                                "Parsing Successful.\n", "Output");
-                    });
-                }
-            } catch (CompilationException e) {
-
-                Platform.runLater(() -> {
-
-                    if (errorHandler.errorsFound()) {
-
-                        List<Error> errorList = errorHandler.getErrorList();
-
-                        // tell code area to actively display errors
-                        codeArea.setInlineErrors(errorList);
-
-                        if (this.writeToConsole) {
-
-                            ToolbarController.this.console.writeToConsole("Parsing Failed\n", "Error");
-                            ToolbarController.this.console.writeToConsole("There were: " +
-                                    errorHandler.getErrorList().size() + " errors in " +
-                                    ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
-
-                            Iterator<Error> errorIterator = errorList.iterator();
-                            ToolbarController.this.console.writeToConsole("\n", "Error");
-                            while (errorIterator.hasNext()) {
-                                ToolbarController.this.console.writeToConsole(errorIterator.next().toString() +
-                                        "\n", "Error");
-                            }
-                        }
-                    }
-                });
-
-            }
-            return AST;
-        }
-    }
-
     /**
      * A private inner class used to scan a file in a separate thread
      * Print error messages to the console and write tokens in a new tab
@@ -412,11 +301,14 @@ public class ToolbarController {
                 token = scanner.scan();
             }
             String resultString = tokenString.toString();
+
             Platform.runLater(() -> {
                 ToolbarController.this.console.writeToConsole("There were: " +
                         errorHandler.getErrorList().size() + " errors in " +
                         ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
+
                 if (errorHandler.errorsFound()) {
+
                     List<Error> errorList = errorHandler.getErrorList();
                     Iterator<Error> errorIterator = errorList.iterator();
                     ToolbarController.this.console.writeToConsole("\n", "Error");
@@ -430,6 +322,137 @@ public class ToolbarController {
                 ToolbarController.this.scanIsDone = true;
             });
             return tokenString.toString();
+        }
+    }
+
+    /**
+     * An inner class used to parse a file in a separate thread.
+     * Prints error info to the console
+     */
+    private class ParseTask extends ActiveCompilationPhase implements Callable {
+
+        /**
+         * Create a Parser and use it to create an AST
+         *
+         * @return AST tree created by a parser
+         */
+        @Override
+        public Program call() {
+
+            JavaCodeArea codeArea = (JavaCodeArea) codeTabPane.getCodeArea();
+
+            ErrorHandler errorHandler = new ErrorHandler();
+            Parser parser = new Parser(errorHandler);
+            String filename = ToolbarController.this.codeTabPane.getFileName();
+            Program AST = null;
+            try {
+                AST = parser.parse(filename);
+                codeArea.removePreviousSelections();    // remove errors due to success
+
+                if (this.writeToConsole) {  // inherited field
+                    Platform.runLater(() ->
+                    {
+                        ToolbarController.this.console.writeToConsole(
+                                "Parsing Successful.\n", "Output");
+                    });
+                }
+            } catch (CompilationException e) {
+
+                Platform.runLater(() -> {
+
+                    if (errorHandler.errorsFound()) {
+
+                        List<Error> errorList = errorHandler.getErrorList();
+
+                        // tell code area to actively display errors
+                        codeArea.setInlineErrors(errorList);
+
+                        if (this.writeToConsole) {  // inherited field
+
+                            ToolbarController.this.console.writeToConsole("Parsing Failed\n", "Error");
+                            ToolbarController.this.console.writeToConsole("There were: " +
+                                    errorHandler.getErrorList().size() + " errors in " +
+                                    ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
+
+                            Iterator<Error> errorIterator = errorList.iterator();
+                            ToolbarController.this.console.writeToConsole("\n", "Error");
+                            while (errorIterator.hasNext()) {
+                                ToolbarController.this.console.writeToConsole(errorIterator.next().toString() +
+                                        "\n", "Error");
+                            }
+                        }
+                    }
+                });
+
+            }
+            return AST;
+        }
+    }
+
+    /**
+     * An inner class used to perform semantic analysis in a separate thread
+     * Prints error info to the console
+     */
+    private class CheckTask extends ActiveCompilationPhase implements Callable {
+
+        @Override
+        public ClassTreeNode call() {
+
+            JavaCodeArea codeArea = (JavaCodeArea) codeTabPane.getCodeArea();
+
+            // create an error handler
+            ErrorHandler errorHandler = new ErrorHandler();
+
+            // create a checker that uses the new error handler
+            checker = new SemanticAnalyzer(errorHandler);
+
+            // initialize the root of the class hierarchy tree to be used for code generation
+            ClassTreeNode root = null;
+            try {
+                // attempt to analyze the abstract syntax tree
+                root = checker.analyze(AST);
+                codeArea.removePreviousSelections();    // remove errors due to success
+
+                if (this.writeToConsole) {
+                    // if checking phase generated no errors, display a success message
+                    Platform.runLater(() -> ToolbarController.this.console.writeToConsole(
+                            "Semantic Analysis Successful.\n", "Output"));
+                }
+            } catch (RuntimeException e) {
+
+
+                // if any exceptions were thrown during semantic analysis,
+                Platform.runLater(() -> {
+
+                    // display each individual error in the console
+                    if (errorHandler.errorsFound()) {
+
+                        List<Error> errorList = errorHandler.getErrorList();
+
+                        // tell code area to actively display errors
+                        codeArea.setInlineErrors(errorList);
+
+                        if (this.writeToConsole) {
+
+                            // display error message in the console
+                            ToolbarController.this.console.writeToConsole("Semantic Analysis Failed\n", "Error");
+
+                            // display num errors in the console
+                            ToolbarController.this.console.writeToConsole("There were: " +
+                                    errorHandler.getErrorList().size() + " errors in " +
+                                    ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
+
+                            Iterator<Error> errorIterator = errorList.iterator();
+                            ToolbarController.this.console.writeToConsole("\n", "Error");
+                            while (errorIterator.hasNext()) {
+                                ToolbarController.this.console.writeToConsole(errorIterator.next().toString() +
+                                        "\n", "Error");
+                            }
+                        }
+                    }
+                });
+            }
+            return root;
         }
     }
 

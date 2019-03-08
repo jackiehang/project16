@@ -21,41 +21,53 @@ import proj13DeGrawHang.bantam.ast.ASTNode;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-class DrawerPanel extends JPanel implements MouseListener
-{
+class DrawerPanel extends MouseAdapter {
+
     private DrawingTree drawingTree;
     private JavaCodeArea javaCodeArea;
     private DrawingTree curNodeClicked;
+    private JPanel panel;
 
-    public void setCorrespondingCodeArea(JavaCodeArea javaCodeArea) {
-        this.javaCodeArea = javaCodeArea;
-    }
 
     public DrawerPanel() {
 
+        this.panel = new JPanel() {
+            @Override
+            public void paintComponent(Graphics g){
+                super.paintComponent(g);
+                g.setColor(getBackground());
+                Dimension d = getSize();
+                g.fillRect(0, 0, d.width, d.height);
+
+                if (drawingTree != null) {
+                    drawingTree.paint(g);
+                }
+            }
+        };
         // listen for a mouse click
-        this.addMouseListener(this);
-        setPreferredSize(new Dimension(4096, 4096));
+        panel.addMouseListener(this);
+
+        panel.setPreferredSize(new Dimension(4096, 4096));
     }
 
-    public void setDrawing(DrawingTree drawingTree)
-    {
+
+    /**
+     * @return the JPanel
+     */
+    public JPanel getPanel() {
+        return this.panel;
+    }
+
+    public void setDrawing(DrawingTree drawingTree) {
         this.drawingTree = drawingTree;
     }
 
-    public void paintComponent(Graphics g)
-    {
-        super.paintComponent(g);
-        g.setColor(getBackground());
-        Dimension d = getSize();
-        g.fillRect(0, 0, d.width, d.height);
-
-        if (drawingTree != null) {
-            drawingTree.paint(g);
-        }
+    public void setCorrespondingCodeArea(JavaCodeArea javaCodeArea) {
+        this.javaCodeArea = javaCodeArea;
     }
 
     /**
@@ -65,7 +77,7 @@ class DrawerPanel extends JPanel implements MouseListener
      * @param e the mouse click event
      */
     @Override
-    public void mouseReleased(MouseEvent e) {
+    public void mouseClicked(MouseEvent e) {
 
         // save result of searching for a rect clicked in this DrawerPanel
         DrawingTree nodeRectClicked = findClickedNode(drawingTree, e.getX(), e.getY());
@@ -85,13 +97,13 @@ class DrawerPanel extends JPanel implements MouseListener
         this.curNodeClicked.setSelected(true);
 
         // repaint the tree
-        this.repaint();
+        this.panel.repaint();
 
         // get the ASTNode corresponding to the clicked DrawingTree node
         ASTNode nodeClicked = this.curNodeClicked.getNode();
 
         // get line # in file corresponding to clicked node
-        int lineNum = nodeClicked.getLineNum()-1;
+        int lineNum = nodeClicked.getLineNum() - 1;
 
         // highlight the line in the code area
         highlightLine(lineNum);
@@ -109,7 +121,7 @@ class DrawerPanel extends JPanel implements MouseListener
         if (this.javaCodeArea != null) {
 
             // must run on GUI thread
-            Platform.runLater( () -> {
+            Platform.runLater(() -> {
 
                 // focus on the code area
                 this.javaCodeArea.requestFocus();
@@ -119,7 +131,6 @@ class DrawerPanel extends JPanel implements MouseListener
 
                 // get current line
                 Paragraph curLine = this.javaCodeArea.getParagraph(lineNum);
-
 
                 // place caret at start of line
                 this.javaCodeArea.moveTo(lineNum, 0);
@@ -131,7 +142,7 @@ class DrawerPanel extends JPanel implements MouseListener
                 int lineLength = curLine.length();
 
                 // highlight the line
-                this.javaCodeArea.selectRange(caretPos, caretPos+lineLength);
+                this.javaCodeArea.selectRange(caretPos, caretPos + lineLength);
             });
         }
     }
@@ -140,10 +151,10 @@ class DrawerPanel extends JPanel implements MouseListener
      * recursively checks nodeRect and its children to determine if a rect was clicked
      *
      * @param nodeRect the rectangle drawn in the JPanel
-     * @param mouseX click x coordinate
-     * @param mouseY click y coordinate
+     * @param mouseX   click x coordinate
+     * @param mouseY   click y coordinate
      * @return the ASTNode associated with the DrawingTree rect that was clicked,
-     *         null if no node clicked
+     * null if no node clicked
      */
     private DrawingTree findClickedNode(DrawingTree nodeRect, int mouseX, int mouseY) {
 
@@ -163,11 +174,9 @@ class DrawerPanel extends JPanel implements MouseListener
         if (children != null) {
 
             // loop through children
-            for (int i = 0, childrenLength = children.length; i < childrenLength; i++) {
-                DrawingTree aChildren = children[i];
-
+            for (DrawingTree child : children) {
                 // get current child
-                curChild = aChildren;
+                curChild = child;
 
                 // check this child and its children for a clicked node
                 clickedNode = findClickedNode(curChild, mouseX, mouseY);
@@ -185,8 +194,8 @@ class DrawerPanel extends JPanel implements MouseListener
      * the nodeRect was clicked
      *
      * @param nodeRect the rectangle drawn in the JPanel
-     * @param mouseX click x coordinate
-     * @param mouseY click y coordinate
+     * @param mouseX   click x coordinate
+     * @param mouseY   click y coordinate
      * @return whether or node a node rectangle was clicked in the AST drawing
      */
     private boolean nodeWasClicked(DrawingTree nodeRect, int mouseX, int mouseY) {
@@ -205,17 +214,4 @@ class DrawerPanel extends JPanel implements MouseListener
         return clickedBetweenWidth && clickedBetweenHeight;
     }
 
-
-
-    @Override
-    public void mouseClicked(MouseEvent e) {}
-
-    @Override
-    public void mousePressed(MouseEvent e) {}
-
-    @Override
-    public void mouseEntered(MouseEvent e) {}
-
-    @Override
-    public void mouseExited(MouseEvent e) {}
 }
