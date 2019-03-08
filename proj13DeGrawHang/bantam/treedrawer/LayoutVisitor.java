@@ -14,6 +14,13 @@
  * Modified by Dale Skrien to work with the Bantam Java compiler
  * --added layoutNary method
  * --changed all the visit methods to work with the Visitor class
+ *
+ * Modified by Lucas Degraw to allow for navigation of the code file using the drawn AST.
+ * March, 2019
+ * -- Changed all auxiliary methods to take the the node calling them as input
+ *    to pass to the DrawingTree()
+ * -- Changed visit() methods to pass the the respective node to the aux methods
+
  */
 
 package proj13DeGrawHang.bantam.treedrawer;

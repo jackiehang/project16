@@ -10,6 +10,15 @@
  * This software is provided free for educational use only. It may
  * not be used for commercial purposes without the prior written permission
  * of the authors.
+ *
+ * Modified by Lucas Degraw to allow for navigation of the code file using the drawn AST.
+ * March, 2019
+ * --Added ASTNode field
+ * --Added bkgColor field
+ * --Added textColor field
+ * --Changed constructor to take in ASTNode
+ * --Added getNode() method
+ * --Added setSelected() method
  */
 
 package proj13DeGrawHang.bantam.treedrawer;

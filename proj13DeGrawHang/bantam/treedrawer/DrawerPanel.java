@@ -10,6 +10,19 @@
  * This software is provided free for educational use only. It may
  * not be used for commercial purposes without the prior written permission
  * of the authors.
+ *
+ * Modified by Lucas Degraw to allow for navigation of the code file using the drawn AST.
+ * March, 2019
+ * -- Extends MouseAdapter instead of JPanel
+ * -- Added JPanel field that overrides paintComponent() method
+ * -- Added getPanel() method to get the JPanel from the Drawer
+ * -- Added JavaCodeArea field
+ * -- Added DrawingTree field for current node clicked (to reset previous)
+ * -- Implements MouseListener
+ * -- Added mouseClicked(e)
+ * -- Added findClickedNode()
+ * -- Added nodeWasClicked()
+ * -- Added highlightLine()
  */
 
 package proj13DeGrawHang.bantam.treedrawer;
