@@ -137,7 +137,7 @@ public class MasterController {
             this.navigatorButton.setDisable(false);
         }
         this.updateStructureView();
-        setInlineParsing();
+        setRealTimeCompiling();
     }
 
     /**
@@ -157,14 +157,14 @@ public class MasterController {
         }
         this.updateStructureView();
         this.createDirectoryTree();
-        setInlineParsing();
+        setRealTimeCompiling();
     }
 
     /**
      * sets up code areas to auto-save on a key release and to parse every 500 ms if
      * if the code area has been changed
      */
-    private void setInlineParsing() {
+    private void setRealTimeCompiling() {
 
         // get the current code area
         JavaCodeArea codeArea = (JavaCodeArea)this.codeTabPane.getCodeArea();

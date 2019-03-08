@@ -96,7 +96,7 @@ public class JavaCodeArea extends CodeArea{
      * @param popup the popup that will show
      * @param popupText the Label containing the text for the popup
      */
-    public void showTooltipErrorMsg(MouseOverTextEvent e, Popup popup, Label popupText) {
+    private void showTooltipErrorMsg(MouseOverTextEvent e, Popup popup, Label popupText) {
 
         // get index of cursor position within text
         int charIdx = e.getCharacterIndex();
@@ -154,6 +154,7 @@ public class JavaCodeArea extends CodeArea{
         // loop through errors
         for (Error e : errors) {
 
+            System.out.println("ADDING ERROR HIGHLIGHTING: " + e.getMessage() + ", " + e.getLineNum());
             // get error line #
             int lineNum = e.getLineNum();
 
@@ -179,7 +180,7 @@ public class JavaCodeArea extends CodeArea{
      *
      * @param errors a list of errors from Scanning, Parsing or Checking
      */
-    public void setInlineErrors(List<Error> errors) {
+    public void setRealTimeErrors(List<Error> errors) {
         removePreviousSelections();
         addNewSelections(errors);
     }

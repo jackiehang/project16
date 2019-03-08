@@ -35,6 +35,7 @@ class DrawerPanel extends MouseAdapter {
 
     public DrawerPanel() {
 
+        // override paintComponent method in this JPanel instance to manually repaint tree
         this.panel = new JPanel() {
             @Override
             public void paintComponent(Graphics g){
@@ -48,9 +49,11 @@ class DrawerPanel extends MouseAdapter {
                 }
             }
         };
+
         // listen for a mouse click
         panel.addMouseListener(this);
 
+        // set panel dimensions
         panel.setPreferredSize(new Dimension(4096, 4096));
     }
 
@@ -208,6 +211,7 @@ class DrawerPanel extends MouseAdapter {
         int nodeRectTop = nodeRect.pos.y;
         int nodeRectBottom = nodeRectTop + nodeRect.height;
 
+        // booleans denoting whether click was within horizontal, vertical node bounds
         boolean clickedBetweenWidth = (nodeRectLeft <= mouseX) && (mouseX <= nodeRectRight);
         boolean clickedBetweenHeight = (nodeRectTop < mouseY) && (mouseY < nodeRectBottom);
 
