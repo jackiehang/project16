@@ -154,7 +154,6 @@ public class JavaCodeArea extends CodeArea{
         // loop through errors
         for (Error e : errors) {
 
-            System.out.println("ADDING ERROR HIGHLIGHTING: " + e.getMessage() + ", " + e.getLineNum());
             // get error line #
             int lineNum = e.getLineNum();
 
