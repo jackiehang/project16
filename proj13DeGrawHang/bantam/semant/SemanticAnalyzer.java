@@ -74,8 +74,14 @@ public class SemanticAnalyzer
     private Hashtable<String, ClassTreeNode> classMap = new Hashtable<String,
             ClassTreeNode>();
 
+    /**
+     * Maps class names to an arrayList of astnodes of its fields and methods
+     */
     private HashMap<String, ArrayList<ASTNode>> classFieldsAndMethods = new HashMap<>();
 
+    /**
+     * An arraylist of the classes of the program
+     */
     private ArrayList<Class_> classes = new ArrayList<>();
 
     /**
@@ -98,10 +104,19 @@ public class SemanticAnalyzer
         this.errorHandler = errorHandler;
     }
 
+    /**
+     *  Maps class names to an arrayList of astnodes of its fields and methods
+     *
+     * @return classFieldsandMethods
+     */
     public HashMap<String, ArrayList<ASTNode>>  getClassFieldsAndMethods(){
         return classFieldsAndMethods;
     }
 
+    /**
+     * returns an arraylist of the classes
+     * @return classes
+     */
     public ArrayList<Class_> getClasses(){
         return this.classes;
     }
@@ -243,6 +258,7 @@ public class SemanticAnalyzer
                     }
                 }
             }
+            //if not a built-in class
             if(treeNode.getASTNode().getLineNum()!=-1) {
                 classFieldsAndMethods.put(treeNode.getName(), listOfFieldsAndMethods);
                 classes.add((Class_)treeNode.getASTNode());
