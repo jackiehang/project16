@@ -20,6 +20,11 @@
  * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
  * Project 13
  * Date: March 7, 2019
+ *
+ * ---------------------------
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 15
+ * Date: March 21, 2019
  */
 
 package proj15DeGrawHangMarcello;
@@ -119,15 +124,7 @@ public class MasterController {
 
         this.codeTabPane.passControllerContextMenus(this,codeAreaContextMenu, tabContextMenu);
 
-        this.assembleBtn.setDisable(true);
-        this.assembleAndRunBtn.setDisable(true);
-        this.stopAssemblyBtn.setDisable(true);
-
-        this.bindMipsBtnDisabling();
-
-        this.assemblyController = new AssemblyController(this.console, this.codeTabPane.getTabFileMap());
-
-        this.asmblyCtrlrListenForTabChange();
+        this.toolBarBtnEnableAndDisable();
     }
 
     /**
@@ -143,8 +140,10 @@ public class MasterController {
 
     /**
      * enables assembly buttons when the current file ends in .asm or .s
+     * enables buttons involved with scanning when the current
+     * file ends in .btm
      */
-    private void bindMipsBtnDisabling() {
+    private void toolBarBtnEnableAndDisable() {
 
         this.codeTabPane.getSelectionModel().selectedItemProperty().addListener(
                 (observableValue, oldTab, newTab) -> {
@@ -156,6 +155,14 @@ public class MasterController {
                     this.assembleBtn.setDisable(isDisabled);
                     this.assembleAndRunBtn.setDisable(isDisabled);
                     this.stopAssemblyBtn.setDisable(isDisabled);
+
+                    isDisabled = true;
+                    if (filename.endsWith(".btm")) isDisabled = false;
+                    this.scanButton.setDisable(isDisabled);
+                    this.scanParseButton.setDisable(isDisabled);
+                    this.scanParseCheckButton.setDisable(isDisabled);
+                    this.navigatorButton.setDisable(isDisabled);
+
                 }
         );
     }
@@ -192,15 +199,7 @@ public class MasterController {
 
         fileController.handleNew();
 
-        if(toolbarController.scanIsDone()) {
-            this.scanButton.setDisable(false);
-            this.scanParseButton.setDisable(false);
-            this.scanParseCheckButton.setDisable(false);
-            this.navigatorButton.setDisable(false);
-        }
         this.updateStructureView();
-
-        // TODO: ONLY CALL THIS IF THE PROVIDED FILENAME OF THE NEW FILE ENDS IN .btm
         setRealTimeCompiling();
     }
 
@@ -214,15 +213,13 @@ public class MasterController {
     public void handleOpen() {
         File file = fileController.handleOpenDialog();
         fileController.handleOpen(file);
-        if(toolbarController.scanIsDone() && !this.codeTabPane.getTabs().isEmpty()) {
-            this.scanButton.setDisable(false);
-            this.scanParseButton.setDisable(false);
-            this.scanParseCheckButton.setDisable(false);
-            this.navigatorButton.setDisable(false);
+        if(!this.codeTabPane.getTabs().isEmpty()){
+            this.createDirectoryTree();
+            if(file.getName().endsWith(".btm")) {
+                this.updateStructureView();
+                setRealTimeCompiling();
+            }
         }
-        this.updateStructureView();
-        this.createDirectoryTree();
-        setRealTimeCompiling();
     }
 
     /**
@@ -532,6 +529,10 @@ public class MasterController {
         this.scanParseButton.setDisable(true);
         this.scanParseCheckButton.setDisable(true);
         this.navigatorButton.setDisable(true);
+        this.assembleBtn.setDisable(true);
+        this.assembleAndRunBtn.setDisable(true);
+        this.stopAssemblyBtn.setDisable(true);
+
    }
 
     /**

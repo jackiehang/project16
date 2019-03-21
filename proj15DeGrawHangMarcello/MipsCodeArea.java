@@ -1,6 +1,6 @@
 /*
  * File: MipsCodeArea.java
- * Names: Zena Abulhab, Paige Hanssen, Kyle Slager, Kevin Zhou
+ * Names: Lucas DeGraw, Jackie Hang, Chris Marcello
  * Project 15
  * Date: March 20, 2019
  *
@@ -19,14 +19,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class is the controller for all of the toolbar functionality.
- * Specifically the compile, compile and run, and stop buttons
+ * This class creates a MipsCodeArea that performs syntax highlighting
+ * similar to that of the MARS simulator
  *
- * @author  Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
- * @author  Kevin Ahn, Jackie Hang, Matt Jones, Kevin Zhou
- * @author  Zena Abulhab, Paige Hanssen, Kyle Slager Kevin Zhou
- * @version 2.0
- * @since   10-3-2018
+ * @author  Lucas DeGraw, Jackie Hang, Chris Marcello
+ * @version 1.0
+ * @since   3-21-2019
  */
 public class MipsCodeArea extends CodeArea{
 
@@ -67,14 +65,13 @@ public class MipsCodeArea extends CodeArea{
 
 /**
  * source:  https://moodle.colby.edu/pluginfile.php/294745/mod_resource/content/0/JavaKeywordsDemo.java
- * @author  Matt Jones, Kevin Zhou, Kevin Ahn, Jackie Hang
- * @author  Zena Abulhab, Paige Hanssen, Kyle Slager Kevin Zhou
- * @version 3.0
- * @since   09-30-2018
+ * @author  Lucas DeGraw, Jackie Hang, Chris Marcello
+ * @version 1.0
+ * @since   03-21-19
  */
 class MipsStyle {
 
-    // a list of strings that contain the mips keywords for the IDE to identify.
+    // a list of strings that contain the mips directives for the IDE to identify.
     private static final String[] MIPS_DIRECTIVES = new String[]{
             "align","ascii","asciiz","byte","data","double","end_macro",
             "eqv","extern","float","globl","half","include","kdata",
@@ -110,14 +107,16 @@ class MipsStyle {
             "ush","usw"
     };
 
-    // a list of strings that contain the mips keywords for the IDE to identify.
+    // a list of strings that contain the mips register for the IDE to identify.
     private static final String[] MIPS_REGISTERS = new String[]{
             "zero","at","v0","v1","a0","a1","a2","a3","t0",
             "t1","t2","t3","t4","t5","t6","t7","s0","s1",
             "s2","s3","s4","s5","s6","s7","t8","t9","k0",
-            "k1","gp","sp","s8","fp","ra"
+            "k1","gp","sp","s8","fp","ra","1","0","1","2",
+            "3","4","5","6","7","8","9","10","11","12","13",
+            "14","15","16","17","18","19","20","21","22","23",
+            "24","25","26","27","28","29","30","31"
     };
-
 
 
     // the mips regex rules for the ide
@@ -126,6 +125,7 @@ class MipsStyle {
     private static final String MIPS_COMMENT_PATTERN = "#[^\n]*";
     private static final String MIPS_REGISTER_PATTERN = "\\$(" + String.join("|", MIPS_REGISTERS) + ")\\b";
     private static final String MIPS_STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
+    private static final String MIPS_LABEL_PATTERN = "[a-zA-Z]*[a-zA-Z0-9]*:";
 
 
     private static final Pattern PATTERN = Pattern.compile(
@@ -134,6 +134,7 @@ class MipsStyle {
                     + "|(?<MIPSCOMMENT>" + MIPS_COMMENT_PATTERN + ")"
                     + "|(?<MIPSSTRING>" + MIPS_STRING_PATTERN + ")"
                     + "|(?<MIPSREGISTER>" + MIPS_REGISTER_PATTERN + ")"
+                    + "|(?<MIPSLABEL>" + MIPS_LABEL_PATTERN + ")"
 
     );
 
@@ -153,7 +154,9 @@ class MipsStyle {
                     matcher.group("MIPSINSTRUCTION") != null ? "mipsInstruction" :
                             matcher.group("MIPSCOMMENT") != null ? "mipsComment" :
                                     matcher.group("MIPSSTRING") != null ? "mipsComment" :
-                                    matcher.group("MIPSREGISTER") != null ? "mipsRegister" :
+                                        matcher.group("MIPSREGISTER") != null ? "mipsRegister" :
+                                                matcher.group("MIPSLABEL") != null ? "mipsLabel" :
+
                                             null; /* never happens */
             assert styleClass != null;
             spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
