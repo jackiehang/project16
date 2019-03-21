@@ -190,12 +190,6 @@ public class MasterController {
     public void handleNew() {
         fileController.handleNew();
 
-//        if(toolbarController.scanIsDone()) {
-//            this.scanButton.setDisable(false);
-//            this.scanParseButton.setDisable(false);
-//            this.scanParseCheckButton.setDisable(false);
-//            this.navigatorButton.setDisable(false);
-//        }
         this.updateStructureView();
         setRealTimeCompiling();
     }
@@ -211,9 +205,9 @@ public class MasterController {
         File file = fileController.handleOpenDialog();
         fileController.handleOpen(file);
         if(!this.codeTabPane.getTabs().isEmpty()){
+            this.createDirectoryTree();
             if(file.getName().endsWith(".btm")) {
                 this.updateStructureView();
-                this.createDirectoryTree();
                 setRealTimeCompiling();
             }
         }
