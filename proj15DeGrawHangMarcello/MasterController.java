@@ -117,18 +117,36 @@ public class MasterController {
 
     }
 
+    @FXML
+    public void handleAssembly() {
+
+    }
+
+    @FXML
+    public void handleMipsRun() {
+
+    }
+
+    @FXML
+    public void handleStopAssembly() {
+
+    }
+
+
     /**
      * Handler for the "About" menu item in the "File" menu.
      * Creates an Information alert dialog to display author and information of this program
      */
-    @FXML public void handleAbout() { this.helpMenuController.handleAbout(); }
+    @FXML
+    public void handleAbout() { this.helpMenuController.handleAbout(); }
 
     /**
      * Handler for the "New" menu item in the "File" menu.
      * Adds a new Tab to the TabPane, and also adds null to the HashMap
      * Also sets the current tab for both the file and edit controllers.
      */
-    @FXML public void handleNew() {
+    @FXML
+    public void handleNew() {
         fileController.handleNew();
         if(toolbarController.scanIsDone()) {
             this.scanButton.setDisable(false);
@@ -137,6 +155,7 @@ public class MasterController {
             this.navigatorButton.setDisable(false);
         }
         this.updateStructureView();
+
         setRealTimeCompiling();
     }
 
@@ -146,7 +165,8 @@ public class MasterController {
      * Use scanner to read the file and write it into a new tab.
      * Also sets the current tab for both the file and edit controllers.
      */
-    @FXML public void handleOpen() {
+    @FXML
+    public void handleOpen() {
         File file = fileController.handleOpenDialog();
         fileController.handleOpen(file);
         if(toolbarController.scanIsDone() && !this.codeTabPane.getTabs().isEmpty()) {
@@ -160,14 +180,24 @@ public class MasterController {
         setRealTimeCompiling();
     }
 
+    // TODO: DON'T CALL FOR FOR MIPS
     /**
      * sets up code areas to auto-save on a key release and to parse every 500 ms if
      * if the code area has been changed
      */
     private void setRealTimeCompiling() {
 
-        // get the current code area
-        JavaCodeArea codeArea = (JavaCodeArea)this.codeTabPane.getCodeArea();
+
+        CodeArea codeArea = this.codeTabPane.getCodeArea();
+
+        // TODO: temporary check until MIPS command-line assembly is implemented to get errors list
+        if (codeArea instanceof MipsCodeArea) {
+            System.out.println("MIPS");
+            return;
+        }
+
+        // get the current code area;
+        // JavaCodeArea codeArea = (JavaCodeArea)this.codeTabPane.getCodeArea();
 
         // save the file after each key press
         codeArea.setOnKeyReleased((e) -> this.handleSave());
@@ -188,7 +218,8 @@ public class MasterController {
      * If changes have been made, redirect to askSave and then close the tab.
      * Otherwise, just close the tab.
      */
-    @FXML public void handleClose(Event event) {
+    @FXML
+    public void handleClose(Event event) {
         fileController.handleClose(event);
         if (this.codeTabPane.getTabs().isEmpty()&&toolbarController.scanIsDone()){
             disableToolbar();
@@ -203,7 +234,8 @@ public class MasterController {
      * Else if the file has never been saved, opens a pop-up window that allows the user to
      * choose a filename and directory and then store the content of the tab to storage.
      */
-    @FXML public void handleSave() { fileController.handleSave(); }
+    @FXML
+    public void handleSave() { fileController.handleSave(); }
 
     /**
      * Handler for the "Save as..." menu item in the "File" menu.
@@ -211,7 +243,8 @@ public class MasterController {
      * Calls writeFile to save the file to memory.
      * Changes the name of the current tab to match the newly saved file's name.
      */
-    @FXML public void handleSaveAs( ) { fileController.handleSaveAs(); }
+    @FXML
+    public void handleSaveAs( ) { fileController.handleSaveAs(); }
 
     /**
      * Handler for the "Exit" menu item in the "File" menu.
@@ -219,7 +252,8 @@ public class MasterController {
      * Returns when the user cancels exiting any tab.
      * @param event an event
      */
-    @FXML public void handleExit(Event event) { fileController.handleExit(event); }
+    @FXML
+    public void handleExit(Event event) { fileController.handleExit(event); }
 
     /**
      * Handler for the "Undo" menu item in the "Edit" menu.

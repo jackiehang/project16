@@ -13,6 +13,7 @@ import javafx.scene.control.MenuItem;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.binding.Bindings;
+import org.fxmisc.richtext.CodeArea;
 
 /**
  * This class contains the setup for the context menu in the code area in the IDE.
@@ -74,7 +75,7 @@ public class CodeAreaContextMenu extends ContextMenu {
      * with whether some text is selected.
      * @param codeArea the corresponding JavaCodeArea
      */
-    public void bindCutCopyMenuItems(JavaCodeArea codeArea){
+    public void bindCutCopyMenuItems(CodeArea codeArea){
         //Boolean Binding that reflects the selected text is null or not
         BooleanBinding selectIsNull=Bindings.equal( 0,
                 new SimpleIntegerProperty(codeArea.getSelectedText().length()).asObject());

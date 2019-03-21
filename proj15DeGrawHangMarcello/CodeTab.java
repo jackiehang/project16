@@ -10,6 +10,7 @@ package proj15DeGrawHangMarcello;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import org.fxmisc.flowless.VirtualizedScrollPane;
+import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 
 /**
@@ -36,23 +37,43 @@ public class CodeTab extends Tab{
      */
     public CodeTab(MasterController masterController,CodeAreaContextMenu codeAreaContextMenu,
                    TabContextMenu tabContextMenu, CodeTabPane codeTabPane, String filename, String content){
+
         super(filename);
         this.masterController = masterController;
         this.codeAreaContextMenu = codeAreaContextMenu;
         this.codeTabPane = codeTabPane;
 
-        this.addCodeArea(content);
+        this.addCodeArea(filename, content);
         this.setOnCloseRequest(event -> this.masterController.handleClose(event));
         this.setContextMenu(tabContextMenu);
     }
+
+//    private void addCodeArea(String filename, String content) {
+//        if (filename.endsWith(".asm") || filename.endsWith(".s")) {
+//            addMipsCodeArea(content);
+//            return;
+//        }
+//        addJavaCodeArea(content);
+//    }
+//
+//    public void addMipsCodeArea(String content) {
+//
+//    }
 
     /**
      * Creates a code area, adds it to a VirtualizedScrollPane, and then adds the scroll pane to the tab object.
      * @param content content to add to the code area if opening a file
      */
-    public void addCodeArea(String content){
+    private void addCodeArea(String filename, String content){
+
+        CodeArea codeArea;
+
+        if (filename.endsWith(".asm") || filename.endsWith(".s")) {
+            codeArea = new MipsCodeArea();
+        } else codeArea = new JavaCodeArea();
+
+
         // creation of the codeArea
-        JavaCodeArea codeArea = new JavaCodeArea();
         codeArea.setOnKeyPressed(event -> this.codeTabPane.resetSaveStatus());
         codeArea.replaceText(content);
         codeArea.setContextMenu(this.codeAreaContextMenu);

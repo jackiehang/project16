@@ -92,6 +92,9 @@
         <Button fx:id ="scanParseButton" onAction = "#handleScanAndParse" text = "Scan and Parse"/>
         <Button fx:id ="scanParseCheckButton" onAction="#handleScanParseCheck" text="Scan->Parse->Check"/>
         <Button fx:id ="navigatorButton" onAction="#handleNavigate" text="Navigate"/>
+        <Button fx:id ="assembleBtn" onAction="#handleAssembly" text="Navigate"/>
+        <Button fx:id ="assembleAndRunBtn" onAction="#handleMipsRun" text="Navigate"/>
+        <Button fx:id ="stopAssemblyBtn" onAction="#handleStopAssembly" text="Navigate"/>
     </ToolBar>
     <SplitPane orientation="VERTICAL" focusTraversable = "true"
                dividerPositions="0.7" VBox.vgrow="ALWAYS" >
