@@ -119,18 +119,16 @@ public class MasterController {
 
         this.codeTabPane.passControllerContextMenus(this,codeAreaContextMenu, tabContextMenu);
 
-        this.assembleBtn.setDisable(true);
-        this.assembleAndRunBtn.setDisable(true);
-        this.stopAssemblyBtn.setDisable(true);
-
-        this.bindMipsBtnDisabling();
+        this.toolBarBtnEnableAndDisable();
     }
 
 
     /**
      * enables assembly buttons when the current file ends in .asm or .s
+     * enables buttons involved with scanning when the current
+     * file ends in .btm
      */
-    private void bindMipsBtnDisabling() {
+    private void toolBarBtnEnableAndDisable() {
 
         this.codeTabPane.getSelectionModel().selectedItemProperty().addListener(
                 (observableValue, oldTab, newTab) -> {
@@ -143,6 +141,14 @@ public class MasterController {
                     this.assembleBtn.setDisable(isDisabled);
                     this.assembleAndRunBtn.setDisable(isDisabled);
                     this.stopAssemblyBtn.setDisable(isDisabled);
+
+                    isDisabled = true;
+                    if (filename.endsWith(".btm")) isDisabled = false;
+                    this.scanButton.setDisable(isDisabled);
+                    this.scanParseButton.setDisable(isDisabled);
+                    this.scanParseCheckButton.setDisable(isDisabled);
+                    this.navigatorButton.setDisable(isDisabled);
+
                 }
         );
     }
@@ -178,14 +184,14 @@ public class MasterController {
     @FXML
     public void handleNew() {
         fileController.handleNew();
-        if(toolbarController.scanIsDone()) {
-            this.scanButton.setDisable(false);
-            this.scanParseButton.setDisable(false);
-            this.scanParseCheckButton.setDisable(false);
-            this.navigatorButton.setDisable(false);
-        }
-        this.updateStructureView();
 
+//        if(toolbarController.scanIsDone()) {
+//            this.scanButton.setDisable(false);
+//            this.scanParseButton.setDisable(false);
+//            this.scanParseCheckButton.setDisable(false);
+//            this.navigatorButton.setDisable(false);
+//        }
+        this.updateStructureView();
         setRealTimeCompiling();
     }
 
@@ -199,15 +205,13 @@ public class MasterController {
     public void handleOpen() {
         File file = fileController.handleOpenDialog();
         fileController.handleOpen(file);
-        if(toolbarController.scanIsDone() && !this.codeTabPane.getTabs().isEmpty()) {
-            this.scanButton.setDisable(false);
-            this.scanParseButton.setDisable(false);
-            this.scanParseCheckButton.setDisable(false);
-            this.navigatorButton.setDisable(false);
+        if(!this.codeTabPane.getTabs().isEmpty()){
+            if(file.getName().endsWith(".btm")) {
+                this.updateStructureView();
+                this.createDirectoryTree();
+                setRealTimeCompiling();
+            }
         }
-        this.updateStructureView();
-        this.createDirectoryTree();
-        setRealTimeCompiling();
     }
 
     // TODO: DON'T CALL FOR FOR MIPS
@@ -517,6 +521,10 @@ public class MasterController {
         this.scanParseButton.setDisable(true);
         this.scanParseCheckButton.setDisable(true);
         this.navigatorButton.setDisable(true);
+        this.assembleBtn.setDisable(true);
+        this.assembleAndRunBtn.setDisable(true);
+        this.stopAssemblyBtn.setDisable(true);
+
    }
 
     /**
