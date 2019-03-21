@@ -65,6 +65,10 @@ public class MasterController {
     @FXML private Button scanParseCheckButton;
     @FXML private Button navigatorButton;
     @FXML private TreeView<String> directoryTree;
+    @FXML private Button assembleBtn;
+    @FXML private Button assembleAndRunBtn;
+    @FXML private Button stopAssemblyBtn;
+
     @FXML private TreeView<String> fileStructureTree;
 
     private EditController editController;
@@ -113,8 +117,34 @@ public class MasterController {
         this.console.setToolbarController(this.toolbarController);
         this.console.setContextMenu(consoleContextMenu);
 
-        this.codeTabPane.passControllerContextMenus(this,codeAreaContextMenu,tabContextMenu);
+        this.codeTabPane.passControllerContextMenus(this,codeAreaContextMenu, tabContextMenu);
 
+        this.assembleBtn.setDisable(true);
+        this.assembleAndRunBtn.setDisable(true);
+        this.stopAssemblyBtn.setDisable(true);
+
+        this.bindMipsBtnDisabling();
+    }
+
+
+    /**
+     * enables assembly buttons when the current file ends in .asm or .s
+     */
+    private void bindMipsBtnDisabling() {
+
+        this.codeTabPane.getSelectionModel().selectedItemProperty().addListener(
+                (observableValue, oldTab, newTab) -> {
+
+                    String filename = newTab.getText();
+                    boolean isDisabled = true;
+
+                    if (filename.endsWith(".asm") || filename.endsWith(".s")) isDisabled = false;
+
+                    this.assembleBtn.setDisable(isDisabled);
+                    this.assembleAndRunBtn.setDisable(isDisabled);
+                    this.stopAssemblyBtn.setDisable(isDisabled);
+                }
+        );
     }
 
     @FXML
@@ -191,10 +221,7 @@ public class MasterController {
         CodeArea codeArea = this.codeTabPane.getCodeArea();
 
         // TODO: temporary check until MIPS command-line assembly is implemented to get errors list
-        if (codeArea instanceof MipsCodeArea) {
-            System.out.println("MIPS");
-            return;
-        }
+        if (codeArea instanceof MipsCodeArea) return;
 
         // get the current code area;
         // JavaCodeArea codeArea = (JavaCodeArea)this.codeTabPane.getCodeArea();
@@ -259,7 +286,8 @@ public class MasterController {
      * Handler for the "Undo" menu item in the "Edit" menu.
      */
     @FXML
-    public void handleUndo() { editController.handleUndo(); }
+    public void handleUndo() {
+        editController.handleUndo(); }
 
     /**
      * Handler for the "Redo" menu item in the "Edit" menu.

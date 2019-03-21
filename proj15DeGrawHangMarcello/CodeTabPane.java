@@ -252,4 +252,8 @@ public class CodeTabPane extends TabPane {
         } else
             return null;
     }
+
+//    public SelectionModel getSelectionModel() {
+//
+//    }
 }
