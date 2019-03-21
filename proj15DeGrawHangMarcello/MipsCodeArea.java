@@ -19,13 +19,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class creates a MipsCodeArea that highlights
+ * This class creates a MipsCodeArea that performs syntax highlighting
+ * similar to that of the MARS simulator
  *
- * @author  Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
- * @author  Kevin Ahn, Jackie Hang, Matt Jones, Kevin Zhou
- * @author  Zena Abulhab, Paige Hanssen, Kyle Slager Kevin Zhou
- * @version 2.0
- * @since   10-3-2018
+ * @author  Lucas DeGraw, Jackie Hang, Chris Marcello
+ * @version 1.0
+ * @since   3-21-2019
  */
 public class MipsCodeArea extends CodeArea{
 
