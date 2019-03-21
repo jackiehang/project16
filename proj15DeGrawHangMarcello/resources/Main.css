@@ -70,6 +70,26 @@
     -pref-width: 200px;
 }
 
+.mipsKeyword {
+    -fx-fill: pink;
+}
+
+.mipsInstruction {
+    -fx-fill: cadetblue;
+}
+
+.mipsRegister {
+     -fx-fill: red;
+
+}
+
+.mipsComment{
+     -fx-fill: green;
+
+}
+
+
+
 .keyword {
     -fx-fill: -Keyword-color;
     -fx-font-weight: bold;
