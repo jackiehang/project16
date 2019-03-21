@@ -70,12 +70,12 @@
     -pref-width: 200px;
 }
 
-.mipsKeyword {
-    -fx-fill: pink;
+.mipsDirective {
+    -fx-fill: magenta;
 }
 
 .mipsInstruction {
-    -fx-fill: cadetblue;
+    -fx-fill: blue;
 }
 
 .mipsRegister {
@@ -84,10 +84,9 @@
 }
 
 .mipsComment{
-     -fx-fill: green;
+     -fx-fill: limegreen;
 
 }
-
 
 
 .keyword {

@@ -73,11 +73,13 @@ public class MipsCodeArea extends CodeArea{
  * @since   09-30-2018
  */
 class MipsStyle {
-    // a list of strings that contain the keywords for the IDE to identify.
-    private static final String[] MIPS_KEYWORDS = new String[]{
-            ".data",".asciiz"," .text",".globl",".global"
-    };
 
+    // a list of strings that contain the mips keywords for the IDE to identify.
+    private static final String[] MIPS_DIRECTIVES = new String[]{
+            "align","ascii","asciiz","byte","data","double","end_macro",
+            "eqv","extern","float","globl","half","include","kdata",
+            "ktext","macro","set","space","text","word"
+    };
 
     // a list of strings that contain the MIPS instructions for the IDE to identify.
     private static final String[] MIPS_INSTRUCTIONS = new String[]{
@@ -88,21 +90,50 @@ class MipsStyle {
             "or","ori","sll","sllv","sra","srav","srl","srlv",
             "xor","xori","lhi","llo","slt","sltu","slti","sltiu",
             "bgtz","blez", "jalr","lb","lbu","lh","lhu","lw",
-            "sb","sh","sw","mthi","mtlo","trap"
+            "sb","sh","sw","mthi","mtlo","trap", "li", "syscall",
+            "abs.d","abs.s","add.d","add.s","bc1f","bc1t","bgez",
+            "bgezal","bgtz","blez","bltz","bltzal","break","c.eq.d",
+            "c.eq.s","c.le.d","c.le.s","c.lt.d","c.lt.s","ceil.w.d",
+            "ceil.w.s","clo","clz","cvt.d.s","cvt.d.w","cvt.s.d",
+            "cvt.s.w","ctv.w.d","cvt.w.s","div.s","div.d","eret",
+            "floor.w.d","floor.w.s","jalr","ldc1","ll","lui","lwc1",
+            "lwl","lwr","madd","maddu","mfc0","mfc1","mfhi","mflo",
+            "mov.d","mov.s","movf","movf.d","movf.s","movn","movn.d",
+            "movn.s","movt","movt.d","movt.s","movz","movz.d","movz.s",
+            "msub","msubu","mtc0","mtc1","mthi","mtlo","mul","mul.d",
+            "mul.s","neg.d","neg.s","nop", "nor", "round.w.d","round.w.s",
+            "sc","sqrt.d","sqrt.s","sub.d","sub.s","swr","teq","teqi","tge",
+            "tgeiu","tgeu","tlt","tlti","tltiu","tltu","tne","tnei","trunc.w.d",
+            "trunc.w.s","l.d","l.s","la","ld","ll","mulo","mulou","mulu","rem",
+            "remu","rol","ror","s.d","s.s","sdc1","seq","sge","sgeu","sgt",
+            "sgtu","sle","sleu","sne","swc1","swl","ulh","ulhu","ulw",
+            "ush","usw"
     };
 
-    // the regex rules for the ide
-    private static final String MIPS_REGISTER_PATTERN = "\\$[a-zA-Z0-9_]*";
+    // a list of strings that contain the mips keywords for the IDE to identify.
+    private static final String[] MIPS_REGISTERS = new String[]{
+            "zero","at","v0","v1","a0","a1","a2","a3","t0",
+            "t1","t2","t3","t4","t5","t6","t7","s0","s1",
+            "s2","s3","s4","s5","s6","s7","t8","t9","k0",
+            "k1","gp","sp","s8","fp","ra"
+    };
+
+
+
+    // the mips regex rules for the ide
+    private static final String MIPS_DIRECTIVE_PATTERN = "\\.(" + String.join("|", MIPS_DIRECTIVES) + ")\\b";
     private static final String MIPS_INSTRUCTION_PATTERN = "\\b(" + String.join("|", MIPS_INSTRUCTIONS) + ")\\b";
-    private static final String MIPS_KEYWORD_PATTERN = "\\b(" + String.join("|", MIPS_KEYWORDS) + ")\\b";
-    private static final String MIPS_COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/";
+    private static final String MIPS_COMMENT_PATTERN = "#[^\n]*";
+    private static final String MIPS_REGISTER_PATTERN = "\\$(" + String.join("|", MIPS_REGISTERS) + ")\\b";
+    private static final String MIPS_STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
+
 
     private static final Pattern PATTERN = Pattern.compile(
-            "(?<MIPSKEYWORD>" + MIPS_KEYWORD_PATTERN + ")"
+            "(?<MIPSDIRECTIVE>" + MIPS_DIRECTIVE_PATTERN + ")"
                     + "|(?<MIPSINSTRUCTION>" + MIPS_INSTRUCTION_PATTERN + ")"
                     + "|(?<MIPSCOMMENT>" + MIPS_COMMENT_PATTERN + ")"
+                    + "|(?<MIPSSTRING>" + MIPS_STRING_PATTERN + ")"
                     + "|(?<MIPSREGISTER>" + MIPS_REGISTER_PATTERN + ")"
-
 
     );
 
@@ -118,9 +149,10 @@ class MipsStyle {
         StyleSpansBuilder<Collection<String>> spansBuilder
                 = new StyleSpansBuilder<>();
         while (matcher.find()) {
-            String styleClass = matcher.group("MIPSKEYWORD") != null ? "mipsKeyword" :
+            String styleClass = matcher.group("MIPSDIRECTIVE") != null ? "mipsDirective" :
                     matcher.group("MIPSINSTRUCTION") != null ? "mipsInstruction" :
                             matcher.group("MIPSCOMMENT") != null ? "mipsComment" :
+                                    matcher.group("MIPSSTRING") != null ? "mipsComment" :
                                     matcher.group("MIPSREGISTER") != null ? "mipsRegister" :
                                             null; /* never happens */
             assert styleClass != null;
