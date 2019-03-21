@@ -137,6 +137,13 @@ public class CodeTabPane extends TabPane {
     }
 
     /**
+     * @return the tabFileMap
+     */
+    public HashMap<Tab, File> getTabFileMap() {
+        return this.tabFileMap;
+    }
+
+    /**
      * Returns the corresponding file of the tab
      * @param tab the selected tab
      * @return the corresponding file
@@ -252,8 +259,4 @@ public class CodeTabPane extends TabPane {
         } else
             return null;
     }
-
-//    public SelectionModel getSelectionModel() {
-//
-//    }
 }

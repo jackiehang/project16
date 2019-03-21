@@ -143,7 +143,6 @@ public class JavaCodeArea extends CodeArea{
         this.selections.clear();
     }
 
-
     /**
      * highlights erroneous lines and sets up the map of line #, error msg pairs
      *

@@ -3,10 +3,17 @@
  * Names: Zena Abulhab, Paige Hanssen, Kyle Slager, Kevin Zhou
  * Project 5
  * Date: October 12, 2018
+ *
  * ---------------------------
  * Edited By: Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
  * Project 6/7/9
  * Date: October 26, 2018/ November 3, 2018/ November 20, 2018
+ *
+ * ---------------------------
+ * Edited by: Lucas DeGraw
+ * Project 15
+ * Date: 3/21/19
+ *
  */
 
 package proj15DeGrawHangMarcello;
@@ -29,11 +36,10 @@ import org.fxmisc.richtext.StyleClassedTextArea;
  */
 public class Console extends StyleClassedTextArea {
 
-    private boolean receivedCommand;
     private String command;
-    private ToolbarController toolbarController;
     //The index of the first character of the command in the console text string
     private int commandStartIndex;
+    private KeyCode lastKeyTyped;
 
     /**
      *  This is the constructor, setting up the console
@@ -41,10 +47,8 @@ public class Console extends StyleClassedTextArea {
      */
     public Console(){
         super();
-        this.receivedCommand = false;
         this.commandStartIndex = -1;
         this.command = "";
-        this.toolbarController = null;
         this.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             this.handleKeyPressed(e);
         });
@@ -81,14 +85,26 @@ public class Console extends StyleClassedTextArea {
     }
 
     /**
+     * @returns whether Enter was pressed between the last call to this method
+     */
+    public boolean userPressedEnter() {
+        if (this.lastKeyTyped == KeyCode.ENTER) {
+            // reset so that the in CompilationError.writeInput() stops after entering
+            this.lastKeyTyped = null;
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Consume all keyTyped event if it is before the commandstartindex
      * @param e the keyEvent
      */
-    private void handleKeyTyped(KeyEvent e){
+     private void handleKeyTyped(KeyEvent e){
         if (this.getCaretPosition() < commandStartIndex) {
             e.consume();
         }
-    }
+     }
 
     /**
      * Handles the keyPressed events in the console
@@ -96,12 +112,10 @@ public class Console extends StyleClassedTextArea {
      * The key press would not do anything if not pressed after the command start index
      * @param e the keyEvent
      */
-    private void handleKeyPressed(KeyEvent e) {
-        //If there are no process running consume the event and return
-        if(!this.getProcessStatus()){
-            e.consume();
-            return;
-        }
+     private void handleKeyPressed(KeyEvent e) {
+
+         // save last key pressed
+         this.lastKeyTyped = e.getCode();
 
         //If there is current command stored
         if (this.commandStartIndex != -1) {
@@ -120,10 +134,6 @@ public class Console extends StyleClassedTextArea {
             e.consume();
             //If Enter was pressed in the middle of a command append a new line to the end
             if (this.getCaretPosition() >= commandStartIndex) {
-                //If there is a process running, set the receivedCommand field to true
-                if (this.getProcessStatus()){
-                    this.receivedCommand = true;
-                }
                 this.appendText("\n");
                 this.requestFollowCaret();
             }
@@ -155,19 +165,4 @@ public class Console extends StyleClassedTextArea {
         this.requestFollowCaret();
     }
 
-    /**
-     * Set the toolbarController related to this console
-     * @param toolbarController The toolbarController to assign to the field.
-     */
-    public void setToolbarController(ToolbarController toolbarController){
-        this.toolbarController = toolbarController;
-    }
-
-    /**
-     * get the process status for the toolbarController
-     * @return the boolean value indicating if a process running
-     */
-    private boolean getProcessStatus(){
-        return !(this.toolbarController.scanIsDone()&&this.toolbarController.parseIsDone());
-    }
 }

@@ -78,6 +78,7 @@ public class MasterController {
     private DirectoryController directoryController;
     private HelpMenuController helpMenuController;
     private StructureViewController structureViewController;
+    private AssemblyController assemblyController;
 
 
     /**
@@ -114,7 +115,6 @@ public class MasterController {
 
         //disable Toolbar items to start and pass controllers and context menu to console
         this.disableToolbar();
-        this.console.setToolbarController(this.toolbarController);
         this.console.setContextMenu(consoleContextMenu);
 
         this.codeTabPane.passControllerContextMenus(this,codeAreaContextMenu, tabContextMenu);
@@ -124,8 +124,22 @@ public class MasterController {
         this.stopAssemblyBtn.setDisable(true);
 
         this.bindMipsBtnDisabling();
+
+        this.assemblyController = new AssemblyController(this.console, this.codeTabPane.getTabFileMap());
+
+        this.asmblyCtrlrListenForTabChange();
     }
 
+    /**
+     * makes AssemblyController listen for a selected tab change and save the new tab
+     */
+    private void asmblyCtrlrListenForTabChange() {
+        this.codeTabPane.getSelectionModel().selectedItemProperty().addListener(
+                (observableValue, oldTab, newTab) -> {
+                    this.assemblyController.setSelectedTab(newTab);
+                }
+        );
+    }
 
     /**
      * enables assembly buttons when the current file ends in .asm or .s
@@ -134,7 +148,6 @@ public class MasterController {
 
         this.codeTabPane.getSelectionModel().selectedItemProperty().addListener(
                 (observableValue, oldTab, newTab) -> {
-
                     String filename = newTab.getText();
                     boolean isDisabled = true;
 
@@ -148,20 +161,19 @@ public class MasterController {
     }
 
     @FXML
-    public void handleAssembly() {
-
+    public void handleAssembly(Event e) {
+        this.assemblyController.handleAssembly(e);
     }
 
     @FXML
-    public void handleMipsRun() {
-
+    public void handleRunMips(Event e) {
+        this.assemblyController.handleRunMips(e);
     }
 
     @FXML
     public void handleStopAssembly() {
-
+        this.assemblyController.handleStopAssembly();
     }
-
 
     /**
      * Handler for the "About" menu item in the "File" menu.
@@ -177,7 +189,9 @@ public class MasterController {
      */
     @FXML
     public void handleNew() {
+
         fileController.handleNew();
+
         if(toolbarController.scanIsDone()) {
             this.scanButton.setDisable(false);
             this.scanParseButton.setDisable(false);
@@ -186,6 +200,7 @@ public class MasterController {
         }
         this.updateStructureView();
 
+        // TODO: ONLY CALL THIS IF THE PROVIDED FILENAME OF THE NEW FILE ENDS IN .btm
         setRealTimeCompiling();
     }
 
@@ -210,7 +225,6 @@ public class MasterController {
         setRealTimeCompiling();
     }
 
-    // TODO: DON'T CALL FOR FOR MIPS
     /**
      * sets up code areas to auto-save on a key release and to parse every 500 ms if
      * if the code area has been changed
@@ -219,15 +233,16 @@ public class MasterController {
 
 
         CodeArea codeArea = this.codeTabPane.getCodeArea();
-
-        // TODO: temporary check until MIPS command-line assembly is implemented to get errors list
-        if (codeArea instanceof MipsCodeArea) return;
-
         // get the current code area;
+        // TODO: this was commented out because because it needed to be a CodeArea instead of JavaCodeArea to check if instanceof MipsCodeArea
         // JavaCodeArea codeArea = (JavaCodeArea)this.codeTabPane.getCodeArea();
 
         // save the file after each key press
         codeArea.setOnKeyReleased((e) -> this.handleSave());
+
+        // TODO: temporary check until MIPS command-line assembly is implemented to get errors list
+        if (codeArea instanceof MipsCodeArea) return;
+
 
         // subscribe
         codeArea.multiPlainChanges()
