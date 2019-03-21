@@ -65,6 +65,35 @@
     -fx-background-radius: 100;
 }
 
+#scanParseCheckButton{
+    -fx-font: 13 arial;
+    -fx-base: lightcoral;
+    -fx-background-radius: 100;
+}
+
+#navigatorButton{
+    -fx-font: 13 arial;
+    -fx-base: lightseagreen;
+    -fx-background-radius: 100;
+}
+
+#assembleBtn{
+    -fx-font: 13 arial;
+    -fx-base: darksalmon;
+    -fx-background-radius: 100;
+}
+
+#assembleAndRunBtn{
+    -fx-font: 13 arial;
+    -fx-base: thistle;
+    -fx-background-radius: 100;
+}
+#stopAssemblyBtn{
+    -fx-font: 13 arial;
+    -fx-base: orange;
+    -fx-background-radius: 100;
+}
+
 #tabPane {
     -pref-height: 200px;
     -pref-width: 200px;
@@ -86,6 +115,10 @@
 .mipsComment{
      -fx-fill: limegreen;
 
+}
+
+.mipsLabel{
+     -fx-font-style: italic;
 }
 
 
