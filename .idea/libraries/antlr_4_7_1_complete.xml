@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="antlr-4.7.1-complete">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/proj13DeGrawHang/include/antlr-4.7.1-complete.jar!/" />
-      <root url="jar://$PROJECT_DIR$/proj13DeGrawHang/include/richtextfx-fat-0.9.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/proj15DeGrawHangMarcello/include/antlr-4.7.1-complete.jar!/" />
+      <root url="jar://$PROJECT_DIR$/proj15DeGrawHangMarcello/include/richtextfx-fat-0.9.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
