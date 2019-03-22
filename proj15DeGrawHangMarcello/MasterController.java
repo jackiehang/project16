@@ -147,22 +147,23 @@ public class MasterController {
 
         this.codeTabPane.getSelectionModel().selectedItemProperty().addListener(
                 (observableValue, oldTab, newTab) -> {
-                    String filename = newTab.getText();
-                    boolean isDisabled = true;
+                    if (newTab != null) {
+                        String filename = newTab.getText();
+                        boolean isDisabled = true;
 
-                    if (filename.endsWith(".asm") || filename.endsWith(".s")) isDisabled = false;
+                        if (filename.endsWith(".asm") || filename.endsWith(".s")) isDisabled = false;
 
-                    this.assembleBtn.setDisable(isDisabled);
-                    this.assembleAndRunBtn.setDisable(isDisabled);
-                    this.stopAssemblyBtn.setDisable(isDisabled);
+                        this.assembleBtn.setDisable(isDisabled);
+                        this.assembleAndRunBtn.setDisable(isDisabled);
+                        this.stopAssemblyBtn.setDisable(isDisabled);
 
-                    isDisabled = true;
-                    if (filename.endsWith(".btm")) isDisabled = false;
-                    this.scanButton.setDisable(isDisabled);
-                    this.scanParseButton.setDisable(isDisabled);
-                    this.scanParseCheckButton.setDisable(isDisabled);
-                    this.navigatorButton.setDisable(isDisabled);
-
+                        isDisabled = true;
+                        if (filename.endsWith(".btm")) isDisabled = false;
+                        this.scanButton.setDisable(isDisabled);
+                        this.scanParseButton.setDisable(isDisabled);
+                        this.scanParseCheckButton.setDisable(isDisabled);
+                        this.navigatorButton.setDisable(isDisabled);
+                    }
                 }
         );
     }
@@ -191,16 +192,15 @@ public class MasterController {
 
     /**
      * Handler for the "New" menu item in the "File" menu.
+     * Creates a FileChooser to select a file
      * Adds a new Tab to the TabPane, and also adds null to the HashMap
      * Also sets the current tab for both the file and edit controllers.
      */
     @FXML
     public void handleNew() {
-
-        fileController.handleNew();
-
-        this.updateStructureView();
-        setRealTimeCompiling();
+        File file = fileController.handleNewDialog();
+        fileController.handleNew(file);
+        fileChecker(file);
     }
 
     /**
@@ -213,8 +213,21 @@ public class MasterController {
     public void handleOpen() {
         File file = fileController.handleOpenDialog();
         fileController.handleOpen(file);
+        fileChecker(file);
+    }
+
+    /**
+     * Helper Method for Opening and Creating New Files
+     * Creates a directory tree if there are any tabs
+     * If the File is a Bantam Java file, updates the structure View and sets Real Time Compiling
+     * @param file File
+     */
+    public void fileChecker(File file) {
+        //if we have tabs in the pane
         if(!this.codeTabPane.getTabs().isEmpty()){
             this.createDirectoryTree();
+
+            //if bantam java file
             if(file.getName().endsWith(".btm")) {
                 this.updateStructureView();
                 setRealTimeCompiling();
@@ -227,19 +240,11 @@ public class MasterController {
      * if the code area has been changed
      */
     private void setRealTimeCompiling() {
-
-
-        CodeArea codeArea = this.codeTabPane.getCodeArea();
-        // get the current code area;
-        // TODO: this was commented out because because it needed to be a CodeArea instead of JavaCodeArea to check if instanceof MipsCodeArea
-        // JavaCodeArea codeArea = (JavaCodeArea)this.codeTabPane.getCodeArea();
+        //get the code area
+        JavaCodeArea codeArea = (JavaCodeArea)this.codeTabPane.getCodeArea();
 
         // save the file after each key press
         codeArea.setOnKeyReleased((e) -> this.handleSave());
-
-        // TODO: temporary check until MIPS command-line assembly is implemented to get errors list
-        if (codeArea instanceof MipsCodeArea) return;
-
 
         // subscribe
         codeArea.multiPlainChanges()
@@ -436,7 +441,7 @@ public class MasterController {
             }
             //check if the selected file is a java file and open it if so
             String fileName = (String) selectedItem.getValue();
-            if (fileName.endsWith(".java")) {
+            if (fileName.endsWith(".java") || fileName.endsWith(".btm") || fileName.endsWith(".asm") || fileName.endsWith(".s")) {
                 this.fileController.handleOpen(this.directoryController.getTreeItemFileMap().get(selectedItem));
             }
         }

@@ -67,10 +67,28 @@ public class FileController {
      * Handler for the "New" menu item in the "File" menu.
      * Adds a new Tab to the TabPane, adds null to the filenames HashMap,
      * and false to the saveStatus HashMap
+     * @param file - file to create new tab with
      */
-    public void handleNew() {
-        this.codeTabPane.makeTabFromFile(null,false);
+    public void handleNew(File file) {
+        if (file == null) {
+            return;
+        }
+        this.codeTabPane.createNewTab(file.getName(), "", false, file);
     }
+
+    /**
+     * Creates a new File and asks for the user to name it immediately.
+     * @return File that needs to be opened by handleOpen
+     */
+    public File handleNewDialog(){
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Create New File");
+        fileChooser.setInitialFileName("untitled");
+        Window stage = this.vBox.getScene().getWindow();
+        File file = fileChooser.showSaveDialog(stage);
+        return file;
+    }
+
 
     /**
      * Handler for the "Open" menu item in the "File" menu.

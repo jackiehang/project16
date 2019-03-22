@@ -85,7 +85,6 @@ public class CodeTabPane extends TabPane {
             }
         }
         this.createNewTab(filename,content,preSaved, file);
-
     }
 
     /**
