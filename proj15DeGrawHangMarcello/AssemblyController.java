@@ -12,7 +12,6 @@
 package proj15DeGrawHangMarcello;
 
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.event.Event;
@@ -153,6 +152,7 @@ public class AssemblyController
                         // start output thread first
                         mutex.acquire();
                         outputToConsole();
+
                     } catch (Throwable e) {
                         Platform.runLater(() -> {
                             // print stop message if other thread hasn't
@@ -215,6 +215,7 @@ public class AssemblyController
         BufferedWriter inputWriter = new BufferedWriter(new OutputStreamWriter(stdin));
 
         while (curProcess.isAlive()) {
+            System.out.println("ALIVE");
             // wait until signaled by output thread
             this.mutex.acquire();
             // write input to program

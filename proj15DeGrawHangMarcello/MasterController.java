@@ -125,6 +125,9 @@ public class MasterController {
         this.codeTabPane.passControllerContextMenus(this,codeAreaContextMenu, tabContextMenu);
 
         this.toolBarBtnEnableAndDisable();
+
+        this.assemblyController = new AssemblyController(this.console, this.codeTabPane.getTabFileMap());
+        this.asmblyCtrlrListenForTabChange();
     }
 
     /**
