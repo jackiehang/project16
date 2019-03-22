@@ -20,5 +20,5 @@ endloop:
     move $a0, $t0
     li $v0, 1
     syscall     # output the value in $a0
-    li $v0, 10
+    li $v0, 5
     syscall     # exit

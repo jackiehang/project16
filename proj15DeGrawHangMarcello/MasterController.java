@@ -232,12 +232,18 @@ public class MasterController {
                 this.updateStructureView();
                 setRealTimeCompiling();
             }
+            else {
+                CodeArea codeArea = this.codeTabPane.getCodeArea();
+                codeArea.setOnKeyReleased((e) -> this.handleSave());
+                codeArea.multiPlainChanges();
+            }
         }
     }
 
     /**
      * sets up code areas to auto-save on a key release and to parse every 500 ms if
      * if the code area has been changed
+     * Additionally compiles Bantam Java files on key release.
      */
     private void setRealTimeCompiling() {
         //get the code area
