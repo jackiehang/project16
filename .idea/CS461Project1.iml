@@ -25,5 +25,18 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/proj15DeGrawHangMarcello/include/Mars4_5.jar!/" />
+        </CLASSES>
+        <JAVADOC>
+          <root url="jar://$MODULE_DIR$/proj15DeGrawHangMarcello/include/Mars4_5.jar!/docs" />
+        </JAVADOC>
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/proj15DeGrawHangMarcello/include/Mars4_5.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

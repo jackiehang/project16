@@ -85,9 +85,9 @@ public class AssemblyController
     }
 
     /**
-     * Helper method for running Java Compiler.
+     * Helper method for assembling MIPS files.
      */
-    private boolean compileJavaFile(File file) {
+    private boolean assembleMipsFile(File file) {
         try {
             Platform.runLater(() -> {
                 this.console.clear();
@@ -118,16 +118,16 @@ public class AssemblyController
 
         } catch (Throwable e) {
             Platform.runLater(() -> {
-                // TODO: SHOW ERROR DIALOGUE HERE
+                createErrorDialog("Assembly Failed", e.getMessage());
             });
             return false;
         }
     }
 
     /**
-     * Helper method for running Java Program.
+     * Helper method for running MIPS Program.
      */
-    private boolean runJavaFile(File file) {
+    private boolean runMipsFile(File file) {
         try {
             Platform.runLater(() -> {
                 this.console.clear();
@@ -187,7 +187,7 @@ public class AssemblyController
             return curProcess.waitFor() == 0;
         } catch (Throwable e) {
             Platform.runLater(() -> {
-                // TODO: SHOW ERROR DIALOGUE HERE
+                createErrorDialog("Assembl & Run Failed", e.getMessage());
             });
             return false;
         }
@@ -329,7 +329,7 @@ public class AssemblyController
                 this.curProcess.destroy();
             }
         } catch (Throwable e) {
-            // TODO: SHOW ERROR DIALOGUE HERE
+            createErrorDialog("Assembly Stop Failed", e.getMessage());
         }
     }
 
@@ -371,7 +371,7 @@ public class AssemblyController
                  */
                 @Override
                 protected Boolean call() {
-                    Boolean compileResult = compileJavaFile(file);
+                    Boolean compileResult = assembleMipsFile(file);
                     if (compileResult) {
                         Platform.runLater(() -> console.appendText("Compilation was successful!\n"));
                     }
@@ -419,12 +419,21 @@ public class AssemblyController
                  */
                 @Override
                 protected Boolean call() {
-                    if (compileJavaFile(file)) {
-                        return runJavaFile(file);
+                    if (assembleMipsFile(file)) {
+                        return runMipsFile(file);
                     }
                     return false;
                 }
             };
         }
+    }
+
+    public void createErrorDialog(String errorTitle, String errorString)
+    {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(errorTitle + " Error");
+        alert.setHeaderText(errorTitle + ", see details:");
+        alert.setContentText(errorString);
+        alert.showAndWait();
     }
 }
