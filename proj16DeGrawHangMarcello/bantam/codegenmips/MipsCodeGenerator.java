@@ -58,7 +58,7 @@ public class MipsCodeGenerator extends Visitor
     /**
      * Assembly support object (using Mips assembly support)
      */
-    private proj16DeGrawHangMarcello.bantam.codegenmips.MipsSupport assemblySupport;
+    private MipsSupport assemblySupport;
 
     /**
      * Boolean indicating whether garbage collection is enabled
@@ -126,9 +126,15 @@ public class MipsCodeGenerator extends Visitor
         }
 
         // comment out
-        throw new RuntimeException("MIPS code generator unimplemented");
+//        throw new RuntimeException("MIPS code generator unimplemented");
 
         // add code here...
+
+        this.assemblySupport = new MipsSupport(this.out);
+
+        // begin generating data section
+        this.assemblySupport.genDataStart();
+
     }
 
     public static void main(String[] args) {
