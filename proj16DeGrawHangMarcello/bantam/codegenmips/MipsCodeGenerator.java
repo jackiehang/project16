@@ -35,6 +35,8 @@ import proj16DeGrawHangMarcello.bantam.visitor.Visitor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -79,6 +81,12 @@ public class MipsCodeGenerator extends Visitor
      * for recording any errors that occur.
      */
     private ErrorHandler errorHandler;
+
+    /**
+     * maps identifier index to classname string
+     */
+    private Map<Integer, String> classnameTable = new HashMap();
+
 
     /**
      * MipsCodeGenerator constructor
