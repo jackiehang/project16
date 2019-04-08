@@ -30,6 +30,7 @@ import proj16DeGrawHangMarcello.bantam.util.ClassTreeNode;
 import proj16DeGrawHangMarcello.bantam.util.CompilationException;
 import proj16DeGrawHangMarcello.bantam.util.Error;
 import proj16DeGrawHangMarcello.bantam.util.ErrorHandler;
+import proj16DeGrawHangMarcello.bantam.visitor.Visitor;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,7 +43,7 @@ import java.io.PrintStream;
  * <p/>
  * This class is incomplete and will need to be implemented by the student.
  */
-public class MipsCodeGeneratorSkeleton
+public class MipsCodeGenerator extends Visitor
 {
     /**
      * Root of the class hierarchy tree
@@ -86,7 +87,7 @@ public class MipsCodeGeneratorSkeleton
      * @param gc      boolean indicating whether garbage collection is enabled
      * @param opt     boolean indicating whether optimization is enabled
      */
-    public MipsCodeGeneratorSkeleton(ErrorHandler errorHandler, boolean gc, boolean opt) {
+    public MipsCodeGenerator(ErrorHandler errorHandler, boolean gc, boolean opt) {
         this.gc = gc;
         this.opt = opt;
         this.errorHandler = errorHandler;
