@@ -130,7 +130,7 @@ public class MipsCodeGenerator extends Visitor
             // if don't have permission to write to file then throw an exception
             errorHandler.register(Error.Kind.CODEGEN_ERROR, "IOException when writing " +
                     "to file: " + outFile);
-            throw new CompilationException("Couldn't write to output file.");
+            throw new CompilationException("Could not write to output file.");
         }
 
         // comment out
@@ -146,6 +146,20 @@ public class MipsCodeGenerator extends Visitor
         // generate garbage collecting flag section
         genGCSection(this.gc);
 
+        generateStringConstants();
+
+        generateClassTableNames();
+
+        generateObjectTemplates();
+
+        generateDispatchTables();
+
+        generateTextSection();
+
+        generateInItSubroutines();
+
+        generateUserMethods();
+
     }
 
     /**
@@ -157,6 +171,32 @@ public class MipsCodeGenerator extends Visitor
         out.println("gc_flag");
         out.println("\t.word:\t" + flag);
     }
+
+    private void generateStringConstants() {
+
+    }
+
+    private void generateClassTableNames() {
+    }
+
+    private void generateObjectTemplates() {
+
+    }
+    private void generateDispatchTables() {
+
+    }
+    private void generateTextSection() {
+    }
+
+    private void generateInItSubroutines() {
+
+    }
+    private void generateUserMethods() {
+    }
+
+
+
+
 
     public static void main(String[] args) {
         // ... add testing code here ...
