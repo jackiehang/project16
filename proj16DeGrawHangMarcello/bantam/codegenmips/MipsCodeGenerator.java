@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -176,7 +177,23 @@ public class MipsCodeGenerator extends Visitor
 
     }
 
+    /**
+     * generates the class_name_table
+     */
     private void generateClassTableNames() {
+
+        this.out.println("class_name_table");
+        // get keys list
+        Set<String> keys = this.classnameTable.keySet();
+        // loop through length of keys to build field fields
+
+         for (int i = 0; i < keys.size(); i++) {
+             this.assemblySupport.genWord("class_name_"+i);
+         }
+        // loop through keys to build .globl lines
+        for (String s : keys) {
+            this.assemblySupport.genGlobal(s+"_template");
+        }
     }
 
     private void generateObjectTemplates() {
