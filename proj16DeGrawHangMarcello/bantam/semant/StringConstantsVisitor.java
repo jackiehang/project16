@@ -8,6 +8,7 @@
 
 package proj16DeGrawHangMarcello.bantam.semant;
 
+import proj16DeGrawHangMarcello.bantam.ast.Class_;
 import proj16DeGrawHangMarcello.bantam.ast.ConstStringExpr;
 import proj16DeGrawHangMarcello.bantam.ast.FormalList;
 import proj16DeGrawHangMarcello.bantam.ast.Program;
@@ -31,7 +32,7 @@ public class StringConstantsVisitor extends Visitor {
      * @param ast an abstract syntax tree generated from Parser.parse()
      * @return the HashMap of string constants
      */
-    public Map<String,String> getStringConstants(Program ast) {
+    public Map<String,String> getStringConstants(Class_ ast) {
         stringConstantsMap = new HashMap<>();
 
         // traverse the abstract syntax tree
