@@ -26,6 +26,7 @@
 
 package proj16DeGrawHangMarcello.bantam.codegenmips;
 
+import proj16DeGrawHangMarcello.bantam.semant.StringConstantsVisitor;
 import proj16DeGrawHangMarcello.bantam.util.ClassTreeNode;
 import proj16DeGrawHangMarcello.bantam.util.CompilationException;
 import proj16DeGrawHangMarcello.bantam.util.Error;
@@ -35,8 +36,7 @@ import proj16DeGrawHangMarcello.bantam.visitor.Visitor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -85,7 +85,7 @@ public class MipsCodeGenerator extends Visitor
     /**
      * maps identifier index to classname string
      */
-    private Map<String, Integer> classnameTable = new HashMap();
+    private Map<String, Integer> classNameTable = new HashMap();
 
 
     /**
@@ -162,6 +162,8 @@ public class MipsCodeGenerator extends Visitor
 
     }
 
+
+
     /**
      * Generate the code for the gc_flag (garbage collection) section
      * @param collecting
@@ -172,11 +174,48 @@ public class MipsCodeGenerator extends Visitor
         out.println("\t.word:\t" + flag);
     }
 
+    /**
+     * Generates the String Constants in the Data Section of the assembly file.
+     * Each one is in the format:
+     *
+     */
     private void generateStringConstants() {
+        //get class names as a set
+        Set<String> classNames = root.getClassMap().keySet();
+        System.out.println(classNames);
 
+        int i = 0;
+        for (String className : classNames) {
+            assemblySupport.genLabel("class_name_" + i); // generates string constant: class name label
+            assemblySupport.genWord(classNames.);
+
+
+        }
+
+
+        StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
+
+        //not sure how to visit here - we need the AST
+        //Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(root);
+
+        /*
+        for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
+            this.out.print("");
+        }
+    */
     }
 
+    /**
+     * Gets the class names from the classMap and matches them to appropriate indices.
+     */
     private void generateClassTableNames() {
+        //get class names as a set
+        String[] classNames = root.getClassMap().keySet().toArray(new String[0]);
+        System.out.println(classNames);
+
+        for (int i=0; i < classNames.length; i++) {
+            classNameTable.put(classNames[i], i);
+        }
     }
 
     private void generateObjectTemplates() {
@@ -199,6 +238,7 @@ public class MipsCodeGenerator extends Visitor
 
 
     public static void main(String[] args) {
-        // ... add testing code here ...
+        MipsCodeGenerator mipsCodeGenerator = new MipsCodeGenerator(null, false, false);
+        //mipsCodeGenerator.generate();
     }
 }
