@@ -85,7 +85,7 @@ public class MipsCodeGenerator extends Visitor
     /**
      * maps identifier index to classname string
      */
-    private Map<Integer, String> classnameTable = new HashMap();
+    private Map<String, Integer> classnameTable = new HashMap();
 
 
     /**
