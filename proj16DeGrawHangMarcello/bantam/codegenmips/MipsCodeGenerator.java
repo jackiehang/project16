@@ -26,6 +26,9 @@
 
 package proj16DeGrawHangMarcello.bantam.codegenmips;
 
+import proj16DeGrawHangMarcello.bantam.ast.Program;
+import proj16DeGrawHangMarcello.bantam.parser.Parser;
+import proj16DeGrawHangMarcello.bantam.semant.SemanticAnalyzer;
 import proj16DeGrawHangMarcello.bantam.semant.StringConstantsVisitor;
 import proj16DeGrawHangMarcello.bantam.util.ClassTreeNode;
 import proj16DeGrawHangMarcello.bantam.util.CompilationException;
@@ -146,9 +149,9 @@ public class MipsCodeGenerator extends Visitor
         // generate garbage collecting flag section
         genGCSection(this.gc);
 
-        generateStringConstants();
-
         saveClassTableNames();
+
+        generateStringConstants();
 
         generateClassTableNames();
 
@@ -165,7 +168,6 @@ public class MipsCodeGenerator extends Visitor
     }
 
 
-
     /**
      * Generate the code for the gc_flag (garbage collection) section
      * @param collecting
@@ -173,7 +175,7 @@ public class MipsCodeGenerator extends Visitor
     private void genGCSection(boolean collecting) {
         int flag = collecting ? 1 : 0;
         out.println("gc_flag");
-        out.println("\t.word:\t" + flag);
+        out.println("\t.word:\t" + flag + "\n");
     }
 
     /**
@@ -182,8 +184,9 @@ public class MipsCodeGenerator extends Visitor
      *
      */
     private void generateStringConstants() {
+        String classNames[] = classNameTable.keySet().toArray(new String[0]);
 
-        for (String className : classNameTable.keySet()) {
+        for (String className : classNames) {
             assemblySupport.genLabel("class_name_" + classNameTable.get(className)); //generates String Constant Label
             assemblySupport.genWord("1"); //String Template's Index
             assemblySupport.genWord(String.valueOf( 16 + (className.length()*2) )); //string length in bytes TODO - get actual math here
@@ -192,10 +195,10 @@ public class MipsCodeGenerator extends Visitor
             assemblySupport.genAscii(className); //string in ASCII
             assemblySupport.genByte("0"); //null terminator
             assemblySupport.genAlign(); //"2"
+            out.print("\n");
         }
 
-
-        StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
+        //StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
 
         //not sure how to visit here - we need the AST
         //Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(root);
@@ -213,7 +216,7 @@ public class MipsCodeGenerator extends Visitor
     private void saveClassTableNames() {
         //get class names as a set
         String[] classNames = root.getClassMap().keySet().toArray(new String[0]);
-        System.out.println(classNames);
+        //System.out.println(classNames.toString());
         int counter = 5;
         for(String cName: classNames){
             switch (cName){
@@ -283,7 +286,28 @@ public class MipsCodeGenerator extends Visitor
 
 
     public static void main(String[] args) {
-        MipsCodeGenerator mipsCodeGenerator = new MipsCodeGenerator(null, false, false);
-        //mipsCodeGenerator.generate();
+        ErrorHandler errorHandler = new ErrorHandler();
+        Parser parser = new Parser(errorHandler);
+        SemanticAnalyzer analyzer = new SemanticAnalyzer(errorHandler);
+
+        for (String inFile : args) {
+            System.out.println("\n========== Semantic Analysis results for " + inFile + " =============");
+            try {
+                errorHandler.clear();
+                Program program = parser.parse(inFile);
+                ClassTreeNode classTreeNode = analyzer.analyze(program);
+                System.out.println(" Semantic Analysis was successful.");
+                MipsCodeGenerator mipsCodeGenerator = new MipsCodeGenerator(null, false, false);
+                mipsCodeGenerator.generate(classTreeNode, inFile.replace(".btm", ".asm"));
+            } catch (CompilationException ex) {
+                System.out.println(" There were errors in Semantic Analysis:");
+                List<Error> errors = errorHandler.getErrorList();
+                for (Error error : errors) {
+                    System.out.println("\t" + error.toString());
+                }
+            }
+        }
+
+
     }
 }
