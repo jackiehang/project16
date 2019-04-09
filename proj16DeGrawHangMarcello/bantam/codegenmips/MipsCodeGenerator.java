@@ -190,8 +190,6 @@ public class MipsCodeGenerator extends Visitor
         for (String className : classNames) {
             assemblySupport.genLabel("class_name_" + i); // generates string constant: class name label
             assemblySupport.genWord(className);
-
-
         }
 
 
@@ -214,10 +212,36 @@ public class MipsCodeGenerator extends Visitor
         //get class names as a set
         String[] classNames = root.getClassMap().keySet().toArray(new String[0]);
         System.out.println(classNames);
+        int counter = 5;
+        for(String cName: classNames){
+            switch (cName){
+                case "Object":
+                    classNameTable.put("Object", 0);
+                    break;
+                case "String":
+                    classNameTable.put("String",1);
+                    break;
 
-        for (int i = 0; i < classNames.length; i++) {
-            classNameTable.put(classNames[i], i);
+                case "Sys":
+                    classNameTable.put("Sys",2);
+                    break;
+
+                case "Main":
+                    classNameTable.put("Main",3);
+                    break;
+
+                case "TextIO":
+                    classNameTable.put("TextIO",4);
+                    break;
+
+                    default:
+                    classNameTable.put(cName,counter);
+                    counter ++;
+                    break;
+                }
+
         }
+
     }
 
     /**
@@ -253,8 +277,6 @@ public class MipsCodeGenerator extends Visitor
     }
     private void generateUserMethods() {
     }
-
-
 
 
 
