@@ -130,7 +130,7 @@ public class MipsCodeGenerator extends Visitor
             // if don't have permission to write to file then throw an exception
             errorHandler.register(Error.Kind.CODEGEN_ERROR, "IOException when writing " +
                     "to file: " + outFile);
-            throw new CompilationException("Couldn't write to output file.");
+            throw new CompilationException("Could not write to output file.");
         }
 
         // comment out
@@ -143,7 +143,51 @@ public class MipsCodeGenerator extends Visitor
         // begin generating data section
         this.assemblySupport.genDataStart();
 
+
+        generateStringConstants();
+
+        generateClassTableNames();
+
+        generateObjectTemplates();
+
+        generateDispatchTables();
+
+        generateTextSection();
+
+        generateInItSubroutines();
+
+        generateUserMethods();
+
+
+
     }
+
+
+
+
+    private void generateStringConstants() {
+
+    }
+    private void generateClassTableNames() {
+    }
+    private void generateObjectTemplates() {
+
+    }
+    private void generateDispatchTables() {
+
+    }
+    private void generateTextSection() {
+    }
+
+    private void generateInItSubroutines() {
+
+    }
+    private void generateUserMethods() {
+    }
+
+
+
+
 
     public static void main(String[] args) {
         // ... add testing code here ...
