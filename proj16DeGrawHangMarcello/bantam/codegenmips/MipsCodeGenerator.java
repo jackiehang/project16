@@ -182,14 +182,16 @@ public class MipsCodeGenerator extends Visitor
      *
      */
     private void generateStringConstants() {
-        //get class names as a set
-        Set<String> classNames = root.getClassMap().keySet();
-        System.out.println(classNames);
 
-        int i = 0;
-        for (String className : classNames) {
-            assemblySupport.genLabel("class_name_" + i); // generates string constant: class name label
-            assemblySupport.genWord(className);
+        for (String className : classNameTable.keySet()) {
+            assemblySupport.genLabel("class_name_" + classNameTable.get(className)); //generates String Constant Label
+            assemblySupport.genWord("1"); //String Template's Index
+            assemblySupport.genWord(String.valueOf( 16 + (className.length()*2) )); //string length in bytes TODO - get actual math here
+            assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
+            assemblySupport.genWord(String.valueOf(className.length())); //length of the string in chars
+            assemblySupport.genAscii(className); //string in ASCII
+            assemblySupport.genByte("0"); //null terminator
+            assemblySupport.genAlign(); //"2"
         }
 
 
@@ -239,9 +241,7 @@ public class MipsCodeGenerator extends Visitor
                     counter ++;
                     break;
                 }
-
         }
-
     }
 
     /**
@@ -277,6 +277,8 @@ public class MipsCodeGenerator extends Visitor
     }
     private void generateUserMethods() {
     }
+
+
 
 
 
