@@ -189,7 +189,7 @@ public class MipsCodeGenerator extends Visitor
         int i = 0;
         for (String className : classNames) {
             assemblySupport.genLabel("class_name_" + i); // generates string constant: class name label
-            assemblySupport.genWord(classNames.);
+            assemblySupport.genWord(className);
 
 
         }

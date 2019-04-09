@@ -65,6 +65,7 @@ public class MasterController {
     @FXML private CheckMenuItem fileStructureItem;
     @FXML private CheckMenuItem directoryTreeItem;
 
+    @FXML private Button compileButton;
     @FXML private Button scanButton;
     @FXML private Button scanParseButton;
     @FXML private Button scanParseCheckButton;
@@ -162,6 +163,7 @@ public class MasterController {
 
                         isDisabled = true;
                         if (filename.endsWith(".btm")) isDisabled = false;
+                        this.compileButton.setDisable(isDisabled);
                         this.scanButton.setDisable(isDisabled);
                         this.scanParseButton.setDisable(isDisabled);
                         this.scanParseCheckButton.setDisable(isDisabled);
@@ -539,6 +541,7 @@ public class MasterController {
      * Disables the buttons in the toolbar
      */
     private void disableToolbar(){
+        this.compileButton.setDisable(true);
         this.scanButton.setDisable(true);
         this.scanParseButton.setDisable(true);
         this.scanParseCheckButton.setDisable(true);
@@ -555,6 +558,19 @@ public class MasterController {
     public void createDirectoryTree(){
         this.directoryController.createDirectoryTree();
     }
+
+    /**
+     * When the Compile button is clicked, the selected tab's code is scanned,
+     * parsed, checked, and MIPS code is generated.
+     * The resulting .asm file should automatically be opened in a new tab so you
+     * can view it and, if desired, assemble and run it using the other buttons
+     * on the toolbar.
+     */
+    public void handleCompile(){
+        //TODO: This method!
+    }
+
+
 
     /**
      * routes to compilation phase handler

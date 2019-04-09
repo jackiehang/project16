@@ -92,6 +92,7 @@
         </Menu>
     </MenuBar>
     <ToolBar>
+        <Button fx:id ="compileButton" onAction="#handleCompile" text = "Compile"/>
         <Button fx:id ="scanButton" onAction="#handleScan" text = "Scan"/>
         <Button fx:id ="scanParseButton" onAction = "#handleScanAndParse" text = "Scan and Parse"/>
         <Button fx:id ="scanParseCheckButton" onAction="#handleScanParseCheck" text="Scan->Parse->Check"/>

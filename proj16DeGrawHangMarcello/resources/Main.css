@@ -37,7 +37,7 @@
 
 #compileButton {
     -fx-font: 13 arial;
-    -fx-base: lightblue;
+    -fx-base: yellow;
     -fx-background-radius: 100;
 }
 
