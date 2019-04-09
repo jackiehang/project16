@@ -143,6 +143,19 @@ public class MipsCodeGenerator extends Visitor
         // begin generating data section
         this.assemblySupport.genDataStart();
 
+        // generate garbage collecting flag section
+        genGCSection(this.gc);
+
+    }
+
+    /**
+     * Generate the code for the gc_flag (garbage collection) section
+     * @param collecting
+     */
+    private void genGCSection(boolean collecting) {
+        int flag = collecting ? 1 : 0;
+        out.println("gc_flag");
+        out.println("\t.word:\t" + flag);
     }
 
     public static void main(String[] args) {
