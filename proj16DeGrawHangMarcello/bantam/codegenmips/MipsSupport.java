@@ -298,9 +298,9 @@ public class MipsSupport {
         out.println("\t.data");
         genGlobal("gc_flag");
         genGlobal("class_name_table");
-        genGlobal("Main_template");
-        genGlobal("String_template");
-        genGlobal("String_dispatch_table");
+//        genGlobal("Main_template");
+//        genGlobal("String_template");
+//        genGlobal("String_dispatch_table");
     }
 
     /**
