@@ -1,6 +1,7 @@
 class Food{  
 
     //Check c = new Check();
+    String j = "hi";
     boolean edible; 
     int numCals = 0;
     int temp; 
@@ -27,6 +28,7 @@ class Dessert extends Food{
     boolean sweet = true;
 
     boolean isSweet(){
+        var j = "lol";
         return sweet;
     }
 

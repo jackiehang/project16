@@ -48,8 +48,9 @@ import java.util.*;
  * <p/>
  * This class is incomplete and will need to be implemented by the student.
  */
-public class MipsCodeGenerator extends Visitor
-{
+public class MipsCodeGenerator {
+    private Program pRoot;
+
     /**
      * Root of the class hierarchy tree
      */
@@ -122,9 +123,9 @@ public class MipsCodeGenerator extends Visitor
      * @param root    root of the class hierarchy tree
      * @param outFile filename of the assembly output file
      */
-    public void generate(ClassTreeNode root, String outFile) {
+    public void generate(ClassTreeNode root, String outFile, Program program) {
         this.root = root;
-
+        this.pRoot = program;
         // set up the PrintStream for writing the assembly file.
         try {
             this.out = new PrintStream(new FileOutputStream(outFile));
@@ -135,11 +136,6 @@ public class MipsCodeGenerator extends Visitor
                     "to file: " + outFile);
             throw new CompilationException("Could not write to output file.");
         }
-
-        // comment out
-//        throw new RuntimeException("MIPS code generator unimplemented");
-
-        // add code here...
 
         this.assemblySupport = new MipsSupport(this.out);
 
@@ -159,11 +155,7 @@ public class MipsCodeGenerator extends Visitor
 
         generateDispatchTables();
 
-        generateTextSection();
 
-        generateInItSubroutines();
-
-        generateUserMethods();
 
     }
 
@@ -178,6 +170,12 @@ public class MipsCodeGenerator extends Visitor
         out.println("\t.word:\t" + flag + "\n");
     }
 
+    private int getStringLength(String string){
+        int length = 17 + string.length();
+        double calc = Math.ceil((double)length/4);
+        length = (int)calc * 4;
+        return length;
+    }
     /**
      * Generates the String Constants in the Data Section of the assembly file.
      * Each one is in the format:
@@ -189,23 +187,29 @@ public class MipsCodeGenerator extends Visitor
         for (String className : classNames) {
             assemblySupport.genLabel("class_name_" + classNameTable.get(className)); //generates String Constant Label
             assemblySupport.genWord("1"); //String Template's Index
-            assemblySupport.genWord(String.valueOf( 16 + (className.length()*2) )); //string length in bytes TODO - get actual math here
+            assemblySupport.genWord(String.valueOf(getStringLength(className))); //string length in bytes
             assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
             assemblySupport.genWord(String.valueOf(className.length())); //length of the string in chars
             assemblySupport.genAscii(className); //string in ASCII
-            out.print("\n");
+            this.out.print("\n");
         }
 
-        //StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
+        StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
+
 
         //not sure how to visit here - we need the AST
-        //Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(root);
-
-        /*
+        Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(pRoot);
+        System.out.println(root.getASTNode().getMemberList());
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
-            this.out.print("");
+            assemblySupport.genLabel(stringConstant.getValue());
+            assemblySupport.genWord("1");
+            assemblySupport.genWord(String.valueOf(getStringLength(stringConstant.getKey()))); //string length in bytes
+            assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
+            assemblySupport.genWord(String.valueOf(stringConstant.getKey().length())); //length of the string in chars
+            assemblySupport.genAscii(stringConstant.getKey());
+            this.out.print("\n");
         }
-    */
+
     }
 
     /**
@@ -249,7 +253,8 @@ public class MipsCodeGenerator extends Visitor
      * generates the class_name_table
      */
     private void generateClassTableNames() {
-        this.out.println("class_name_table");
+
+        this.out.println("class_name_table:");
         // get keys list
         Set<String> keys = this.classNameTable.keySet();
         // loop through length of keys to build field fields
@@ -311,11 +316,16 @@ public class MipsCodeGenerator extends Visitor
     }
     private void generateTextSection() {
     }
+
     private void generateInItSubroutines() {
 
     }
     private void generateUserMethods() {
     }
+
+
+
+
 
     public static void main(String[] args) {
         ErrorHandler errorHandler = new ErrorHandler();
@@ -329,8 +339,8 @@ public class MipsCodeGenerator extends Visitor
                 Program program = parser.parse(inFile);
                 ClassTreeNode classTreeNode = analyzer.analyze(program);
                 System.out.println(" Semantic Analysis was successful.");
-                MipsCodeGenerator mipsCodeGenerator = new MipsCodeGenerator(null, false, false);
-                mipsCodeGenerator.generate(classTreeNode, inFile.replace(".btm", ".asm"));
+                MipsCodeGenerator mipsCodeGenerator = new MipsCodeGenerator(errorHandler, false, false);
+                mipsCodeGenerator.generate(classTreeNode, inFile.replace(".btm", ".asm"), program);
             } catch (CompilationException ex) {
                 System.out.println(" There were errors in Semantic Analysis:");
                 List<Error> errors = errorHandler.getErrorList();
