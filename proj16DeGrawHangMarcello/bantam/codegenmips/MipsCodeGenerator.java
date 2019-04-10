@@ -169,6 +169,12 @@ public class MipsCodeGenerator {
         out.println("\t.word:\t" + flag + "\n");
     }
 
+    private int getStringLength(String string){
+        int length = 17 + string.length();
+        double calc = Math.ceil((double)length/4);
+        length = (int)calc * 4;
+        return length;
+    }
     /**
      * Generates the String Constants in the Data Section of the assembly file.
      * Each one is in the format:
@@ -180,30 +186,26 @@ public class MipsCodeGenerator {
         for (String className : classNames) {
             assemblySupport.genLabel("class_name_" + classNameTable.get(className)); //generates String Constant Label
             assemblySupport.genWord("1"); //String Template's Index
-            int strLength =  (int)Math.ceil((17+className.length())/4);
-            assemblySupport.genWord(String.valueOf(strLength*4)); //string length in bytes
+            assemblySupport.genWord(String.valueOf(getStringLength(className))); //string length in bytes
             assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
             assemblySupport.genWord(String.valueOf(className.length())); //length of the string in chars
             assemblySupport.genAscii(className); //string in ASCII
-            assemblySupport.genByte("0"); //null terminator
-            assemblySupport.genAlign(); //"2"
             this.out.print("\n");
         }
 
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
 
+
         //not sure how to visit here - we need the AST
         Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(root.getASTNode());
-
+        System.out.println(root.getASTNode().getMemberList());
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
             assemblySupport.genLabel(stringConstant.getValue());
             assemblySupport.genWord("1");
-            int strLength =  (int)Math.ceil((17+stringConstant.getKey().length())/4);
-            assemblySupport.genWord(String.valueOf(strLength*4)); //string length in bytes
+            assemblySupport.genWord(String.valueOf(getStringLength(stringConstant.getKey()))); //string length in bytes
             assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
             assemblySupport.genAscii(stringConstant.getValue());
             this.out.print("\n");
-
         }
 
     }
@@ -270,6 +272,7 @@ public class MipsCodeGenerator {
     private void generateDispatchTables() {
 
     }
+
 
 
 
