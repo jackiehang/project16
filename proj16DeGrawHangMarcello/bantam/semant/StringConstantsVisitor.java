@@ -32,7 +32,7 @@ public class StringConstantsVisitor extends Visitor {
      * @param ast an abstract syntax tree generated from Parser.parse()
      * @return the HashMap of string constants
      */
-    public Map<String,String> getStringConstants(Class_ ast) {
+    public Map<String,String> getStringConstants(Program ast) {
         stringConstantsMap = new HashMap<>();
 
         // traverse the abstract syntax tree

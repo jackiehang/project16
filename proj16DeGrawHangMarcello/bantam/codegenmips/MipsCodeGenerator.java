@@ -49,6 +49,7 @@ import java.util.*;
  * This class is incomplete and will need to be implemented by the student.
  */
 public class MipsCodeGenerator {
+    private Program pRoot;
 
     /**
      * Root of the class hierarchy tree
@@ -122,9 +123,9 @@ public class MipsCodeGenerator {
      * @param root    root of the class hierarchy tree
      * @param outFile filename of the assembly output file
      */
-    public void generate(ClassTreeNode root, String outFile) {
+    public void generate(ClassTreeNode root, String outFile, Program program) {
         this.root = root;
-
+        this.pRoot = program;
         // set up the PrintStream for writing the assembly file.
         try {
             this.out = new PrintStream(new FileOutputStream(outFile));
@@ -197,14 +198,14 @@ public class MipsCodeGenerator {
 
 
         //not sure how to visit here - we need the AST
-        Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(root.getASTNode());
+        Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(pRoot);
         System.out.println(root.getASTNode().getMemberList());
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
             assemblySupport.genLabel(stringConstant.getValue());
             assemblySupport.genWord("1");
             assemblySupport.genWord(String.valueOf(getStringLength(stringConstant.getKey()))); //string length in bytes
             assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
-            assemblySupport.genAscii(stringConstant.getValue());
+            assemblySupport.genAscii(stringConstant.getKey());
             this.out.print("\n");
         }
 
@@ -276,9 +277,6 @@ public class MipsCodeGenerator {
 
 
 
-
-
-
     public static void main(String[] args) {
         ErrorHandler errorHandler = new ErrorHandler();
         Parser parser = new Parser(errorHandler);
@@ -292,7 +290,7 @@ public class MipsCodeGenerator {
                 ClassTreeNode classTreeNode = analyzer.analyze(program);
                 System.out.println(" Semantic Analysis was successful.");
                 MipsCodeGenerator mipsCodeGenerator = new MipsCodeGenerator(errorHandler, false, false);
-                mipsCodeGenerator.generate(classTreeNode, inFile.replace(".btm", ".asm"));
+                mipsCodeGenerator.generate(classTreeNode, inFile.replace(".btm", ".asm"), program);
             } catch (CompilationException ex) {
                 System.out.println(" There were errors in Semantic Analysis:");
                 List<Error> errors = errorHandler.getErrorList();
