@@ -26,15 +26,12 @@
 
 package proj16DeGrawHangMarcello.bantam.codegenmips;
 
-import proj16DeGrawHangMarcello.bantam.ast.Program;
+import proj16DeGrawHangMarcello.bantam.ast.*;
 import proj16DeGrawHangMarcello.bantam.parser.Parser;
 import proj16DeGrawHangMarcello.bantam.semant.SemanticAnalyzer;
 import proj16DeGrawHangMarcello.bantam.semant.StringConstantsVisitor;
-import proj16DeGrawHangMarcello.bantam.util.ClassTreeNode;
-import proj16DeGrawHangMarcello.bantam.util.CompilationException;
+import proj16DeGrawHangMarcello.bantam.util.*;
 import proj16DeGrawHangMarcello.bantam.util.Error;
-import proj16DeGrawHangMarcello.bantam.util.ErrorHandler;
-import proj16DeGrawHangMarcello.bantam.visitor.Visitor;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -153,9 +150,7 @@ public class MipsCodeGenerator {
 
         generateObjectTemplates();
 
-        generateDispatchTables();
-
-
+        genDispatchTables();
 
     }
 
@@ -273,7 +268,6 @@ public class MipsCodeGenerator {
 
     /**
      * generates a template section for each object
-     *
      */
     private void generateObjectTemplates() {
 
@@ -307,16 +301,96 @@ public class MipsCodeGenerator {
             for (int i = 0; i < numFields; i++) {
                 this.assemblySupport.genWord("0");
             }
+
+            if (s.equals("TextIO")) genTextIOGlobals(keys);
+        }
+    }
+
+    /**
+     * generates the global dispatch labels in the TextIO_template section
+     * @param keys
+     */
+    private void genTextIOGlobals(Set<String> keys) {
+        System.out.println("TEXTIO");
+        this.out.println("\n");
+        // foreach key of classNameTable
+        for (String s : keys) {
+            System.out.println("GEN GLOBALLL");
+           this.assemblySupport.genGlobal(s+"_dispatch_table");
         }
     }
 
 
-    private void generateDispatchTables() {
+    /**
+     * generates a dispatch table for each object
+     */
+    private void genDispatchTables(){
 
+        Map classMap = this.root.getClassMap();
+        Set<String> keys = this.classNameTable.keySet();
+
+        List<String> methodNameList;
+
+        ClassTreeNode curNode;
+        LinkedHashMap<String, String> methodClassMap = new LinkedHashMap();
+        MemberList members;
+        String methodName;
+
+        String curName = "";
+        for (String s : keys) {
+
+            curNode =  (ClassTreeNode)classMap.get(s);
+
+            this.out.println("\n"+s+"_dispatch_table:");
+            while (curNode != null) {
+
+                curName = curNode.getName();
+
+                // get each one's methods & fields (Members)
+                members = curNode.getASTNode().getMemberList();
+
+                int numMems = members.getSize();
+
+                // loop backwards through the members to add them in the order declared in .btm file
+                for (int i = numMems-1; i >= 0; i--) {
+
+                    // get current member
+                    Member member = (Member)members.get(i);
+
+                    // if it's a method
+                    if (member instanceof Method) {
+                        methodName = ((Method) member).getName();   // save method name
+
+                        if (methodClassMap.containsKey(methodName)) {   // if method already declared
+                            methodClassMap.remove(methodName);  // remove existing declaration
+                            methodClassMap.put(methodName, s);  // add declaration
+                        }
+                        else {  // method is not already declared
+                            methodClassMap.put(methodName, curName);   // add new declaration
+                        }
+                    }
+                }
+                curNode = curNode.getParent();    // reset node
+            }
+
+            // save list of keys
+            methodNameList = new ArrayList();
+            methodNameList.addAll(methodClassMap.keySet());
+
+            // loop backwards through list of method keys to write in order declared in file
+            for (int i = methodNameList.size()-1; i >= 0; i--) {
+
+                methodName = methodNameList.get(i);
+                curName = methodClassMap.get(methodName);
+                this.assemblySupport.genWord(curName+"."+methodName); // pop & write value of stack
+            }
+            methodClassMap.clear();
+        }
     }
+
+
     private void generateTextSection() {
     }
-
     private void generateInItSubroutines() {
 
     }

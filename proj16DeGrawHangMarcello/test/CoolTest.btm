@@ -24,7 +24,7 @@ class Food{
 }
 
 class Dessert extends Food{
-    boolean edible = false;
+    //boolean edible = false;
     boolean sweet = true;
 
     boolean isSweet(){
