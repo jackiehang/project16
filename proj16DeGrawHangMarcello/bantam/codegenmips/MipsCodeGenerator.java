@@ -233,7 +233,6 @@ public class MipsCodeGenerator {
 
     }
 
-
     /**
      * Gets the class names from the classMap and matches them to appropriate indices.
      */
@@ -322,8 +321,6 @@ public class MipsCodeGenerator {
 
     }
 
-
-
     /**
      * generates a template section for each object
      */
@@ -369,15 +366,12 @@ public class MipsCodeGenerator {
      * @param keys
      */
     private void genTextIOGlobals(Set<String> keys) {
-        System.out.println("TEXTIO");
         this.out.println("\n");
         // foreach key of classNameTable
         for (String s : keys) {
-            System.out.println("GEN GLOBALLL");
            this.assemblySupport.genGlobal(s+"_dispatch_table");
         }
     }
-
 
     /**
      * generates a dispatch table for each object
