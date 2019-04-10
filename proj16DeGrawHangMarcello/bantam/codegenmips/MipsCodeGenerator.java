@@ -184,7 +184,7 @@ public class MipsCodeGenerator {
      * @param string string finding length of
      * @return
      */
-    private int getStringLength(String string){
+    private int getStringSize(String string){
         int length = 17 + string.length();
         double calc = Math.ceil((double)length/4);
         length = (int)calc * 4;
@@ -225,7 +225,7 @@ public class MipsCodeGenerator {
     private void genStrConstHelper(String label, String strConst){
         assemblySupport.genLabel(label);
         assemblySupport.genWord("1");
-        assemblySupport.genWord(String.valueOf(getStringLength(strConst))); //string length in bytes
+        assemblySupport.genWord(String.valueOf(getStringSize(strConst))); //string length in bytes
         assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
         assemblySupport.genWord(String.valueOf(strConst.length())); //length of the string in chars
         assemblySupport.genAscii(strConst);
@@ -234,7 +234,8 @@ public class MipsCodeGenerator {
     }
 
     /**
-     * Gets the class names from the classMap and matches them to appropriate indices.
+     * Gets the class names from the classMap
+     * and matches them to appropriate indices.
      */
     private void saveClassTableNames() {
         //get class names as a set
@@ -426,7 +427,7 @@ public class MipsCodeGenerator {
             }
 
             // save list of keys
-            methodNameList = new ArrayList();
+            methodNameList = new ArrayList<>();
             methodNameList.addAll(methodClassMap.keySet());
 
             // loop backwards through list of method keys to write in order declared in file
@@ -440,26 +441,13 @@ public class MipsCodeGenerator {
         }
     }
 
-
-    private void generateTextSection() {
-    }
-    private void generateInItSubroutines() {
-
-    }
-    private void generateUserMethods() {
-    }
-
-
-
-
-
     public static void main(String[] args) {
         ErrorHandler errorHandler = new ErrorHandler();
         Parser parser = new Parser(errorHandler);
         SemanticAnalyzer analyzer = new SemanticAnalyzer(errorHandler);
 
         for (String inFile : args) {
-            System.out.println("\n========== Semantic Analysis results for " + inFile + " =============");
+            System.out.println("\n========== MIPS Code Generation results for " + inFile + " =============");
             try {
                 errorHandler.clear();
                 Program program = parser.parse(inFile);
@@ -467,8 +455,9 @@ public class MipsCodeGenerator {
                 System.out.println(" Semantic Analysis was successful.");
                 MipsCodeGenerator mipsCodeGenerator = new MipsCodeGenerator(errorHandler, false, false);
                 mipsCodeGenerator.generate(classTreeNode, inFile.replace(".btm", ".asm"), program);
+                System.out.println(" Generation of "+ inFile.replace(".btm", ".asm") + " was successful.");
             } catch (CompilationException ex) {
-                System.out.println(" There were errors in Semantic Analysis:");
+                System.out.println(" There were errors in generation:");
                 List<Error> errors = errorHandler.getErrorList();
                 for (Error error : errors) {
                     System.out.println("\t" + error.toString());
