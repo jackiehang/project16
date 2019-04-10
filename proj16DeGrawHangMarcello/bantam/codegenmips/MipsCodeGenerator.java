@@ -186,13 +186,7 @@ public class MipsCodeGenerator {
         String classNames[] = classNameTable.keySet().toArray(new String[0]);
 
         for (String className : classNames) {
-            assemblySupport.genLabel("class_name_" + classNameTable.get(className)); //generates String Constant Label
-            assemblySupport.genWord("1"); //String Template's Index
-            assemblySupport.genWord(String.valueOf(getStringLength(className))); //string length in bytes
-            assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
-            assemblySupport.genWord(String.valueOf(className.length())); //length of the string in chars
-            assemblySupport.genAscii(className); //string in ASCII
-            this.out.print("\n");
+            genStrConstHelper("class_name_" + classNameTable.get(className),className);
         }
 
 
@@ -204,17 +198,23 @@ public class MipsCodeGenerator {
         System.out.println(root.getASTNode().getMemberList());
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
             String strConst= stringConstant.getKey().substring(1,stringConstant.getKey().length()-1);
-            assemblySupport.genLabel(label+counter);
-            assemblySupport.genWord("1");
-            assemblySupport.genWord(String.valueOf(getStringLength(strConst))); //string length in bytes
-            assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
-            assemblySupport.genWord(String.valueOf(stringConstant.getKey().length()-2)); //length of the string in chars
-            assemblySupport.genAscii(strConst);
-            this.out.print("\n");
+            genStrConstHelper(label+counter, strConst);
             counter++;
         }
 
     }
+
+    private void genStrConstHelper(String label, String strConst){
+        assemblySupport.genLabel(label);
+        assemblySupport.genWord("1");
+        assemblySupport.genWord(String.valueOf(getStringLength(strConst))); //string length in bytes
+        assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
+        assemblySupport.genWord(String.valueOf(strConst.length())); //length of the string in chars
+        assemblySupport.genAscii(strConst);
+        this.out.print("\n");
+
+    }
+
 
     /**
      * Gets the class names from the classMap and matches them to appropriate indices.
