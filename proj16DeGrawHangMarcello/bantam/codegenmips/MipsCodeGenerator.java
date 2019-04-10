@@ -34,7 +34,6 @@ import proj16DeGrawHangMarcello.bantam.util.ClassTreeNode;
 import proj16DeGrawHangMarcello.bantam.util.CompilationException;
 import proj16DeGrawHangMarcello.bantam.util.Error;
 import proj16DeGrawHangMarcello.bantam.util.ErrorHandler;
-import proj16DeGrawHangMarcello.bantam.visitor.Visitor;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -52,7 +51,7 @@ public class MipsCodeGenerator {
     /**
      * Root of the AST
      */
-    private Program pRoot;
+    private Program ast;
 
     /**
      * Root of the class hierarchy tree
@@ -128,7 +127,7 @@ public class MipsCodeGenerator {
      */
     public void generate(ClassTreeNode root, String outFile, Program program) {
         this.root = root;
-        this.pRoot = program;
+        this.ast = program;
         // set up the PrintStream for writing the assembly file.
         try {
             this.out = new PrintStream(new FileOutputStream(outFile));
@@ -157,6 +156,8 @@ public class MipsCodeGenerator {
         generateObjectTemplates();
 
         generateDispatchTables();
+
+
 
     }
 
@@ -189,17 +190,16 @@ public class MipsCodeGenerator {
             genStrConstHelper("class_name_" + classNameTable.get(className),className);
         }
 
+        //Filename
+        genStrConstHelper(assemblySupport.getLabel(), fileName);
 
+        //All string constants in the file
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
-        String label = "label";
-        int counter = 1;
-        //not sure how to visit here - we need the AST
-        Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(pRoot);
+        Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(ast);
         System.out.println(root.getASTNode().getMemberList());
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
             String strConst= stringConstant.getKey().substring(1,stringConstant.getKey().length()-1);
-            genStrConstHelper(label+counter, strConst);
-            counter++;
+            genStrConstHelper(assemblySupport.getLabel(), strConst);
         }
 
     }
