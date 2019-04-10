@@ -179,16 +179,26 @@ public class MasterController {
         );
     }
 
+    /**
+     * handler for the assembly of the MIPS program
+     */
     @FXML
     public void handleAssembly(Event e) {
         this.assemblyController.handleAssembly(e);
     }
 
+    /**
+     * handler for running the MIPS program
+     * @param e
+     */
     @FXML
     public void handleRunMips(Event e) {
         this.assemblyController.handleRunMips(e);
     }
 
+    /**
+     * handler to stop assembly
+     */
     @FXML
     public void handleStopAssembly() {
         this.assemblyController.handleStopAssembly();

@@ -213,7 +213,7 @@ public class ToolbarController {
     }
 
     /**
-     *
+     * executes compilation of the file if semantic analysis completes without errors
      */
     public void handleScanParseCheckCompile(boolean drawParseTree, boolean writeToConsole) {
         handleScanParseCheck(drawParseTree, writeToConsole);
@@ -269,6 +269,10 @@ public class ToolbarController {
 
     }
 
+    /**
+     * executes compilation of the program in a new thread
+     * @param writeToConsole
+     */
     public void handleCompile(boolean writeToConsole) {
 
         Thread compileThread = new Thread(() -> {
@@ -536,6 +540,10 @@ public class ToolbarController {
         }
     }
 
+    /**
+     * An inner class used to perform compilation in a separate thread
+     * Prints error info to the console
+     */
     private class CompileTask extends ActiveCompilationPhase implements Callable {
         @Override
         public Boolean call() {
