@@ -8,7 +8,6 @@
 
 package proj16DeGrawHangMarcello.bantam.semant;
 
-import proj16DeGrawHangMarcello.bantam.ast.Class_;
 import proj16DeGrawHangMarcello.bantam.ast.ConstStringExpr;
 import proj16DeGrawHangMarcello.bantam.ast.FormalList;
 import proj16DeGrawHangMarcello.bantam.ast.Program;

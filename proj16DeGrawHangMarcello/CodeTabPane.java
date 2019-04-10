@@ -3,6 +3,12 @@
  * Edited By: Zeb Keith-Hardy, Michael Li, Iris Lian, Kevin Zhou
  * Project 9
  * Date: November 20, 2018
+ *
+ * ---------------------------
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 16
+ * Date: April 11, 2019
+ *
  */
 
 package proj16DeGrawHangMarcello;
