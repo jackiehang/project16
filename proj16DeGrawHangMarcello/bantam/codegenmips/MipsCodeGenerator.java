@@ -191,7 +191,7 @@ public class MipsCodeGenerator {
         }
 
         //Filename
-        genStrConstHelper(assemblySupport.getLabel(), fileName);
+        genStrConstHelper(assemblySupport.getLabel(), fileName.replace(".asm", ".btm"));
 
         //All string constants in the file
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
