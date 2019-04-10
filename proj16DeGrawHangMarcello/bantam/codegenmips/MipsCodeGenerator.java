@@ -49,6 +49,9 @@ import java.util.*;
  * This class is incomplete and will need to be implemented by the student.
  */
 public class MipsCodeGenerator {
+    /**
+     * Root of the AST
+     */
     private Program pRoot;
 
     /**
@@ -147,15 +150,13 @@ public class MipsCodeGenerator {
 
         saveClassTableNames();
 
-        generateStringConstants();
+        generateStringConstants(outFile);
 
         generateClassTableNames();
 
         generateObjectTemplates();
 
         generateDispatchTables();
-
-
 
     }
 
@@ -181,7 +182,7 @@ public class MipsCodeGenerator {
      * Each one is in the format:
      *
      */
-    private void generateStringConstants() {
+    private void generateStringConstants(String fileName) {
         String classNames[] = classNameTable.keySet().toArray(new String[0]);
 
         for (String className : classNames) {
@@ -194,20 +195,23 @@ public class MipsCodeGenerator {
             this.out.print("\n");
         }
 
+
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
-
-
+        String label = "label";
+        int counter = 1;
         //not sure how to visit here - we need the AST
         Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(pRoot);
         System.out.println(root.getASTNode().getMemberList());
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
-            assemblySupport.genLabel(stringConstant.getValue());
+            String strConst= stringConstant.getKey().substring(1,stringConstant.getKey().length()-1);
+            assemblySupport.genLabel(label+counter);
             assemblySupport.genWord("1");
-            assemblySupport.genWord(String.valueOf(getStringLength(stringConstant.getKey()))); //string length in bytes
+            assemblySupport.genWord(String.valueOf(getStringLength(strConst))); //string length in bytes
             assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
-            assemblySupport.genWord(String.valueOf(stringConstant.getKey().length())); //length of the string in chars
-            assemblySupport.genAscii(stringConstant.getKey());
+            assemblySupport.genWord(String.valueOf(stringConstant.getKey().length()-2)); //length of the string in chars
+            assemblySupport.genAscii(strConst);
             this.out.print("\n");
+            counter++;
         }
 
     }
