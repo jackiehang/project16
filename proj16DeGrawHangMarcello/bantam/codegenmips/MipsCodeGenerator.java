@@ -280,7 +280,11 @@ public class MipsCodeGenerator {
             }
         }
 
-        //sorts the map of classes by their index
+        // sorts the map of classes by their value (index)
+        // first turns the entries of the map into a stream
+        // sorts the map by its values, in this case their type, i.e Object is 0
+        // turns the stream back into a map and stores it back in the field
+
         classNameTable = classNameTable.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(
                         Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
