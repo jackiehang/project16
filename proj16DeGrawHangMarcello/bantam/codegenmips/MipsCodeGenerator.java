@@ -149,8 +149,6 @@ public class MipsCodeGenerator {
         // generate garbage collecting flag section
         genGCSection(this.gc);
 
-        saveClassTableNames();
-
         generateStringConstants(outFile);
 
         generateClassTableNames();
@@ -167,31 +165,6 @@ public class MipsCodeGenerator {
 
     }
 
-    /**
-     * Generates a stub for text section
-     */
-    private void generateTextStub() {
-        String classNames[] = classNameTable.keySet().toArray(new String[0]);
-        this.out.print("\n");
-        for (String className : classNames) {
-            this.assemblySupport.genLabel(className+"_init");
-        }
-        this.out.print("\n");
-
-        //All string constants in the file
-        MethodVisitor methodVisitor = new MethodVisitor();
-        Map<String,ArrayList<String>> classMethodsMap = methodVisitor.getMethods(ast);
-
-
-        for (Map.Entry<String,ArrayList<String>> methodList : classMethodsMap.entrySet()) {
-            for(String methodName: methodList.getValue()){
-                assemblySupport.genLabel(methodList.getKey()+"."+methodName);
-            }
-        }
-
-        this.out.println("\njr $ra");
-
-    }
 
 
     /**
@@ -226,6 +199,8 @@ public class MipsCodeGenerator {
      *
      */
     private void generateStringConstants(String fileName) {
+        saveClassTableNames();
+
         String classNames[] = classNameTable.keySet().toArray(new String[0]);
 
         for (String className : classNames) {
@@ -268,7 +243,6 @@ public class MipsCodeGenerator {
     private void saveClassTableNames() {
         //get class names as a set
         String[] classNames = root.getClassMap().keySet().toArray(new String[0]);
-        //System.out.println(classNames.toString());
         int counter = 5;
         for(String cName: classNames){
             switch (cName) {
@@ -322,6 +296,33 @@ public class MipsCodeGenerator {
             this.assemblySupport.genGlobal(s+"_template");
         }
     }
+
+    /**
+     * Generates a stub for text section
+     */
+    private void generateTextStub() {
+        String classNames[] = classNameTable.keySet().toArray(new String[0]);
+        this.out.print("\n");
+        for (String className : classNames) {
+            this.assemblySupport.genLabel(className+"_init");
+        }
+        this.out.print("\n");
+
+        //All methods in the file
+        MethodVisitor methodVisitor = new MethodVisitor();
+        Map<String,ArrayList<String>> classMethodsMap = methodVisitor.getMethods(ast);
+
+
+        for (Map.Entry<String,ArrayList<String>> methodList : classMethodsMap.entrySet()) {
+            for(String methodName: methodList.getValue()){
+                assemblySupport.genLabel(methodList.getKey()+"."+methodName);
+            }
+        }
+
+        this.out.println("\njr $ra");
+
+    }
+
 
     private void generateObjectTemplates() {
 
