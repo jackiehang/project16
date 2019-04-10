@@ -205,6 +205,7 @@ public class MipsCodeGenerator {
             assemblySupport.genWord("1");
             assemblySupport.genWord(String.valueOf(getStringLength(stringConstant.getKey()))); //string length in bytes
             assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
+            assemblySupport.genWord(String.valueOf(stringConstant.getKey().length())); //length of the string in chars
             assemblySupport.genAscii(stringConstant.getKey());
             this.out.print("\n");
         }
