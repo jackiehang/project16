@@ -103,7 +103,7 @@ public class FileController {
     }
 
     /**
-     * Handler for the "Open" menu item in the "File" menu.
+     * Handler that opens a given file based on filename
      * Writes the requested file to a new Tab.
      * @param filename - file to open into a new Tab
      */

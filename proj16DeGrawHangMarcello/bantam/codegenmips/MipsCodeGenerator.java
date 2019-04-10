@@ -21,7 +21,15 @@
    THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS 
    OR IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE 
    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-   PARTICULAR PURPOSE. 
+   PARTICULAR PURPOSE.
+
+____________________________________________
+ * Edited by:
+ * Names: Lucas DeGraw, Jackie Hang, ChrisMarcello
+ * Class: CS 361
+ * Project 16
+ * Date: April 11, 2018
+
 */
 
 package proj16DeGrawHangMarcello.bantam.codegenmips;
