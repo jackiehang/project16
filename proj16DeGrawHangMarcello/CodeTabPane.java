@@ -70,7 +70,7 @@ public class CodeTabPane extends TabPane {
         // Make it the first tab and select it
         String filename = "Untitled-" + Integer.toString(this.getFileMapSize()+1);
         String content = "";
-        if (file != null){
+        if (file != null) {
             filename = file.getName();
             try {
                 Scanner scanner = new Scanner(file).useDelimiter("\\Z");

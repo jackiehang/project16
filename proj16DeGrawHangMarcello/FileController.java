@@ -102,6 +102,19 @@ public class FileController {
         this.codeTabPane.makeTabFromFile(file,true);
     }
 
+    /**
+     * Handler for the "Open" menu item in the "File" menu.
+     * Writes the requested file to a new Tab.
+     * @param filename - file to open into a new Tab
+     */
+    public void handleOpen(String filename) {
+        File file = new File(filename);
+        if (file == null) {
+            return;
+        }
+        this.codeTabPane.makeTabFromFile(file, true);
+    }
+
 
     /**
      * Creates a FileChooser to select a file

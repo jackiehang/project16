@@ -271,7 +271,7 @@ public class ToolbarController {
 
     public void handleCompile(boolean writeToConsole) {
 
-        new Thread(() -> {
+        Thread compileThread = new Thread(() -> {
 
             CompileTask compileTask = new CompileTask();
 
@@ -284,12 +284,19 @@ public class ToolbarController {
             try {
                 // get the root of the class hierarchy tree to be used for code generation
                 this.compileIsDone = curFutureTask.get();
-
             } catch (InterruptedException | ExecutionException e) {
                 Platform.runLater(() ->
                         this.console.writeToConsole("Compilation failed \n", "Error"));
             }
-        }).start();
+        });
+
+        compileThread.start();
+
+        try {
+            compileThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -326,7 +333,7 @@ public class ToolbarController {
     }
 
     /**
-     * Check if the parse task is still running.
+     * Check if the semantic analysis task is still running.
      *
      * @return true if this task is done, and false otherwise
      */
@@ -340,6 +347,16 @@ public class ToolbarController {
     public void setCheckNotDone() {
         this.checkIsDone = false;
     }
+
+    /**
+     * checks to see if compilation is done
+     */
+    public boolean compileIsDone() { return this.compileIsDone; }
+
+    /**
+     * sets that compilation has not been done
+     */
+    public void setCompileNotDone() { this.compileIsDone = false; }
 
     /**
      * A private inner class used to scan a file in a separate thread
@@ -532,8 +549,9 @@ public class ToolbarController {
                 if (this.writeToConsole) {
                     // if checking phase generated no errors, display a success message
                     Platform.runLater(() -> ToolbarController.this.console.writeToConsole(
-                            "Semantic Analysis Successful.\n", "Output"));
+                            "Generation of " + codeTabPane.getFileName().replace(".btm", ".asm") + " Successful.\n", "Output"));
                 }
+                return true;
             } catch (RuntimeException e) {
                 // if any exceptions were thrown during semantic analysis,
                 Platform.runLater(() -> {
@@ -565,9 +583,8 @@ public class ToolbarController {
                         }
                     }
                 });
+                return false;
             }
-            return true;
         }
     }
-
 }

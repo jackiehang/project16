@@ -574,6 +574,11 @@ public class MasterController {
      */
     public void handleCompile(){
         this.handleCompilationPhases("compile");
+        if (toolbarController.compileIsDone()) {
+            String asmFileName = codeTabPane.getFileName().replace(".btm", ".asm");
+            this.fileController.handleOpen(asmFileName);
+        }
+        toolbarController.setCompileNotDone();
     }
 
     /**
