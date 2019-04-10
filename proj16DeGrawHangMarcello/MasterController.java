@@ -25,6 +25,12 @@
  * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
  * Project 15
  * Date: March 21, 2019
+ *
+ * ---------------------------
+ * Edited By: Lucas DeGraw, Jackie Hang, Chris Marcello
+ * Project 16
+ * Date: April 11, 2019
+ *
  */
 
 package proj16DeGrawHangMarcello;
@@ -567,10 +573,8 @@ public class MasterController {
      * on the toolbar.
      */
     public void handleCompile(){
-        //TODO: This method!
+        this.handleCompilationPhases("compile");
     }
-
-
 
     /**
      * routes to compilation phase handler

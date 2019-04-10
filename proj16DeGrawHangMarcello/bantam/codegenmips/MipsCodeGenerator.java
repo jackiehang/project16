@@ -32,11 +32,13 @@ import proj16DeGrawHangMarcello.bantam.semant.SemanticAnalyzer;
 import proj16DeGrawHangMarcello.bantam.semant.StringConstantsVisitor;
 import proj16DeGrawHangMarcello.bantam.util.*;
 import proj16DeGrawHangMarcello.bantam.util.Error;
+import proj16DeGrawHangMarcello.bantam.util.ErrorHandler;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -46,7 +48,10 @@ import java.util.*;
  * This class is incomplete and will need to be implemented by the student.
  */
 public class MipsCodeGenerator {
-    private Program pRoot;
+    /**
+     * Root of the AST
+     */
+    private Program ast;
 
     /**
      * Root of the class hierarchy tree
@@ -122,7 +127,7 @@ public class MipsCodeGenerator {
      */
     public void generate(ClassTreeNode root, String outFile, Program program) {
         this.root = root;
-        this.pRoot = program;
+        this.ast = program;
         // set up the PrintStream for writing the assembly file.
         try {
             this.out = new PrintStream(new FileOutputStream(outFile));
@@ -138,21 +143,25 @@ public class MipsCodeGenerator {
 
         // begin generating data section
         this.assemblySupport.genDataStart();
+        this.out.print("\n");
 
         // generate garbage collecting flag section
         genGCSection(this.gc);
 
-        saveClassTableNames();
-
-        generateStringConstants();
+        generateStringConstants(outFile);
 
         generateClassTableNames();
 
         generateObjectTemplates();
 
-        genDispatchTables();
+        generateDispatchTables();
+        this.out.print("\n");
+
+        this.assemblySupport.genTextStart();
+        generateTextStub();
 
     }
+
 
 
     /**
@@ -161,10 +170,20 @@ public class MipsCodeGenerator {
      */
     private void genGCSection(boolean collecting) {
         int flag = collecting ? 1 : 0;
-        out.println("gc_flag");
-        out.println("\t.word:\t" + flag + "\n");
+        assemblySupport.genLabel("gc_flag");
+        assemblySupport.genWord(String.valueOf(flag));
+        this.out.print("\n");
+
     }
 
+    /**
+     * Calculates the string size in bytes
+     * 16 bytes +1 ascii + string length rounded
+     * up to closest 4 factor
+     *
+     * @param string string finding length of
+     * @return
+     */
     private int getStringLength(String string){
         int length = 17 + string.length();
         double calc = Math.ceil((double)length/4);
@@ -176,36 +195,44 @@ public class MipsCodeGenerator {
      * Each one is in the format:
      *
      */
-    private void generateStringConstants() {
+    private void generateStringConstants(String fileName) {
+        saveClassTableNames();
+
         String classNames[] = classNameTable.keySet().toArray(new String[0]);
 
         for (String className : classNames) {
-            assemblySupport.genLabel("class_name_" + classNameTable.get(className)); //generates String Constant Label
-            assemblySupport.genWord("1"); //String Template's Index
-            assemblySupport.genWord(String.valueOf(getStringLength(className))); //string length in bytes
-            assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
-            assemblySupport.genWord(String.valueOf(className.length())); //length of the string in chars
-            assemblySupport.genAscii(className); //string in ASCII
-            this.out.print("\n");
+            genStrConstHelper("class_name_" + classNameTable.get(className),className);
         }
 
+        //Filename
+        genStrConstHelper(assemblySupport.getLabel(), fileName.replace(".asm", ".btm"));
+
+        //All string constants in the file
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
-
-
-        //not sure how to visit here - we need the AST
-        Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(pRoot);
-        System.out.println(root.getASTNode().getMemberList());
+        Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(ast);
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
-            assemblySupport.genLabel(stringConstant.getValue());
-            assemblySupport.genWord("1");
-            assemblySupport.genWord(String.valueOf(getStringLength(stringConstant.getKey()))); //string length in bytes
-            assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
-            assemblySupport.genWord(String.valueOf(stringConstant.getKey().length())); //length of the string in chars
-            assemblySupport.genAscii(stringConstant.getKey());
-            this.out.print("\n");
+            String strConst= stringConstant.getKey().substring(1,stringConstant.getKey().length()-1);
+            genStrConstHelper(assemblySupport.getLabel(), strConst);
         }
 
     }
+
+    /**
+     * Used to help generate string constants
+     * @param label label for the string constant
+     * @param strConst string value
+     */
+    private void genStrConstHelper(String label, String strConst){
+        assemblySupport.genLabel(label);
+        assemblySupport.genWord("1");
+        assemblySupport.genWord(String.valueOf(getStringLength(strConst))); //string length in bytes
+        assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
+        assemblySupport.genWord(String.valueOf(strConst.length())); //length of the string in chars
+        assemblySupport.genAscii(strConst);
+        this.out.print("\n");
+
+    }
+
 
     /**
      * Gets the class names from the classMap and matches them to appropriate indices.
@@ -213,35 +240,39 @@ public class MipsCodeGenerator {
     private void saveClassTableNames() {
         //get class names as a set
         String[] classNames = root.getClassMap().keySet().toArray(new String[0]);
-        //System.out.println(classNames.toString());
         int counter = 5;
         for(String cName: classNames){
-            switch (cName){
+            switch (cName) {
                 case "Object":
                     classNameTable.put("Object", 0);
                     break;
                 case "String":
-                    classNameTable.put("String",1);
+                    classNameTable.put("String", 1);
                     break;
 
                 case "Sys":
-                    classNameTable.put("Sys",2);
+                    classNameTable.put("Sys", 2);
                     break;
 
                 case "Main":
-                    classNameTable.put("Main",3);
+                    classNameTable.put("Main", 3);
                     break;
 
                 case "TextIO":
-                    classNameTable.put("TextIO",4);
+                    classNameTable.put("TextIO", 4);
                     break;
 
-                    default:
-                    classNameTable.put(cName,counter);
-                    counter ++;
+                default:
+                    classNameTable.put(cName, counter);
+                    counter++;
                     break;
-                }
+            }
         }
+
+        //sorts the map of classes by their index
+        classNameTable = classNameTable.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(
+                        Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
 
     /**
@@ -264,6 +295,33 @@ public class MipsCodeGenerator {
             this.assemblySupport.genGlobal(s+"_template");
         }
     }
+
+    /**
+     * Generates a stub for text section
+     */
+    private void generateTextStub() {
+        String classNames[] = classNameTable.keySet().toArray(new String[0]);
+        this.out.print("\n");
+        for (String className : classNames) {
+            this.assemblySupport.genLabel(className+"_init");
+        }
+        this.out.print("\n");
+
+        //All methods in the file
+        MethodVisitor methodVisitor = new MethodVisitor();
+        Map<String,ArrayList<String>> classMethodsMap = methodVisitor.getMethods(ast);
+
+
+        for (Map.Entry<String,ArrayList<String>> methodList : classMethodsMap.entrySet()) {
+            for(String methodName: methodList.getValue()){
+                assemblySupport.genLabel(methodList.getKey()+"."+methodName);
+            }
+        }
+
+        this.out.println("\njr $ra");
+
+    }
+
 
 
     /**
@@ -324,7 +382,7 @@ public class MipsCodeGenerator {
     /**
      * generates a dispatch table for each object
      */
-    private void genDispatchTables(){
+    private void generateDispatchTables(){
 
         Map classMap = this.root.getClassMap();
         Set<String> keys = this.classNameTable.keySet();
