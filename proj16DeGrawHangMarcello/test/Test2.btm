@@ -1,0 +1,14 @@
+class Main {
+    int x;
+    int y;
+    int foo(int x) { return 0; }
+    boolean equals(Object o) { return true; }
+    String toString() { return "Main"; }
+    void main() {}
+}
+class SubMain extends Main {
+    String y;
+    int z;
+    int foo(int x) { return 1; }
+    boolean equals(Object o) { return false; }
+}
