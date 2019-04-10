@@ -35,6 +35,7 @@ package proj16DeGrawHangMarcello;
 
 import javafx.application.Platform;
 import proj16DeGrawHangMarcello.bantam.ast.Program;
+import proj16DeGrawHangMarcello.bantam.codegenmips.MipsCodeGenerator;
 import proj16DeGrawHangMarcello.bantam.semant.*;
 import proj16DeGrawHangMarcello.bantam.treedrawer.Drawer;
 import proj16DeGrawHangMarcello.bantam.util.ClassTreeNode;
@@ -64,10 +65,12 @@ public class ToolbarController {
     private boolean scanIsDone;
     private boolean parseIsDone;
     private boolean checkIsDone;
+    private boolean compileIsDone;
     private Console console;
     private CodeTabPane codeTabPane;
     private Program AST;
     private SemanticAnalyzer checker;
+    private ClassTreeNode root;
 
     /**
      * This is the constructor of ToolbarController.
@@ -81,6 +84,7 @@ public class ToolbarController {
         this.scanIsDone = true;
         this.parseIsDone = true;
         this.checkIsDone = false;
+        this.compileIsDone = false;
     }
 
     /**
@@ -101,6 +105,9 @@ public class ToolbarController {
             case "scanParseCheck":
                 this.handleScanParseCheck(true, true);
                 break;
+            case "compile":
+                this.handleScanParseCheckCompile(false, true);
+                break;
             default:
                 System.out.println("ERROR: UNKNOWN COMPILATION PHASES");
         }
@@ -114,7 +121,7 @@ public class ToolbarController {
         //declare a new thread and assign it with the work of scanning the current tab
         new Thread(() -> {
             ScanTask scanTask = new ScanTask();
-            FutureTask<String> curFutureTask = new FutureTask<>(scanTask);
+            FutureTask<String> curFutureTask = new FutureTask<String>(scanTask);
             ExecutorService curExecutor = Executors.newFixedThreadPool(1);
             curExecutor.execute(curFutureTask);
         }).start();
@@ -203,6 +210,21 @@ public class ToolbarController {
 
         // check the program once parsing is finished
         handleSemanticAnalysis(writeToConsole);
+    }
+
+    /**
+     *
+     */
+    public void handleScanParseCheckCompile(boolean drawParseTree, boolean writeToConsole) {
+        handleScanParseCheck(drawParseTree, writeToConsole);
+
+        if (!this.checkIsDone() || root == null) {
+            System.out.println("Cannot Compile before Semantic Analysis successfully completed");
+            return;
+        }
+
+        handleCompile(writeToConsole);
+
 
     }
 
@@ -211,9 +233,8 @@ public class ToolbarController {
      */
     public void handleSemanticAnalysis(boolean writeToConsole) {
 
-
         // begin the semantic analysis phase in a new thread
-        new Thread(() -> {
+        Thread analyzeThread = new Thread(() -> {
 
             // create and begin semantic analysis task
             CheckTask checkTask = new CheckTask();
@@ -227,16 +248,48 @@ public class ToolbarController {
 
             try {
                 // get the root of the class hierarchy tree to be used for code generation
-                ClassTreeNode root = curFutureTask.get();
+                root = curFutureTask.get();
                 this.checkIsDone = true;
 
             } catch (InterruptedException | ExecutionException e) {
                 Platform.runLater(() ->
                         this.console.writeToConsole("Semantic Analysis failed \n", "Error"));
             }
+        });
+
+        // begin the thread
+        analyzeThread.start();
+
+        // wait for the thread to die
+        try {
+            analyzeThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void handleCompile(boolean writeToConsole) {
+
+        new Thread(() -> {
+
+            CompileTask compileTask = new CompileTask();
+
+            compileTask.setWriteToConsole(writeToConsole);
+
+            FutureTask<Boolean> curFutureTask = new FutureTask<Boolean>(compileTask);
+            ExecutorService curExecutor = Executors.newFixedThreadPool(1);
+            curExecutor.execute(curFutureTask);
+
+            try {
+                // get the root of the class hierarchy tree to be used for code generation
+                this.compileIsDone = curFutureTask.get();
+
+            } catch (InterruptedException | ExecutionException e) {
+                Platform.runLater(() ->
+                        this.console.writeToConsole("Compilation failed \n", "Error"));
+            }
         }).start();
-
-
     }
 
     /**
@@ -270,6 +323,15 @@ public class ToolbarController {
      */
     public boolean parseIsDone() {
         return this.parseIsDone;
+    }
+
+    /**
+     * Check if the parse task is still running.
+     *
+     * @return true if this task is done, and false otherwise
+     */
+    public boolean checkIsDone() {
+        return this.checkIsDone;
     }
 
     /**
@@ -454,6 +516,57 @@ public class ToolbarController {
                 });
             }
             return root;
+        }
+    }
+
+    private class CompileTask extends ActiveCompilationPhase implements Callable {
+        @Override
+        public Boolean call() {
+            // create an error handler
+            ErrorHandler errorHandler = new ErrorHandler();
+
+            MipsCodeGenerator mipsCodeGenerator = new MipsCodeGenerator(errorHandler, false, false);
+
+            try {
+                mipsCodeGenerator.generate(root, codeTabPane.getFileName().replace(".btm", ".asm"), AST);
+                if (this.writeToConsole) {
+                    // if checking phase generated no errors, display a success message
+                    Platform.runLater(() -> ToolbarController.this.console.writeToConsole(
+                            "Semantic Analysis Successful.\n", "Output"));
+                }
+            } catch (RuntimeException e) {
+                // if any exceptions were thrown during semantic analysis,
+                Platform.runLater(() -> {
+
+                    // display each individual error in the console
+                    if (errorHandler.errorsFound()) {
+
+                        List<Error> errorList = errorHandler.getErrorList();
+
+                        // tell code area to actively display errors
+                        ((JavaCodeArea) codeTabPane.getCodeArea()).setRealTimeErrors(errorList);
+
+                        if (this.writeToConsole) {
+
+                            // display error message in the console
+                            ToolbarController.this.console.writeToConsole("Compilation Failed\n", "Error");
+
+                            // display num errors in the console
+                            ToolbarController.this.console.writeToConsole("There were: " +
+                                    errorHandler.getErrorList().size() + " errors in " +
+                                    ToolbarController.this.codeTabPane.getFileName() + "\n", "Output");
+
+                            Iterator<Error> errorIterator = errorList.iterator();
+                            ToolbarController.this.console.writeToConsole("\n", "Error");
+                            while (errorIterator.hasNext()) {
+                                ToolbarController.this.console.writeToConsole(errorIterator.next().toString() +
+                                        "\n", "Error");
+                            }
+                        }
+                    }
+                });
+            }
+            return true;
         }
     }
 

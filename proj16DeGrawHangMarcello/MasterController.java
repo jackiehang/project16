@@ -567,10 +567,8 @@ public class MasterController {
      * on the toolbar.
      */
     public void handleCompile(){
-        //TODO: This method!
+        this.handleCompilationPhases("compile");
     }
-
-
 
     /**
      * routes to compilation phase handler

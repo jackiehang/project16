@@ -196,7 +196,7 @@ public class MipsCodeGenerator {
         //All string constants in the file
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
         Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(ast);
-        System.out.println(root.getASTNode().getMemberList());
+        //System.out.println(root.getASTNode().getMemberList());
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
             String strConst= stringConstant.getKey().substring(1,stringConstant.getKey().length()-1);
             genStrConstHelper(assemblySupport.getLabel(), strConst);
