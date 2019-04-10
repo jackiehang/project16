@@ -193,8 +193,6 @@ public class MipsCodeGenerator extends Visitor
             assemblySupport.genWord("String_dispatch_table"); //link to string dispatch table
             assemblySupport.genWord(String.valueOf(className.length())); //length of the string in chars
             assemblySupport.genAscii(className); //string in ASCII
-            assemblySupport.genByte("0"); //null terminator
-            assemblySupport.genAlign(); //"2"
             out.print("\n");
         }
 
@@ -251,39 +249,73 @@ public class MipsCodeGenerator extends Visitor
      * generates the class_name_table
      */
     private void generateClassTableNames() {
-
         this.out.println("class_name_table");
         // get keys list
         Set<String> keys = this.classNameTable.keySet();
         // loop through length of keys to build field fields
 
-         for (int i = 0; i < keys.size(); i++) {
-             this.assemblySupport.genWord("class_name_"+i);
-         }
+        // loop through keys to build the .word lines
+        for (int i = 0; i < keys.size(); i++) {
+            this.assemblySupport.genWord("class_name_"+i);
+        }
+
         // loop through keys to build .globl lines
         for (String s : keys) {
             this.assemblySupport.genGlobal(s+"_template");
         }
     }
 
+
+    /**
+     * generates a template section for each object
+     *
+     */
     private void generateObjectTemplates() {
 
+        Map classMap = this.root.getClassMap();
+        Set<String> keys = this.classNameTable.keySet();
+
+        // initialize vars that will change for each class in the loop
+        ClassTreeNode curClassNode;
+        int numVars;
+        int numTables;
+        int numFields;
+        int classID;
+
+        // foreach key of classNameTable
+        for (String s : keys) {
+
+            this.out.println("\n" + s + "_template:");    // write template classname
+
+            curClassNode = (ClassTreeNode) classMap.get(s); // get the ClassTreeNode
+            numVars = curClassNode.getVarSymbolTable().getSize(); // get # entries in symbol table(s)
+            numTables = curClassNode.getVarSymbolTable().getCurrScopeLevel(); // get # symbol tables
+            numFields = numVars - 2 * numTables; // # fields = # entires - 2 * # STs
+            classID = this.classNameTable.get(s);
+
+            // write first 3 lines of object template
+            this.assemblySupport.genWord(String.valueOf(classID)); // write saved identifier
+            this.assemblySupport.genWord(String.valueOf(12 + 4*numFields)); // write object size
+            this.assemblySupport.genWord(s + "_dispatch_table"); // write name_dispatch_table
+
+            // generate a word for each field
+            for (int i = 0; i < numFields; i++) {
+                this.assemblySupport.genWord("0");
+            }
+        }
     }
+
+
     private void generateDispatchTables() {
 
     }
     private void generateTextSection() {
     }
-
     private void generateInItSubroutines() {
 
     }
     private void generateUserMethods() {
     }
-
-
-
-
 
     public static void main(String[] args) {
         ErrorHandler errorHandler = new ErrorHandler();
