@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -143,6 +144,7 @@ public class MipsCodeGenerator {
 
         // begin generating data section
         this.assemblySupport.genDataStart();
+        this.out.print("\n");
 
         // generate garbage collecting flag section
         genGCSection(this.gc);
@@ -156,8 +158,38 @@ public class MipsCodeGenerator {
         generateObjectTemplates();
 
         generateDispatchTables();
+        this.out.print("\n");
+
+        this.assemblySupport.genTextStart();
+        generateTextStub();
 
 
+
+    }
+
+    /**
+     * Generates a stub for text section
+     */
+    private void generateTextStub() {
+        String classNames[] = classNameTable.keySet().toArray(new String[0]);
+        this.out.print("\n");
+        for (String className : classNames) {
+            this.assemblySupport.genLabel(className+"_init");
+        }
+        this.out.print("\n");
+
+        //All string constants in the file
+        MethodVisitor methodVisitor = new MethodVisitor();
+        Map<String,ArrayList<String>> classMethodsMap = methodVisitor.getMethods(ast);
+
+
+        for (Map.Entry<String,ArrayList<String>> methodList : classMethodsMap.entrySet()) {
+            for(String methodName: methodList.getValue()){
+                assemblySupport.genLabel(methodList.getKey()+"."+methodName);
+            }
+        }
+
+        this.out.println("\njr $ra");
 
     }
 
@@ -168,10 +200,20 @@ public class MipsCodeGenerator {
      */
     private void genGCSection(boolean collecting) {
         int flag = collecting ? 1 : 0;
-        out.println("gc_flag");
-        out.println("\t.word:\t" + flag + "\n");
+        assemblySupport.genLabel("gc_flag");
+        assemblySupport.genWord(String.valueOf(flag));
+        this.out.print("\n");
+
     }
 
+    /**
+     * Calculates the string size in bytes
+     * 16 bytes +1 ascii + string length rounded
+     * up to closest 4 factor
+     *
+     * @param string string finding length of
+     * @return
+     */
     private int getStringLength(String string){
         int length = 17 + string.length();
         double calc = Math.ceil((double)length/4);
@@ -196,7 +238,6 @@ public class MipsCodeGenerator {
         //All string constants in the file
         StringConstantsVisitor stringConstantsVisitor = new StringConstantsVisitor();
         Map<String,String> stringConstantsMap = stringConstantsVisitor.getStringConstants(ast);
-        //System.out.println(root.getASTNode().getMemberList());
         for (Map.Entry<String,String> stringConstant : stringConstantsMap.entrySet()) {
             String strConst= stringConstant.getKey().substring(1,stringConstant.getKey().length()-1);
             genStrConstHelper(assemblySupport.getLabel(), strConst);
@@ -204,6 +245,11 @@ public class MipsCodeGenerator {
 
     }
 
+    /**
+     * Used to help generate string constants
+     * @param label label for the string constant
+     * @param strConst string value
+     */
     private void genStrConstHelper(String label, String strConst){
         assemblySupport.genLabel(label);
         assemblySupport.genWord("1");
@@ -225,32 +271,37 @@ public class MipsCodeGenerator {
         //System.out.println(classNames.toString());
         int counter = 5;
         for(String cName: classNames){
-            switch (cName){
+            switch (cName) {
                 case "Object":
                     classNameTable.put("Object", 0);
                     break;
                 case "String":
-                    classNameTable.put("String",1);
+                    classNameTable.put("String", 1);
                     break;
 
                 case "Sys":
-                    classNameTable.put("Sys",2);
+                    classNameTable.put("Sys", 2);
                     break;
 
                 case "Main":
-                    classNameTable.put("Main",3);
+                    classNameTable.put("Main", 3);
                     break;
 
                 case "TextIO":
-                    classNameTable.put("TextIO",4);
+                    classNameTable.put("TextIO", 4);
                     break;
 
-                    default:
-                    classNameTable.put(cName,counter);
-                    counter ++;
+                default:
+                    classNameTable.put(cName, counter);
+                    counter++;
                     break;
-                }
+            }
         }
+
+        //sorts the map of classes by their index
+        classNameTable = classNameTable.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(
+                        Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
 
     /**
