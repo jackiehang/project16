@@ -92,6 +92,7 @@ public class MipsCodeGenerator {
      * maps identifier index to classname string
      */
     private Map<String, Integer> classNameTable = new HashMap();
+    private Set<String> classNames;
 
 
     /**
@@ -143,14 +144,19 @@ public class MipsCodeGenerator {
 
         // begin generating data section
         this.assemblySupport.genDataStart();
-        this.out.print("\n");
+
+        makeClassnameIdentifierMap();
+
+        this.classNames = this.classNameTable.keySet(); // set ordered list of class names
+
+        genGlobals();
 
         // generate garbage collecting flag section
-        genGCSection(this.gc);
+        generateGCSection(this.gc);
 
         generateStringConstants(outFile);
 
-        generateClassTableNames();
+        generateClassNameTable();
 
         generateObjectTemplates();
 
@@ -162,18 +168,15 @@ public class MipsCodeGenerator {
 
     }
 
-
-
     /**
      * Generate the code for the gc_flag (garbage collection) section
      * @param collecting
      */
-    private void genGCSection(boolean collecting) {
+    private void generateGCSection(boolean collecting) {
         int flag = collecting ? 1 : 0;
         assemblySupport.genLabel("gc_flag");
         assemblySupport.genWord(String.valueOf(flag));
         this.out.print("\n");
-
     }
 
     /**
@@ -190,17 +193,15 @@ public class MipsCodeGenerator {
         length = (int)calc * 4;
         return length;
     }
+
     /**
      * Generates the String Constants in the Data Section of the assembly file.
      * Each one is in the format:
      *
      */
     private void generateStringConstants(String fileName) {
-        saveClassTableNames();
 
-        String classNames[] = classNameTable.keySet().toArray(new String[0]);
-
-        for (String className : classNames) {
+        for (String className : this.classNames) {
             genStrConstHelper("class_name_" + classNameTable.get(className),className);
         }
 
@@ -237,11 +238,13 @@ public class MipsCodeGenerator {
      * Gets the class names from the classMap
      * and matches them to appropriate indices.
      */
-    private void saveClassTableNames() {
+    private void makeClassnameIdentifierMap() {
+
         //get class names as a set
-        String[] classNames = root.getClassMap().keySet().toArray(new String[0]);
+        Set<String> unorderedNames = root.getClassMap().keySet();
+
         int counter = 5;
-        for(String cName: classNames){
+        for(String cName: unorderedNames){
             switch (cName) {
                 case "Object":
                     classNameTable.put("Object", 0);
@@ -273,36 +276,31 @@ public class MipsCodeGenerator {
         classNameTable = classNameTable.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(
                         Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+
+
     }
 
     /**
      * generates the class_name_table
      */
-    private void generateClassTableNames() {
+    private void generateClassNameTable() {
 
-        this.out.println("class_name_table:");
-        // get keys list
-        Set<String> keys = this.classNameTable.keySet();
-        // loop through length of keys to build field fields
+        this.assemblySupport.genLabel("class_name_table");
 
         // loop through keys to build the .word lines
-        for (int i = 0; i < keys.size(); i++) {
+        for (int i = 0; i < this.classNames.size(); i++) {
             this.assemblySupport.genWord("class_name_"+i);
         }
 
-        // loop through keys to build .globl lines
-        for (String s : keys) {
-            this.assemblySupport.genGlobal(s+"_template");
-        }
     }
 
     /**
      * Generates a stub for text section
      */
     private void generateTextStub() {
-        String classNames[] = classNameTable.keySet().toArray(new String[0]);
+
         this.out.print("\n");
-        for (String className : classNames) {
+        for (String className : this.classNames) {
             this.assemblySupport.genLabel(className+"_init");
         }
         this.out.print("\n");
@@ -328,7 +326,6 @@ public class MipsCodeGenerator {
     private void generateObjectTemplates() {
 
         Map classMap = this.root.getClassMap();
-        Set<String> keys = this.classNameTable.keySet();
 
         // initialize vars that will change for each class in the loop
         ClassTreeNode curClassNode;
@@ -338,14 +335,14 @@ public class MipsCodeGenerator {
         int classID;
 
         // foreach key of classNameTable
-        for (String s : keys) {
+        for (String s : this.classNames) {
 
-            this.out.println("\n" + s + "_template:");    // write template classname
+            this.assemblySupport.genLabel("\n"+s+"_template");
 
             curClassNode = (ClassTreeNode) classMap.get(s); // get the ClassTreeNode
             numVars = curClassNode.getVarSymbolTable().getSize(); // get # entries in symbol table(s)
             numTables = curClassNode.getVarSymbolTable().getCurrScopeLevel(); // get # symbol tables
-            numFields = numVars - 2 * numTables; // # fields = # entires - 2 * # STs
+            numFields = numVars - 2 * numTables; // # fields = # entries - 2 * # STs
             classID = this.classNameTable.get(s);
 
             // write first 3 lines of object template
@@ -358,20 +355,21 @@ public class MipsCodeGenerator {
                 this.assemblySupport.genWord("0");
             }
 
-            if (s.equals("TextIO")) genTextIOGlobals(keys);
         }
     }
 
     /**
      * generates the global dispatch labels in the TextIO_template section
-     * @param keys
      */
-    private void genTextIOGlobals(Set<String> keys) {
-        this.out.println("\n");
+    private void genGlobals() {
+
         // foreach key of classNameTable
-        for (String s : keys) {
-           this.assemblySupport.genGlobal(s+"_dispatch_table");
+        for (String s : this.classNames) {
+            this.assemblySupport.genGlobal(s+"_template");
+            this.assemblySupport.genGlobal(s+"_dispatch_table");
         }
+
+        this.out.println("\n");
     }
 
     /**
@@ -380,7 +378,6 @@ public class MipsCodeGenerator {
     private void generateDispatchTables(){
 
         Map classMap = this.root.getClassMap();
-        Set<String> keys = this.classNameTable.keySet();
 
         List<String> methodNameList;
 
@@ -390,11 +387,11 @@ public class MipsCodeGenerator {
         String methodName;
 
         String curName = "";
-        for (String s : keys) {
+        for (String s : this.classNames) {
 
             curNode =  (ClassTreeNode)classMap.get(s);
 
-            this.out.println("\n"+s+"_dispatch_table:");
+            this.assemblySupport.genLabel("\n"+s+"_dispatch_table");
             while (curNode != null) {
 
                 curName = curNode.getName();
