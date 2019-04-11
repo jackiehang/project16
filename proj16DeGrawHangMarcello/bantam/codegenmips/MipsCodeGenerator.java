@@ -193,7 +193,7 @@ public class MipsCodeGenerator {
      * up to closest 4 factor
      *
      * @param string string finding length of
-     * @return
+     * @return the rounded total byte size of the string
      */
     private int getStringSize(String string){
         int length = 17 + string.length();
