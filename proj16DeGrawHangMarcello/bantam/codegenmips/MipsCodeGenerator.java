@@ -259,6 +259,7 @@ public class MipsCodeGenerator {
      */
     private void generateStringConstants(String fileName) {
 
+        //Class names
         for (String className : this.classNames) {
             genStrConstHelper("class_name_" + classNameTable.get(className),className);
         }
