@@ -254,8 +254,7 @@ public class MipsCodeGenerator {
 
     /**
      * Generates the String Constants in the Data Section of the assembly file.
-     * Each one is in the format:
-     *
+     * Uses the generateStringConstant helper method for formatting of each individual section
      */
     private void generateStringConstants(String fileName) {
 
@@ -294,6 +293,15 @@ public class MipsCodeGenerator {
 
     /**
      * Used to help generate string constants
+     *
+     * Format:
+     * Label
+     * String Class ID
+     * String Length in Bytes (see getStringSize)
+     * String Dispatch Table Pointer
+     * String Length in Chars
+     * String in ASCII characters
+     *
      * @param label label for the string constant
      * @param strConst string value
      */
